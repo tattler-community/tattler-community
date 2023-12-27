@@ -1,0 +1,1 @@
+#{{vdelta|humanize('naturaldelta')}} #{{vdelta|humanize}} #{{vtime|humanize('naturaltime')}} #{{vtime|humanize}} #{{vint|humanize('intword')}} #{{vint|humanize}} #{{vdate|humanize('naturaldate')}} #{{vdate|humanize}}

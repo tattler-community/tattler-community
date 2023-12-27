@@ -1,0 +1,14 @@
+{% block content %}{% endblock %}{% block signature %} 
+Cheers
+Your notication service
+{% endblock %}
+
+
+{% block footer %}
+{% if notification_id %}
+This is notification #{{notification_id}}.{% endif %}
+
+--
+Follow us @ http://x.com/{% endblock %}{% block optout %}
+
+{% endblock %}

@@ -1,0 +1,118 @@
+Configuration
+=============
+
+``tattler_server`` is configured via environment variables.
+
+
+.. _configuration_template_base:
+
+TATTLER_TEMPLATE_BASE
+---------------------
+
+The path where tattler should find :ref:`notification events <keyconcepts_notification_events>`, or more specifically notification
+scopes which then include templates for notification events.
+
+
+LOG_LEVEL
+---------
+
+Only log events with a severity equal or higher than this.
+
+Supported values: ``debug``, ``info``, ``warning``, ``error``.
+
+
+TATTLER_MASTER_MODE
+-------------------
+
+"Master" mode to operate with. This mode limits the mode requested in every incoming notification request.
+
+See :ref:`notification modes <keyconcepts:notification mode>`.
+
+
+TATTLER_SUPERVISOR_RECIPIENT_*
+------------------------------
+
+Recipient address to copy notifications to when sent in ``staging`` :ref:`notification mode <keyconcepts:notification mode>`.
+
+Notifications are sent to the actual recipient, and *copied* to the supervisor recipient.
+
+This variable should be set for every desired vector:
+
+* TATTLER_SUPERVISOR_RECIPIENT_EMAIL
+* TATTLER_SUPERVISOR_RECIPIENT_SMS
+
+
+TATTLER_DEBUG_RECIPIENT_*
+-------------------------
+
+Recipient address to send notifications to when sent in ``debug`` :ref:`notification mode <keyconcepts:notification mode>`.
+
+This variable should be set for every desired vector:
+
+* TATTLER_DEBUG_RECIPIENT_EMAIL
+* TATTLER_DEBUG_RECIPIENT_SMS
+
+
+TATTLER_BLACKLIST_PATH
+----------------------
+
+Path to a file to be used to store blacklist.
+
+This file is read-only for tattler. Tattler looks up content anew at every delivery attempt.
+
+If the file is missing, inaccessible or unreadable, the entry is considered valid (not blacklisted).
+
+This is a text file containing one blacklisted entry per line. Entries of different
+:ref:`vectors <keyconcepts:notification vectors>` can be mixed in one same blacklist file.
+
+
+TATTLER_BULKSMS_TOKEN
+---------------------
+
+The token to use to deliver SMS notifications via `BulkSMS.com <https://www.bulksms.com>`_ .
+
+The token is formatted as a pair of (user_id, secret) separated by a colon, i.e. ``user_id:secret``.
+
+
+TATTLER_SMTP_ADDRESS
+--------------------
+
+The IP address (IPv4 or IPv6) and port number of the host to use for SMTP delivery, formatted as ``ip_address:port_number``.
+
+
+TATTLER_SMTP_TLS
+----------------
+
+Set to any non-empty value to cause SMTP delivery to occur over a STARTTLS session.
+
+
+TATTLER_SMTP_AUTH
+-----------------
+
+Credentials for SMTP AUTH, if the `TATTLER_SMTP_ADDRESS`_ requires one.
+
+Set to a (username, password) pair, divided by a colon, like ``my@email.com:My_PassWord``.
+
+
+TATTLER_PLUGIN_PATH
+-------------------
+
+Path where tattler should search for available plug-ins.
+
+
+TATTLER_LISTEN_ADDRESS
+----------------------
+
+IP address and port number to listen on for requests from clients.
+
+Nota bene: hostnames are not supported.
+
+Default: ``127.0.0.1:11503``
+
+
+TATTLER_TEMPLATE_TYPE
+---------------------
+
+Name of the template processor to use.
+
+Default: ``jinja``

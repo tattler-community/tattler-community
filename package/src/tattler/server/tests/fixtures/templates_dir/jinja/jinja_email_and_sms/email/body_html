@@ -1,0 +1,5 @@
+{% extends base_template %}
+
+HTML text
+
+{% block extra %}new HTML{% endblock %}

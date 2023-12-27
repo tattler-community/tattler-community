@@ -1,0 +1,182 @@
+openapi: 3.0.0
+info:
+  title: "Tattler API"
+  description: This API allows sending notifications. It operates with UserIDs, where the server takes care of locating the concrete addresses (e-mail, mobile number, telegram handle...) available for each recipient.
+  version: 0.1.0
+  termsOfService: "https://www.buddyns.com/terms-of-use/"
+  contact:
+    email: "support@buddyns.com"
+
+servers:
+  - url: https://tattler.dev/api/v2
+    description: Notification server
+
+paths:
+  /notification/:
+    get:
+      summary: List scopes available
+      description: Return the list of scope names known
+      operationId: get_scopes
+      responses:
+        200:
+          description: List of scope names
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameList"
+  /notification/{scope}/:
+    get:
+      summary: List events available in scope
+      description: Return the list of event names that are available in scope
+      operationId: get_scope_events
+      parameters:
+      - in: path
+        name: scope
+        description: Scope of notification
+        required: true
+        schema:
+          type: string
+          example: buddyup
+      responses:
+        200:
+          description: List of event names
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameList"
+        400:
+          description: Requested scope not provided, valid or existent
+  /notification/{scope}/{event_name}/vectors/:
+    get:
+      summary: List vectors available for event
+      description: Return the list of vector types that are available for a given event in a given scope.
+      parameters:
+      - in: path
+        name: scope
+        description: Scope of notification
+        required: true
+        schema:
+          type: string
+          example: buddyup
+      - in: path
+        name: event_name
+        description: Name of the event to notify about.
+        required: true
+        schema:
+          type: string
+          example: went_down_longer_than
+      responses:
+        200:
+          description: List of vector names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VectorType"
+        400:
+          description: Requested scope not provided, valid or existent
+  /notification/{scope}/{event_name}/:
+    post:
+      summary: Send a notification
+      description: Send a notification to a UserID with some desired options.
+      operationId: send_notification
+      parameters:
+      - in: path
+        name: scope
+        description: Scope of notification
+        required: true
+        schema:
+          type: string
+          example: buddyup
+      - in: path
+        name: event_name
+        description: Name of the event to notify about.
+        required: true
+        schema:
+          type: string
+          example: went_down_longer_than
+      - in: query
+        name: user
+        description: Recipient user for the notification.
+        required: true
+        schema:
+          type: number
+          example: 1234
+      - in: query
+        name: vector
+        description: Comma-separated list of which vector(s) to send the notification through.
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/VectorType"
+        style: form
+      - in: query
+        name: correlationId
+        description: An ID used for end-to-end tracing for logging in this system and passing on to additional subsystems.
+        schema:
+          $ref: "#/components/schemas/CorrelationID"
+      - in: query
+        name: mode
+        description: The operating mode for sending notifications.
+        schema:
+          $ref: "#/components/schemas/OperatingMode"
+      requestBody:
+        description: Context, as map of key=value pairs to pass to the notification template for expansion
+        content:
+          application/json:
+            example: {"key1": "value1", "key2": "value2"}
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        200:
+          description: Notification request taken up for delivery, with details of associated jobs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationJob"
+        400:
+          description: Bad request.
+        500:
+          description: Server error.
+        
+components:
+  schemas:
+    NameList:
+      description: A list of names.
+      type: array
+      items:
+        type: string
+    VectorType:
+      description: A name of one of the ways to deliver a notification.
+      type: string
+      enum: [email, sms, telegram]
+    CorrelationID:
+      description: An ID used for end-to-end tracing for logging in this system and passing on to additional subsystems.
+      type: string
+      example: cd000aa9-3f0f-4293-9f6e-21be08defd82
+    NotificationJob:
+      description: Result of a notification job.
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: ID of the job created.
+        vector:
+          $ref: "#/components/schemas/VectorType"
+        resultCode:
+          type: number
+          description: Numeric value identifying the type of outcome (0 = success, non-0 = error).
+        detail:
+          type: string
+          description: Human-readable description of success.
+    OperatingMode:
+      description: Which mode notifications should be sent with. production = deliver to recipient; staging = deliver to recipient and copy to supervisor; debug = deliver to supervisor.
+      type: string
+      default: debug
+      enum: [debug, staging, production]

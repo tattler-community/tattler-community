@@ -1,0 +1,42 @@
+include-package-data = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tattler"
+version = '1.0.0'
+authors = [{name = "Michele Mazzucchi", email = "support@tattler.dev"}]
+license = {text="License :: OSI Approved :: BSD License"}
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: POSIX",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Topic :: Communications",
+    ]
+description = "A client-server notification system for HTML emails, sms and more."
+readme = "README.rst"
+dependencies = []
+
+[project.scripts]
+tattler_server = "tattler.server.tattlersrv_http:main[Jinja]"
+tattler_notify = "tattler.client.tattler_py.tattler_cmd:main"
+
+[project.urls]
+Home = "https://tattler.dev"
+
+[project.optional-dependencies]
+Jinja = [
+    "Jinja2 >= 3.1.2",
+    "humanize >= 4.7.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"tattler.templates.samplescope.sampleevent" = ["*"]
+"tattler.templates.samplescope.sampleevent.email" = ["*"]

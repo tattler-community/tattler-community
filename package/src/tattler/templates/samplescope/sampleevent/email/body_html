@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>First tattler notification</title>
+</head>
+<body>
+    <h1>Hi {{ user_firstname }}!</h1>
+
+    <p>Here is your first notification from tattler. Congrats!</p>
+    
+    <hr />
+
+    <small style="color: lightgray;">P.S.: this was notification #{{ notification_id }}</small>
+</body>
+</html>

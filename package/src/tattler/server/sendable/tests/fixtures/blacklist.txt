@@ -1,0 +1,3 @@
+bad_address@foobar.com
+# comment to ignore
++12345678

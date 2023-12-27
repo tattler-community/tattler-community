@@ -1,0 +1,5 @@
+Hi {{ user_firstname }}!
+
+Here is your first notification from tattler. Congrats!
+
+P.S.: this was notification #{{ notification_id }}

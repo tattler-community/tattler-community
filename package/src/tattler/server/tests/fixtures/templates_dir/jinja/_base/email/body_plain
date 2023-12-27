@@ -1,0 +1,1 @@
+Text base{% block extra %}replace text{% endblock %}

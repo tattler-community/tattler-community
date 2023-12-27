@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}Service notification{% endblock %}</title>
+
+        <meta name="supported-color-schemes" content="light dark">
+
+        <style type="text/css">
+            /* style here */
+        </style>
+    </head>
+    <body>
+{% block htmlwarning %}
+<p class="htmlwarning" style="padding: .5em; text-align: center; margin: 2em auto; background-color: #b94a48; color: white; font-weight: bold; font-size: 0.75em;">The e-mail client you're currently using has <a href="http://www.email-standards.org/clients/">partial support for HTML e-mails</a>, so parts of this message may display incorrectly.</p>
+
+{% endblock %}
+        <div id="content" style="width: 80%; margin: 2em auto;">
+{% block content %}
+            <h1>Discover foobar!</h1>
+
+            <p>Sed ut perspiciatis, unde omnis iste natus error sit voluptatem
+            accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae
+            ab illo inventore veritatis et quasi architecto beatae vitae dicta
+            sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit,
+            aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos,
+            qui ratione voluptatem sequi nesciunt, neque porro quisquam est,</p>
+
+            <table>
+                <tr>
+                    <th>One</th>
+                    <th>Two</th>
+                </tr>
+                <tr>
+                    <td>Cell</td>
+                    <td>Bell</td>
+                </tr>
+            </table>
+
+            <p>qui <strong>dolorem ipsum</strong>, quia dolor sit amet, consectetur, adipisci[ng]
+            velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut
+            labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima
+            veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam,
+            nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure
+            reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae
+            consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla
+            pariatur?</p>
+
+            <ul>
+                <li>item one</li>
+                <li>item two</li>
+                <li>item three</li>
+            </ul>
+
+            <h2>Another sec!</h2>
+
+            <p>qui <strong>dolorem ipsum</strong>, quia dolor sit amet, consectetur, adipisci[ng]
+            velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut
+            labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima
+            veniam, quis nostrum exercitationem</p>
+
+            <p>ullam corporis suscipit laboriosam,
+            nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure
+            reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae
+            consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla
+            pariatur?</p>
+{% endblock %}
+{% block signature %}
+
+        <p>Best,<br />
+        &mdash; Your favorite service</p>
+{% endblock %}
+        </div>
+
+{% block footer %}
+{% if notification_id %}
+        <p>This is notification #{{notification_id}}.</p>{% endif %}
+
+        <div id="footer">
+            <ul>
+                <li><a href="http://www.link.com/">Website</a></li>
+                <li><a href="https://www.link.com/terms-of-use/">Terms of use</a></li>
+                <li><a href="http://blog.link.com/">Blog</a></li>
+                <li><a href="http://www.link.com/faq/#notifications">Opt-out</a></li>
+            </ul>
+        </div>
+{% endblock %}
+    </body>
+</html>
+
