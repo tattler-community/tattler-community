@@ -1,0 +1,43 @@
+image: python:3.10
+
+test_py:
+  coverage: '/^Code coverage:\s\d+\.\d+$/'
+  cache:
+    key: tattler_cache
+    paths:
+      - venv/
+      - .cache/pip/
+  script:
+    # setup: base system
+    - WD=$(pwd)
+    - echo "Working directory is $WD"
+    - echo "Creating venv ..."
+    - test venv -nt .gitlab-ci.yml || python -m venv venv
+    - . venv/bin/activate
+    - pip install coverage
+    ## server
+    - echo "tattler server"
+    - cd package/src/tattler/server
+    - pip install -r docs/requirements_test.txt
+    - pip freeze
+    - cd sendable/tests
+    - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    - cd ../../tests
+    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    ## client
+    - echo "tattler client"
+    - cd ../../client/tattler_py
+    - pip install -r docs/requirements_test.txt
+    - pip freeze
+    - cd tests
+    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    - cd $WD
+    ## print coverage information
+    - coverage combine $WD/package/src/tattler/server/tests/.coverage $WD/package/src/tattler/server/sendable/tests/.coverage  $WD/package/src/tattler/client/tattler_py/tests/.coverage
+    - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=2 ; echo ""
+    ## packaging
+    - echo "tattler server packaging"
+    - cd package
+    - pip install build
+    - python -m build --wheel .
+    - pip install 'dist/tattler-1.0.0-py3-none-any.whl[Jinja]'
