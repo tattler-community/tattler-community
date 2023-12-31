@@ -27,6 +27,9 @@ tattler_notify = "tattler.client.tattler_py.tattler_cmd:main"
 
 [project.urls]
 Home = "https://tattler.dev"
+Documentation = "https://tattler.readthedocs.io/"
+Repository = "https://gitlab.com/tattler/tattler-community"
+Issues = "https://gitlab.com/tattler/tattler-community/-/issues"
 
 [project.optional-dependencies]
 Jinja = [
