@@ -84,7 +84,7 @@ class SendableTest(unittest.TestCase):
 
     def test_raw_content(self):
         for vname, vclass in sendable.vector_sendables.items():
-            s = vclass('event_with_email_and_sms', data_recipients[vname], template_base=self.template_base)
+            s: sendable.Sendable = vclass('event_with_email_and_sms', data_recipients[vname], template_base=self.template_base)
             self.assertNotIn('#1234#', s.raw_content())
 
     def test_template_expansion(self):

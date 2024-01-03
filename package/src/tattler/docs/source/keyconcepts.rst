@@ -20,6 +20,12 @@ A notification may be delivered to one or multiple vectors, as determined by 3 f
 * Recipient availability: is a valid address available for the given vector (e.g. email address, phone number) for the requested user?
 * Explicit request: has the client application asked explicitly to restrict delivery to a subset of the available vectors?
 
+.. note:: Tattler enterprise edition
+    Additional notification vectors exist in tattler's enterprise edition:
+
+    - WhatsApp -- requires a mobile number as recipient address.
+    - Telegram -- requires a *telegram ID* as recipient address.
+
 
 Content availability
 ^^^^^^^^^^^^^^^^^^^^

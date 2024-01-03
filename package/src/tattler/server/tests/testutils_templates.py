@@ -3,6 +3,9 @@
 import unittest
 import os
 import re
+import logging
+from pwd import getpwuid
+from pathlib import Path
 
 import string
 import random
@@ -18,12 +21,14 @@ contacts = {
 }
 
 # set this path to the directory holding all templates (event names)
-templates_base = os.path.join('..', 'templates')
+templates_base = Path('..') / 'templates'
 
 # path to directory holding _base -- if a symlink should be created to it. Set None to disable symlink
-target_base_path = os.path.realpath(os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'tattler', 'server', 'templates', '_base'))
+mypath = Path(os.path.realpath(os.path.dirname(__file__)))
+target_base_path = os.path.realpath(mypath.parent / 'tattler' / 'server' / 'templates' / '_base')
 
 def mk_random_string(length=20):
+    """Return a randomly-generated string of the given length with only letters and digits"""
     return ''.join([random.choice(string.ascii_letters + string.digits) for c in range(length)])
 
 corrId = mk_random_string()
@@ -60,19 +65,22 @@ def find_template_base(rootpath: str | os.PathLike) -> os.PathLike:
     return None
 
 def clear_symlink_to_base_template():
-    local_base_path = os.path.join(templates_base, '_base')
+    local_base_path = templates_base / '_base'
     try:
         os.remove(local_base_path)
     except FileNotFoundError:
         pass
+    except PermissionError:
+        st = os.stat(local_base_path)
+        logging.error("Permission error deleting file '%s', owned by '%s'. Ignoring.", local_base_path, getpwuid(st.st_uid).pw_name)
 
 def create_symlink_to_base_template():
     """Create a symlink to a _base template located elsewhere.
     
     @param  target_base_path  [path]  The path of the _base template to link to, or None for default."""
     clear_symlink_to_base_template()
-    local_base_path = os.path.join(templates_base, '_base')
-    target_base_path = find_template_base(os.path.join(os.path.dirname(__file__), '..'))
+    local_base_path = templates_base / '_base'
+    target_base_path = find_template_base(Path(os.path.dirname(__file__)).parent)
     try:
         os.symlink(target_base_path, local_base_path, target_is_directory=True)
     except FileExistsError:

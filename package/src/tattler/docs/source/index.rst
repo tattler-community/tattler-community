@@ -140,6 +140,7 @@ Proceed to the following contents to learn about deploying and using Tattler for
    plugins
    sysadmins
    configuration
+   enterprise
 
 
 Indices and tables

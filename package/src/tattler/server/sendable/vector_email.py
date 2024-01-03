@@ -37,53 +37,25 @@ def get_smtp_server(connstr: str) -> [str, int]:
 class EmailSendable(Sendable):
     """An e-mail message."""
 
-    def _get_raw_content_part(self, part: str) -> [str, str]:
-        filename = self._get_template_pathname() / part
-        with open(filename, encoding='utf-8') as f:
-            content = f.read()
-        try:
-            filename_base = self._get_template_pathname_base()
-            filename_base = filename_base / part
-            with open(filename_base, encoding='utf-8') as f:
-                base_content = f.read()
-            log.debug("n%s: Using template for %s -> %s", self.nid, part, filename_base)
-        except Exception as err:
-            log.warning("Cannot load base template: %s", err)
-            base_content = None
-        return content, base_content
-
-    def _get_content_part(self, part: str, context: Mapping[str, Any]) -> str:
-        # 'part' is a file contained in _get_template_pathname().
-        # e.g.: foo/bar/eventname/email/subject
-        content, base_content = self._get_raw_content_part(part)
-        t = self.template_processor(content, base_content=base_content)
-        return t.expand(context)
-
-    def _get_parts(self) -> Iterable[str]:
+    def _get_available_parts(self) -> Mapping[str, str]:
         """Return the list of parts composing the template."""
-        parts = []
-        for part_type in ('plain', 'html'):
-            partname = 'body_' + part_type
-            partpath = self._get_template_pathname() / partname
-            if partpath.exists():
-                parts.append(part_type)
-        return parts
+        parts = self._get_template_elements()
+        part_types = {
+            'body_html': 'text/html',
+            'body_plain': 'text/plain',
+        }
+        return {ptype: pname for pname, ptype in part_types.items() if pname in parts}
 
     def raw_content(self) -> str:
         """Return raw content as either a single-part message or a multi-part MIME message"""
         # see if the message must be multi-part or plain-text
         raw_content = ''
-        if not self._is_multipart():
-            content, base = self._get_raw_content_part('body_plain')
-            if base:
-                raw_content += base
-            raw_content += content
-        else:
-            for part_type in self._get_parts():
-                content, base = self._get_raw_content_part('body_' + part_type)
-                if base:
-                    raw_content += base
-                raw_content += content
+        for part_fname in self._get_available_parts().values():
+            try:
+                raw_content += self._get_template_base_raw_element(part_fname)
+            except ValueError:
+                log.debug("n%s: No base template available for element '%s'. Skipping.", self.nid, part_fname)
+            raw_content += self._get_template_raw_element(part_fname)
         return raw_content
 
     def _auto_encode(self, content: str) -> [bytes, str]:
@@ -97,12 +69,9 @@ class EmailSendable(Sendable):
         # if we got here, none of the encodings worked for the content
         raise RuntimeError(f"Unable to find suitable encoding for content '{content}' among ascii, latin1 and utf8")
 
-    def _is_multipart(self) -> bool:
-        return len(self._get_parts()) > 1
-
     def _build_msg(self, context: Mapping[str, Any]) -> MIMEMultipart | MIMENonMultipart:
         # Create message container - the correct MIME type is multipart/alternative.
-        if self._is_multipart():
+        if 'body_html' in self._get_available_parts().values():
             msg = MIMEMultipart('alternative')
         else:
             msg = MIMENonMultipart('text', 'plain')
@@ -115,16 +84,16 @@ class EmailSendable(Sendable):
         msg['Subject'] = Header(subj, charset).encode()
 
         # see if the message must be multi-part or plain-text
-        if not self._is_multipart():
-            part_content = self._get_content_part('body_plain', context)
+        if 'body_html' not in self._get_available_parts().values():
+            part_content = self._get_content_element('body_plain', context)
             part_content, charset = self._auto_encode(part_content)
             msg.set_charset(charset)
             msg.set_payload(part_content)
         else:
             msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
             # Record the MIME types of both parts - text/plain and text/html.
-            for part_type in self._get_parts():
-                part_content = self._get_content_part('body_' + part_type, context)
+            for part_type, part_fname in self._get_available_parts().items():
+                part_content = self._get_content_element(part_fname, context)
                 part_content, charset = self._auto_encode(part_content)
                 msg.attach(MIMEText(part_content, part_type, charset))
 
@@ -188,7 +157,7 @@ class EmailSendable(Sendable):
 
     def subject(self, context: Mapping[str, Any]) -> str:
         """Return the e-mail subject."""
-        return self._get_content_part('subject', context).strip()
+        return self._get_content_element('subject', context).strip()
 
     def content(self, context: Mapping[str, Any]) -> str:
         return self._build_msg(context).as_string()

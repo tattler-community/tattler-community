@@ -1,9 +1,10 @@
 """The abstract class parent to any message that can be delivered"""
 
 import os
+import os.path
 import logging
 import uuid
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Iterable, Mapping, Optional, Any
 
 from . import TemplateProcessor
@@ -32,20 +33,50 @@ class Sendable:
         self.nid = str(uuid.uuid4())
         self.event_name = event
         self.template_base = Path(template_base)
-        self.template_processor = template_processor
+        self.template_processor: type(TemplateProcessor) = template_processor
         self.debug_recipient_val = debug_recipient
 
     def _get_template_pathname_base(self) -> Path:
+        """Return the path to the root folder of the base template for the vector"""
         template_pathname: Path = self.template_base / '_base' / self.vector()
         if not template_pathname.exists():
             raise ValueError(f"No base template exists for '{self.vector()}' (missing file: {template_pathname}).")
         return template_pathname
 
     def _get_template_pathname(self) -> Path:
+        """Return the path to the root folder of the event template for the vector"""
         template_pathname = self.template_base / self.event() / self.vector()
         if not template_pathname.exists():
             raise ValueError(f"No template exists for '{self.vector()}:{self.event()}' (missing file: {template_pathname}).")
         return template_pathname
+
+    def _get_template_raw_element(self, name: str) -> str:
+        """Return the content of a specific template element within the event template for the vector"""
+        fname = self._get_template_pathname() / name
+        log.debug("n%s: Looking up '%s' template part -> %s", self.nid, name, fname)
+        return fname.read_text(encoding='utf-8')
+
+    def _get_template_base_raw_element(self, name: str) -> Path:
+        """Return the content of a specific template element within the base template for the vector"""
+        fname = self._get_template_pathname_base() / name
+        log.debug("n%s: Looking up '%s' base template part -> %s", self.nid, name, fname)
+        return fname.read_text(encoding='utf-8')
+
+    def _get_template_elements(self):
+        """Return a list of available elements within the event template for the vector"""
+        dirname = self._get_template_pathname()
+        return {fname for fname in os.listdir(dirname) if not fname.startswith('.') and os.path.isfile(dirname / fname)}
+
+    def _get_content_element(self, element: str, context: Mapping[str, Any]) -> str:
+        """Return the final display content by expanding the requested element with the given context."""
+        template = self._get_template_raw_element(element)
+        try:
+            base_template = self._get_template_base_raw_element(element)
+        except ValueError:
+            base_template = None
+            log.debug("n%s: No base template provided for '%s:%s'. Ignoring.", self.nid, self.event_name, self.vector())
+        t: TemplateProcessor = self.template_processor(template, base_content=base_template)
+        return t.expand(context)
 
     @classmethod
     def exists(cls, event: str, template_base: str|Path) -> bool:
@@ -86,13 +117,11 @@ class Sendable:
 
     def raw_content(self) -> str:
         """Return the raw content of the unexpanded template."""
-        tmplp = self._get_template_pathname()
-        return tmplp.read_text(encoding='utf-8')
+        return self._get_template_raw_element("body")
 
     def content(self, context: Mapping[str, Any]) -> str:
         """Return the content of the sendable."""
-        template_path = self._get_template_pathname()
-        templbody = template_path.read_text(encoding='utf-8')
+        templbody = self.raw_content()
         templ: TemplateProcessor = self.template_processor(templbody)
         return templ.expand(context)
     

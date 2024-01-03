@@ -1,6 +1,7 @@
 import os
 import unittest
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from testutils import get_template_dir
 
@@ -16,12 +17,12 @@ class JinjaTemplateProcessorTest(unittest.TestCase):
         # Plain
         es = EmailSendable('jinja_event', [], template_processor=JinjaTemplateProcessor, template_base=self.good_templates_path)
         # plain text
-        txtcontent = es._get_content_part('body_plain', {})
+        txtcontent = es._get_content_element('body_plain', {})
         self.assertIn("Text base", txtcontent)
         self.assertIn("new text", txtcontent)
         self.assertNotIn("replace text", txtcontent)
         # HTML
-        htmlcontent = es._get_content_part('body_html', {})
+        htmlcontent = es._get_content_element('body_html', {})
         self.assertIn("HTML base", htmlcontent)
         self.assertIn("new HTML", htmlcontent)
         self.assertNotIn("replace HTML", htmlcontent)
@@ -37,7 +38,8 @@ class JinjaTemplateProcessorTest(unittest.TestCase):
             'sval1': 'one',
             'sval2': 'two',
         }
-        txtcontent = open(os.path.join(self.good_templates_path, 'jinja_variable_expressions', 'sms')).read()
+        fname = Path(self.good_templates_path) / 'jinja_variable_expressions' / 'sms' / 'body'
+        txtcontent = fname.read_text(encoding='utf-8')
         tpj = JinjaTemplateProcessor(content=txtcontent)
         string_context = {k:str(v) for k, v in context.items()}
         self.assertEqual(tpj.expand(string_context), '0:20:00 3 0.5 onetwo')
@@ -50,7 +52,8 @@ class JinjaTemplateProcessorTest(unittest.TestCase):
             'vdate': now.date(),
             'vint': 12345591313,
         }
-        content = open(os.path.join(self.good_templates_path, 'jinja_humanize', 'sms')).read()
+        fname = Path(self.good_templates_path) / 'jinja_humanize' / 'sms' / 'body'
+        content = fname.read_text(encoding='utf-8')
         tpj = JinjaTemplateProcessor(content=content)
         result = tpj.expand(context)
         self.assertIn('#2 hours', result)

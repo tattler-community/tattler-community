@@ -1,4 +1,3 @@
-from email.utils import make_msgid
 import unittest
 from unittest import mock
 import os
@@ -128,3 +127,6 @@ class TestVectorEmail(unittest.TestCase):
                 e.send()
                 msmtp.return_value.sendmail.assert_called()
                 self.assertEqual('valid@email.addr', msmtp.return_value.sendmail.call_args[0][0])
+
+if __name__ == '__main__':
+    unittest.main()

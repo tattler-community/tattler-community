@@ -37,7 +37,7 @@ def make_notification(vector, event, recipient_list, template_processor=Template
 
     vector_class = vector_sendables.get(vector.lower(), None)
     if vector_class is None:
-        raise ValueError("Can't generate Sendable for unknown vector '%s'. Valid values: %s." % (vector, str(list(vector_sendables.keys()))))
+        raise ValueError(f"Can't generate Sendable for unknown vector '{vector}'. Valid values: {list(vector_sendables)}.")
     kwargs = dict()
     if template_processor:
         kwargs['template_processor'] = template_processor
@@ -57,5 +57,5 @@ def send_notification(vector, event, recipient_list, context=None, template_proc
         try:
             ntf.blacklist(blacklist)
         except OSError as e:
-            log.warning(f"Error loading requested blacklist file '{blacklist}' -- I'll ignore it: {e}")
+            log.warning("Error loading requested blacklist file '%s' -- I'll ignore it: %s", blacklist, e)
     ntf.send(context=context, **kwargs)

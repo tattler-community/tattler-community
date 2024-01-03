@@ -68,19 +68,43 @@ We'll now proceed to build those.
 SMS templates
 -------------
 
++------------------------+---------------------------------------------------------------------------------+
+| Address type           | Mobile number, in `E.164 <https://www.bulksms.com/developer/json/v1/>`_ format. |
++------------------------+---------------------------------------------------------------------------------+
+| Default gateway        | `BulkSMS.com <https://bulksms.com>`_                                            |
++------------------------+---------------------------------------------------------------------------------+
+| Encoding               | `GSM 03.38 <https://en.wikipedia.org/wiki/GSM_03.38>`_                          |
++------------------------+---------------------------------------------------------------------------------+
+| Content type           | Plain text with some accented characters.                                       |
++------------------------+---------------------------------------------------------------------------------+
+| Maximum content length | Multiples of 160 characters if ASCII; 70 if any unicode character.              |
++------------------------+---------------------------------------------------------------------------------+
+| Emojis                 | Yes, but they shorten the message length to 70 characters.                      |
++------------------------+---------------------------------------------------------------------------------+
+| Costs                  | See `BulkSMS pricing <https://www.bulksms.com/pricing/>`_. No affiliation.      |
++------------------------+---------------------------------------------------------------------------------+
+
+.. hint:: SMS delivery through Tattler requires an account at `BulkSMS.com`_ .
+
+    Tattler uses `BulkSMS <https://bulksms.com>`_ for final delivery of SMS to their mobile
+    network, so you need an account with them and having purchased some credit in order to
+    deliver your SMS.
+    
+    Tattler has no affiliation to BulkSMS. Alternative gateways can be easily
+    implemented, but none has been, yet.
+
 SMS notifications are less common than email notifications, but let's start here because
 their simplicity builds a base to understand the more complex emails.
 
 Event templates are some text which gets expanded at delivery time into the final text.
 
-SMS templates are one single file inside the event's folder:
-
-.. code-block:: text
+SMS templates are organized as follows inside the event's folder::
 
     templates_base/
     └── mywebapp/
         └── password_changed/
-            └── sms                 <- sms template
+            └── sms/                <- sms vector
+                └── body            <- content template
 
 This SMS template file may contain some content like this::
 
@@ -88,12 +112,38 @@ This SMS template file may contain some content like this::
 
 You already picture what the user will actually be texted.
 
-For SMS, that's all you need, because the SMS
-:ref:`vector <keyconcepts:notification vectors>` neither supports nor requires anything more.
+The message encoding is ASCII plus a `small set of frequent-use accented characters <https://en.wikipedia.org/wiki/GSM_03.38>`_.
 
+Such messages may be up to 160 characters long; ASCII messages longer than this will be delivered
+as multiple messages, which the receiving mobile phone is capable of concatenating back together.
+The delivery price will obviously multiply correspondingly.
+
+Messages that include characters beyond the GSM_03.38 set -- such as an emoji, or arabic --
+can be sent too. This will reduce the maximum message length to 70. Longer content is supported
+(up to 400 characters) and will be broken down into multiple messages, and be priced correspondingly.
+
+BulkSMS supports multi-part messages, i.e. content exceeding a single-message length will be broken down into multiple messages,
+which the receiving mobile phone will be able to concatenate back together. 
 
 Email templates
 ---------------
+
++------------------------+---------------------------------------------------------------------------------+
+| Address type           | Regular e-mail address.                                                         |
++------------------------+---------------------------------------------------------------------------------+
+| Default gateway        | Your SMTP server. Or your ISP's. Or 3\ :sup:`rd`-party ones.                    |
++------------------------+---------------------------------------------------------------------------------+
+| Encoding               | ASCII                                                                           |
++------------------------+---------------------------------------------------------------------------------+
+| Content type           | HTML and/or plaintext.                                                          |
++------------------------+---------------------------------------------------------------------------------+
+| Maximum content length | Several MegaBytes.                                                              |
++------------------------+---------------------------------------------------------------------------------+
+| Emojis                 | Yes.                                                                            |
++------------------------+---------------------------------------------------------------------------------+
+| Costs                  | None.                                                                           |
++------------------------+---------------------------------------------------------------------------------+
+
 
 Read `SMS templates`_ first as this builds upon it.
 
@@ -116,13 +166,18 @@ such files are enclosed into an ``email`` folder::
                 ├── body_html
                 └── priority
 
+.. hint:: The ``body_plain`` definition is not required in `Tattler's enterprise edition <https://tattler.dev/#enterprise>`_.
+
+    Tattler enterprise edition includes the `auto-text`_ feature, which allows
+    you to only provide ``body_html``.
+    
 The files have the following purpose:
 
 ``subject``
     Mandatory. Contains template text which will be expanded with template variables to generate the subject of the email to send.
 
 ``body_plain``
-    Mandatory. Contains template text which will be expanded with template variables to generate the body of the email to send.
+    Mandatory (in Tattler community edition). Contains template text which will be expanded with template variables to generate the body of the email to send.
     This is the plain-text body standard in every email. If a ``body_html`` file is also provided, this content only serves as a "fallback" for recipients who lack support for HTML emails.
 
 ``body_html``
@@ -172,6 +227,23 @@ Clients that do support HTML emails do so limitedly and inconsistently.
 
 Avoid JavaScript. Basic CSS is often supported. Refer to the excellent
 `CanIEmail <https://www.caniemail.com>`_.
+
+Auto-text
+---------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+    
+With the auto-text feature, you only provide a ``body_html`` definition,
+and Tattler automatically generates an ASCII version of that faithfully
+mirrors your HTML content, including emphasis, hyperlinks, lists and tables.
+
+Auto-text is automatically enabled in Tattler enterprise edition. All you
+need to do to use it is to provide your ``body_html`` content and omit the
+``body_plain`` file.
+
+If you do provide a ``body_plain`` file in your event template, then Tattler
+will skip auto-text and use the content your provided in it as plaintext version.
+
 
 Base templates
 --------------
@@ -326,6 +398,99 @@ Value ``3`` (normal priority) is a non-action, and the values inbetween are not 
 Setting messages as high-priority raises the visibility of the notification in the user's mailbox,
 which loads notification fatigue even further -- so use it sparingly. A case where high-priority
 makes sense is when the notification is important and also time-critical action.
+
+WhatsApp templates
+------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Address type           | Mobile number, in `E.164 <https://www.bulksms.com/developer/json/v1/>`_ format.                                              |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Default gateway        | `WhatsApp's business platform <https://developers.facebook.com/docs/whatsapp/cloud-api/>`_                                   |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Encoding               | UTF-8.                                                                                                                       |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Content type           | Plaintext or markdown.                                                                                                       |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Maximum content length | 1024 characters.                                                                                                             |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Emojis                 | Yes.                                                                                                                         |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+| Upstream cost          | Limited free tier, then payment by volume. See `WhatsApp pricing <https://developers.facebook.com/docs/whatsapp/pricing/>`_. |
++------------------------+------------------------------------------------------------------------------------------------------------------------------+
+
+
+WhatsApp templates are similar to SMS templates.
+
+.. hint:: WhatsApp requires you to have the user's mobile phone number as the address of the recipient.
+
+If you want to notify an event via WhatsApp, add the ``whatsapp`` folder within the event folder, and its
+content into a text file named ``body`` within it::
+
+    templates_base/
+    └── mywebapp/
+        └── password_changed/
+            └── whatsapp/                 <- WhatsApp vector
+                └── body                  <- content template
+
+
+.. caution:: The WhatsApp platform poses some requirements to deliver messages!
+	
+    Meta -- the company owning WhatsApp, poses a number of requirements to send WhatsApp messages:
+
+    - You need to setup a business account.
+
+    - You need to indicate a mobile number that your messages will appear as sent from.
+
+    - There are fees to pay beyond a certain volume of messages.
+
+    - Your recipient obviously needs to have WhatsApp active on their mobile phone. WhatsApp provides no feedback on whether this is the case, so Tattler will always return success when delivering to WhatsApp.
+
+    See `WhatsApp Cloud API's documentation <https://developers.facebook.com/docs/whatsapp/cloud-api/>`_
+    for more details.
+
+
+Telegram templates
+------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Address type           | Telegram ID. Retrieve it e.g. with a `Telegram Login Widget <https://core.telegram.org/widgets/login>`_. |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Default gateway        | `Telegram Bots API <https://core.telegram.org/bots/api>`_.                                               |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Encoding               | Unicode.                                                                                                 |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Content type           | Plaintext, markdown or HTML.                                                                             |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Maximum content length | 4096 latin characters.                                                                                   |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Emojis                 | Only in HTML.                                                                                            |
++------------------------+----------------------------------------------------------------------------------------------------------+
+| Costs                  | None.                                                                                                    |
++------------------------+----------------------------------------------------------------------------------------------------------+
+
+Telegram templates are similar to SMS templates.
+
+.. hint:: Telegram requires you to have a ``telegram id`` as the address of the recipient.
+
+    You can retrieve this ID by integrating a `Telegram Login Button <https://core.telegram.org/widgets/login>`_ on your website.
+
+If you want to notify an event via Telegram, add the ``telegram`` folder within the event folder, and its
+content into a text file named ``body`` within it::
+
+    templates_base/
+    └── mywebapp/
+        └── password_changed/
+            └── telegram/                 <- Telegram vector
+                └── body                  <- content template
+
+.. caution:: The Telegram platform poses some requirements to deliver messages!
+
+    - `Create a Telegram Bot <https://core.telegram.org/bots/features#creating-a-new-bot>`_ that will send messages to your users.
+
 
 Template variables
 ------------------

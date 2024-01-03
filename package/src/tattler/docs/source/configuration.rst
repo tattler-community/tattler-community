@@ -116,3 +116,45 @@ TATTLER_TEMPLATE_TYPE
 Name of the template processor to use.
 
 Default: ``jinja``
+
+
+TATTLER_WHATSAPP_FROM_NUMBER
+----------------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
+The phone number to use as source when sending messages via WhatsApp.
+
+Only required if you actually send messages via WhatsApp.
+
+Refer to Meta's documentation on how to set yourself up to
+`send messages to WhatsApp <https://developers.facebook.com/docs/whatsapp/cloud-api/get-started#get-access-token>`_.
+
+Default: *none*
+
+
+TATTLER_WHATSAPP_ACCESS_TOKEN
+-----------------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
+Access token to deliver messages via WhatsApp.
+
+Only required if you actually send messages via WhatsApp.
+
+Refer to Meta's documentation on how to set yourself up to
+`send messages to WhatsApp <https://developers.facebook.com/docs/whatsapp/cloud-api/get-started#get-access-token>`_.
+
+Default: *none*
+
+
+TATTLER_TELEGRAM_BOT_TOKEN
+--------------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
+Token for the Bot used to send messages via Telgram.
+
+Only required if you actually send messages via Telegram.
+
+Refer to Telegram's documentation on how to `obtain a Bot token <https://core.telegram.org/bots/tutorial#obtain-your-bot-token>`_.

@@ -88,7 +88,7 @@ This API allows you to:
 * List events within a scope.
 * List vectors for an event.
 
-See the interactive `OpenAPI spec <#>`_ for details.
+See the interactive `OpenAPI spec <https://tattler.dev/api-spec/>`_ for details.
 
 
 High-level Python API

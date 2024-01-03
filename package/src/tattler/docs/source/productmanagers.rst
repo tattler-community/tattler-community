@@ -51,3 +51,33 @@ Your :ref:`template designer <roles:template designers>` will get back to you wi
 like what information to include in each event.
 
 You'll also likely review the style of their email stationary, the general tone and more.
+
+Contact points
+--------------
+
+Delivering notifications obviously requires the respective address of your recipient,
+so you need to plan on where, when and how to collect that.
+
+Here's a summary:
+
++----------+---------------+---------------------------------------------------------------------------------------------+
+| Vector   | Address       | How to collect                                                                              |
++==========+===============+=============================================================================================+
+| Email    | Email address | Direct user entry, e.g. during account creation.                                            |
++----------+---------------+---------------------------------------------------------------------------------------------+
+| SMS      | Mobile number | Direct user entry, e.g. on 'profile' page.                                                  |
++----------+---------------+---------------------------------------------------------------------------------------------+
+| WhatsApp | Mobile number | Direct user entry, e.g. on 'profile' page.                                                  |
++----------+---------------+---------------------------------------------------------------------------------------------+
+| Telegram | Telegram ID   | User confirmation, e.g. `Telegram Login button <https://core.telegram.org/widgets/login>`_. |
++----------+---------------+---------------------------------------------------------------------------------------------+
+
+.. caution:: Beware of privacy and compliance!
+
+    Do not send notifications to people without getting prior consent from them.
+
+    This is forbidden in regions with mature privacy regulations like the European Union, and
+    frowned upon everywhere else.
+
+    Design your customer journeys to include the collection of your recipient addresses
+    with explicit consent.
