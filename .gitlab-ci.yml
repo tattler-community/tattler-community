@@ -35,9 +35,18 @@ test_py:
     ## print coverage information
     - coverage combine $WD/package/src/tattler/server/tests/.coverage $WD/package/src/tattler/server/sendable/tests/.coverage  $WD/package/src/tattler/client/tattler_py/tests/.coverage
     - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=2 ; echo ""
+    ## documentation
+    - cd package
+    - version_package=$(awk -F= '/^version/ { print $2 }' pyproject.toml | grep -Eo '[0-9.]+')
+    - cd src/tattler/docs
+    - pip install -r requirements_docs.txt
+    - make html
+    - version_docs=$(awk -F= '/^release/ { print $2 }' source/conf.py | grep -Eo '[0-9.]+')
+    - test -n "$version_package" -a "$version_package" = "$version_docs" || echo "Version numbers of package and docs are inconsistent! $version_package vs $version_docs ."
+    - cd $WD
     ## packaging
     - echo "tattler server packaging"
     - cd package
     - pip install build
-    - python -m build --wheel .
-    - pip install 'dist/tattler-1.0.0-py3-none-any.whl[Jinja]'
+    - python -m build
+    - pip install 'dist/tattler-1.1.0-py3-none-any.whl[Jinja]'
