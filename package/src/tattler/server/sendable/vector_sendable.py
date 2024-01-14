@@ -25,53 +25,71 @@ def getenv(name, default=None):
 class Sendable:
     """An template message that can be bound and sent."""
 
-    def __init__(self, event: str, recipients: Iterable[str], template_processor: type(TemplateProcessor)=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None):
+    def __init__(self, event: str, recipients: Iterable[str], template_processor: type(TemplateProcessor)=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
+        """Build an object which can be expanded into content and delivered through a vector.
+        
+        :param: event:              Event name to search among event templates database.
+        :param recipients:          List of recipient addresses to send the notification to; format is vector-specific.
+        :param template_processor:  Custom TemplateProcessor class to use to expand template into sendable bytes.
+        :param template_base:       Path to the root directory of the event templates database.
+        :param debug_recipient:     Address to deliver the notification to instead of (in addition to) actual recipient when in debug (staging) mode.
+        :param language_code:       Language code of event to look up (only supported in tattler enterprise edition).
+        """
         try:
             self.recipients = [self.validate_recipient(r) for r in recipients]
         except ValueError as err:
             raise ValueError(f"Invalid {self.vector()} recipient(s) '{recipients}': {str(err)}.") from err
         self.nid = str(uuid.uuid4())
         self.event_name = event
+        self.language_code = None
+        self.load_language(language_code)
         self.template_base = Path(template_base)
         self.template_processor: type(TemplateProcessor) = template_processor
         self.debug_recipient_val = debug_recipient
 
-    def _get_template_pathname_base(self) -> Path:
-        """Return the path to the root folder of the base template for the vector"""
-        template_pathname: Path = self.template_base / '_base' / self.vector()
+    def load_language(self, language_code: Optional[str]=None) -> None:
+        """Setup the sendable to operate with the given language.
+        
+        :param language_code:       Language code of event to look up (only supported in tattler enterprise edition).
+        """
+        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition does not support language '%s' and falls back to the default language. See https://tattler.readthedocs.io/en/latest/templatedesigners.html#multilingual-templates and https://tattler.dev/#enterprise .", language_code)
+
+    def _get_template_pathname(self, base: bool=False) -> Path:
+        """Return the path to the root folder of the event template for the vector.
+        
+        :param base:    Whether to look up the template as a base template (under _base).
+        
+        :return:        The path where the template for the vector can be found."""
+        comp_name = '_base' if base else self.event()
+        template_pathname = self.template_base / comp_name / self.vector()
         if not template_pathname.exists():
-            raise ValueError(f"No base template exists for '{self.vector()}' (missing file: {template_pathname}).")
+            raise ValueError(f"No {'base ' if base else ''}template exists for '{self.vector()}:{self.event()}:{self.language_code}' (missing file: {template_pathname}).")
         return template_pathname
 
-    def _get_template_pathname(self) -> Path:
-        """Return the path to the root folder of the event template for the vector"""
-        template_pathname = self.template_base / self.event() / self.vector()
-        if not template_pathname.exists():
-            raise ValueError(f"No template exists for '{self.vector()}:{self.event()}' (missing file: {template_pathname}).")
-        return template_pathname
+    def _get_template_raw_element(self, name: str, base: bool=False) -> str:
+        """Return the content of a specific template element within the event template for the vector.
+        
+        :param name:        Name of the element to look up within the event template for this vector.
+        :param base:        Whether to look up the element within the event template or the base template.
 
-    def _get_template_raw_element(self, name: str) -> str:
-        """Return the content of a specific template element within the event template for the vector"""
-        fname = self._get_template_pathname() / name
-        log.debug("n%s: Looking up '%s' template part -> %s", self.nid, name, fname)
+        :return:            Content of the requested element.
+        """
+        fname = self._get_template_pathname(base) / name
+        log.debug("n%s: Looking up '%s' %stemplate part -> %s", self.nid, name, ('base ' if base else ''), fname)
         return fname.read_text(encoding='utf-8')
 
-    def _get_template_base_raw_element(self, name: str) -> Path:
-        """Return the content of a specific template element within the base template for the vector"""
-        fname = self._get_template_pathname_base() / name
-        log.debug("n%s: Looking up '%s' base template part -> %s", self.nid, name, fname)
-        return fname.read_text(encoding='utf-8')
-
-    def _get_template_elements(self):
-        """Return a list of available elements within the event template for the vector"""
-        dirname = self._get_template_pathname()
+    def _get_template_elements(self, base: bool=False) -> Iterable[str]:
+        """Return a list of available elements within the event template for the vector.
+        
+        :return:    List of element names available within the event template or base template."""
+        dirname = self._get_template_pathname(base)
         return {fname for fname in os.listdir(dirname) if not fname.startswith('.') and os.path.isfile(dirname / fname)}
 
     def _get_content_element(self, element: str, context: Mapping[str, Any]) -> str:
         """Return the final display content by expanding the requested element with the given context."""
         template = self._get_template_raw_element(element)
         try:
-            base_template = self._get_template_base_raw_element(element)
+            base_template = self._get_template_raw_element(element, True)
         except ValueError:
             base_template = None
             log.debug("n%s: No base template provided for '%s:%s'. Ignoring.", self.nid, self.event_name, self.vector())

@@ -52,7 +52,7 @@ class EmailSendable(Sendable):
         raw_content = ''
         for part_fname in self._get_available_parts().values():
             try:
-                raw_content += self._get_template_base_raw_element(part_fname)
+                raw_content += self._get_template_raw_element(part_fname, base=True)
             except ValueError:
                 log.debug("n%s: No base template available for element '%s'. Skipping.", self.nid, part_fname)
             raw_content += self._get_template_raw_element(part_fname)

@@ -24,7 +24,7 @@ default_template_processor_name = 'jinja'
 template_processor = None
 
 # search for native plugins in the following paths
-native_plugins_path = [os.path.join(os.path.dirname(__file__), 'plugins')]
+native_plugins_path = [Path(__file__).parent / 'plugins']
 
 # trim long notification IDs at this number of characters
 max_notification_id_len = 12
@@ -34,11 +34,17 @@ log = logging.getLogger(__name__)
 
 ContextType = Mapping[str, Any]
 
+def getenv(name: str, default: Optional[str]=None) -> Optional[str]:
+    """Get variable from environment -- allowing mocking"""
+    return os.getenv(name, default)
+
 def init_plugins(search_path: str|os.PathLike=None) -> None:
     """Load plugins, if any path for them is available."""
     if search_path is None:
-        search_path = os.getenv("TATTLER_PLUGIN_PATH", None)
-    pluginloader.init(([search_path] if search_path else []) + native_plugins_path)
+        search_path = getenv("TATTLER_PLUGIN_PATH", None)
+    search_path = Path(search_path)
+    initpaths = ([search_path] if search_path else []) + native_plugins_path
+    pluginloader.init([str(x) for x in initpaths])
 
 
 def guess_first_name(email_address: str) -> Optional[str]:
@@ -69,7 +75,7 @@ def guess_first_name(email_address: str) -> Optional[str]:
 
 def get_template_processor() -> TemplateProcessor:
     """Return a suitable template processor for the type of template configured."""
-    return template_processors_available[os.getenv("TATTLER_TEMPLATE_TYPE", default_template_processor_name).lower()]
+    return template_processors_available[getenv("TATTLER_TEMPLATE_TYPE", default_template_processor_name).lower()]
 
 def get_template_manager(base_path: str | os.PathLike, scope_name: Optional[str]=None) -> TemplateMgr:
     """Return a suitable template manager for a given template path and scope name."""
@@ -101,6 +107,7 @@ def core_template_variables(recipient_user: str, correlationId: Optional[str], m
         'user_sms': recipient_contacts.get('sms', None),
         'user_firstname': userfirstname,
         'user_account_type': user_accounttype,
+        'user_language': recipient_contacts.get('language', None),
         'correlation_id': corrId,
         'notification_id': notId,
         'notification_mode': mode,
@@ -130,8 +137,14 @@ def send_notification_user_vectors(base_path, recipient_user, vectors, event_sco
     if mode not in sendable.modes:
         raise ValueError(f"Invalid mode {mode}. Expected one of {sendable.modes}")
     retval = []
+    event_vectors = set(tman.available_vectors(event_name))
     if vectors is None:
-        vectors = set(tman.available_vectors(event_name))
+        vectors = event_vectors
+    if not (set(vectors) & event_vectors):
+        msg = "None of the requested vectors %s is available for event %s, which only supports %s. Returning error."
+        params = (vectors, event_name, event_vectors)
+        log.error(msg, *params)
+        raise ValueError(msg % params)
     log.debug("<-Request to send #%s to %s (cid=%s)", recipient_user, vectors, correlationId)
     user_contacts = pluginloader.lookup_contacts(recipient_user)
     if user_contacts is None:
@@ -139,21 +152,28 @@ def send_notification_user_vectors(base_path, recipient_user, vectors, event_sco
         raise ValueError(f"Recipient unknown '{recipient_user}'. Aborting notification.")
     log.debug("Contacts for recipient %s are: %s", recipient_user, user_contacts)
     user_available_vectors = {vname for vname in vectors if user_contacts.get(vname, None) is not None}
+    usrlang = None
     log.info("Recipient %s is reachable over %d vectors of the %d requested: %s", recipient_user, len(user_available_vectors), len(vectors), user_available_vectors)
     for vname in user_available_vectors:
+        if usrlang is not None:
+            log.debug("User #%s has language preference '%s' -> checking if it's supported by the event template ...")
+            veclangs = tman.available_languages(event_name, vname)
+            if usrlang not in veclangs:
+                msg = f"User '{recipient_user}' has language '{usrlang}', which is not available for {event_name}:{vname}@{event_scope}. Available languages for it are: {veclangs}."
+                raise ValueError(msg)
         recipient = user_contacts[vname]
         template_context = core_template_variables(recipient_user, correlationId, mode, vname, event_scope, event_name)
         if context:
             template_context.update(context)
         template_context = plugin_template_variables(template_context)
         errmsg = None
-        log.info("Sending %s to #%s@%s => [%s], context=%s (cid=%s)", event_name, recipient_user, vname, recipient, template_context, correlationId)
-        blacklist = os.getenv('TATTLER_BLACKLIST_PATH')
+        log.info("Sending %s:%s (evname:language) to #%s@%s => [%s], context=%s (cid=%s)", event_name, usrlang, recipient_user, vname, recipient, template_context, correlationId)
+        blacklist = getenv('TATTLER_BLACKLIST_PATH')
         try:
-            sendable.send_notification(vname, event_name, [recipient], template_base=tman.base_path, context=template_context, mode=mode, template_processor=get_template_processor(), blacklist=blacklist)
+            sendable.send_notification(vname, event_name, [recipient], template_base=tman.base_path, context=template_context, mode=mode, template_processor=get_template_processor(), blacklist=blacklist, language_code=usrlang)
         except Exception as err:
             errmsg = str(err)
-            log.exception("Error sending %s for %s@%s to %s. Skipping vector. (cid=%s)", vname, event_name, event_scope, recipient, correlationId)
+            log.exception("Error sending %s for %s:%s@%s (evname:lang@scope) to %s. Skipping vector. (cid=%s)", vname, event_name, usrlang, event_scope, recipient, correlationId)
             log.debug("Context was (cid=%s): %s", correlationId, template_context)
         retval.append({
             'id': f"{vname}:{uuid.uuid4()}",
@@ -166,7 +186,7 @@ def send_notification_user_vectors(base_path, recipient_user, vectors, event_sco
 
 def get_operating_mode(requested_mode, default_master_mode=None):
     """Return the operating mode based on requested and allowed (master) mode."""
-    master_mode = os.getenv('TATTLER_MASTER_MODE') or default_master_mode
+    master_mode = getenv('TATTLER_MASTER_MODE') or default_master_mode
     master_mode.strip().lower()
     if master_mode not in mode_severity:
         raise RuntimeError(f"'TATTLER_MASTER_MODE' envvar is set to unsupported value '{master_mode}' not in {mode_severity}.")

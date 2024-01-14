@@ -245,7 +245,8 @@ class TattlerHttpServerTest(unittest.TestCase):
                         os.environ[vname] = oldenv
 
     def test_send_selective_vector(self):
-        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123&vector=email', method='POST')
+        """Response to a notification request restricted to a vector only includes that vector."""
+        req = self.mkreq('/notification/jinja/jinja_email_and_sms/?user=123&vector=email', method='POST')
         with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
             mcontacts.return_value = data_contacts['123']
             with urlopen(req) as f:
@@ -254,6 +255,18 @@ class TattlerHttpServerTest(unittest.TestCase):
                 self.assertEqual(len(res), 1)
                 self.assertIn('vector', res[0])
                 self.assertEqual(res[0]['vector'], 'email')
+
+    def test_send_vector_rejected_iff_inexistent(self):
+        """Failure if requesting notification to a specific vector which is not supported by the event."""
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123&vector=email', method='POST')
+        with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
+            mcontacts.return_value = data_contacts['123']
+            with self.assertRaises(urllib.error.HTTPError) as err:
+                with urlopen(req):  # to avoid resource leaks
+                    pass
+            self.assertEqual(400, err.exception.status)
+            self.assertIn("None of the requested vectors", err.exception.msg)
+            self.assertIn("email", err.exception.msg)
 
     def test_demotemplates_fallback(self):
         """Demo templates are loaded if no other templates are found"""

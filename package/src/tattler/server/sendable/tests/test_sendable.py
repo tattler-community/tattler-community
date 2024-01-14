@@ -1,15 +1,18 @@
 import os
 import unittest
 import unittest.mock
+from pathlib import Path
 
 from tattler.server import sendable
 
-from testutils import temp_envvar, get_lines_without_comments, data_recipients
+from tattler.server.sendable.tests.testutils import temp_envvar, get_lines_without_comments, data_recipients
 
 
 class SendableTest(unittest.TestCase):
-    template_base = os.path.join('fixtures', 'templates')
-    blacklist_path = os.path.join('fixtures', 'blacklist.txt')
+    """Tests for default sendables."""
+
+    template_base = Path(__file__).parent / 'fixtures' / 'templates'
+    blacklist_path = Path(__file__).parent / 'fixtures' / 'blacklist.txt'
     recipients = {
         'email': ['support@test123.com'],
         'sms': ['+11234567898', '00417689876']

@@ -11,6 +11,7 @@ def get_addressbook_retval():
             'mobile': '+' + ''.join([str(random.randint(1, 9)) for x in range(10)]),
             'account_type': random.choice(['free', 'pro']),
             'first_name': f'Name{random.randint(1, 1000)}',
+            'language': None
         }
 
 
@@ -152,7 +153,7 @@ class PluginLoaderTest(unittest.TestCase):
                     m.attributes.assert_not_called()
             mocks[4].recipient_exists.assert_not_called()
             mocks[4].attributes.assert_not_called()
-            self.assertEqual(4, len(have_contacts))
+            self.assertEqual(5, len(have_contacts))
 
     def test_lookup_contacts_tolerates_failing_plugins(self):
         """An addressbook plugin raising exceptions does not prevent subsequent ones from running"""
