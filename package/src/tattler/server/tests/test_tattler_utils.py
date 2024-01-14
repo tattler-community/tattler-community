@@ -1,8 +1,11 @@
+"""Tests for tattler utils"""
+
 import unittest
 import os
 from unittest import mock
+from pathlib import Path
 
-from testutils import get_template_dir
+from tattler.server.tests.testutils import get_template_dir
 
 from tattler.server import tattler_utils
 
@@ -17,12 +20,18 @@ data_contacts = {
         },
     '789': {
         'email': 'user789-blacklisted@dom.ch'
-        }
+        },
+    '999': {
+        'email': 'multilingual@bar.com',
+        'sms': '667788',
+        'account_type': 'free',
+        'language': 'de_CH'
+        },
     }
 
 
 class TestTattlerUtils(unittest.TestCase):
-    blacklist_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fixtures', 'blacklist.txt')
+    blacklist_path = Path(__file__).parent / 'fixtures' / 'blacklist.txt'
 
     def test_send_notification_missing_scope(self):
         """Notify missing scope raises ValueError, mentions scope"""
@@ -70,8 +79,9 @@ class TestTattlerUtils(unittest.TestCase):
                     # name: want
                     'user_email': data_contacts['123']['email'],
                     'user_sms': data_contacts['123']['sms'],
-                    'user_firstname': data_contacts['123']['email'].split('@')[0].lower().capitalize(),
+                    'user_firstname': data_contacts['123']['email'].split('@', 1)[0].lower().capitalize(),
                     'user_account_type': 'pro',
+                    'user_language': None,
                     'correlation_id': None,
                     'notification_id': None,
                     'notification_mode': 'debug',
@@ -129,22 +139,23 @@ class TestTattlerUtils(unittest.TestCase):
     def test_send_notification_user_vectors_does_not_deliver_to_blacklisted_addresses(self):
         with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
                 with mock.patch('tattler.server.tattler_utils.sendable.vector_email.EmailSendable.do_send') as msend:
-                    maddrb.side_effect = lambda x: data_contacts.get(x, None)
-                    # delivers without blacklist
-                    tattler_utils.send_notification_user_vectors(get_template_dir(), '456', None, 'jinja', 'jinja_event', mode='production')
-                    self.assertEqual(msend.call_count, 1)
-                    self.assertIn({data_contacts['456']['email']}, msend.call_args.args)
-                    # does not deliver with blacklist to blacklisted addr
-                    msend.reset_mock()
-                    maddrb.return_value = data_contacts['456']
-                    os.environ['TATTLER_BLACKLIST_PATH'] = self.blacklist_path
-                    tattler_utils.send_notification_user_vectors(get_template_dir(), '789', None, 'jinja', 'jinja_event', mode='production')
-                    self.assertEqual(msend.call_count, 0)
-                    # delivers with blacklist to legitimate addr
-                    msend.reset_mock()
-                    tattler_utils.send_notification_user_vectors(get_template_dir(), '456', None, 'jinja', 'jinja_event', mode='production')
-                    self.assertEqual(msend.call_count, 1)
-                    del os.environ['TATTLER_BLACKLIST_PATH']
+                    with mock.patch('tattler.server.tattler_utils.getenv') as mgenv:
+                        maddrb.side_effect = lambda x: data_contacts.get(x, None)
+                        # delivers without blacklist
+                        mgenv.side_effect = lambda x, y=None: { 'TATTLER_BLACKLIST_PATH': None }.get(x, os.getenv(x, y))
+                        tattler_utils.send_notification_user_vectors(get_template_dir(), '456', None, 'jinja', 'jinja_event', mode='production')
+                        self.assertEqual(msend.call_count, 1)
+                        self.assertIn({data_contacts['456']['email']}, msend.call_args.args)
+                        # does not deliver with blacklist to blacklisted addr
+                        msend.reset_mock()
+                        maddrb.return_value = data_contacts['456']
+                        mgenv.side_effect = lambda x, y=None: { 'TATTLER_BLACKLIST_PATH': str(self.blacklist_path) }.get(x, os.getenv(x, y))
+                        tattler_utils.send_notification_user_vectors(get_template_dir(), '789', None, 'jinja', 'jinja_event', mode='production')
+                        self.assertEqual(msend.call_count, 0)
+                        # delivers with blacklist to legitimate addr
+                        msend.reset_mock()
+                        tattler_utils.send_notification_user_vectors(get_template_dir(), '456', None, 'jinja', 'jinja_event', mode='production')
+                        self.assertEqual(msend.call_count, 1)
 
     def test_send_trims_notification_id_from_correlation_id(self):
         with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
@@ -196,12 +207,13 @@ class TestTattlerUtils(unittest.TestCase):
         """Native plugins are initialized after user-requested plugins"""
         with mock.patch('tattler.server.tattler_utils.pluginloader.init') as mpinit:
             tattler_utils.init_plugins('foobar')
-            mpinit.assert_called_with(['foobar'] + tattler_utils.native_plugins_path)
+            mpinit.assert_called_with(['foobar'] + [str(x) for x in tattler_utils.native_plugins_path])
 
     def test_plugins_are_initialized_from_correct_path(self):
-        tattler_utils.init_plugins(os.path.join('fixtures', 'plugins_integration'))
+        tattler_utils.init_plugins(Path(__file__).parent / 'fixtures' / 'plugins_integration')
         with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
             with mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
+                maddrb.return_value = data_contacts['123']
                 tattler_utils.send_notification_user_vectors(get_template_dir(), '123', ['email'], 'jinja', 'jinja_event')
                 self.assertTrue(msend.mock_calls)
                 self.assertIn('context', msend.call_args.kwargs)
@@ -211,7 +223,7 @@ class TestTattlerUtils(unittest.TestCase):
                 self.assertEqual(345, msend.call_args.kwargs['context']['bar'])
 
     def test_plugins_are_passed_correct_context(self):
-        tattler_utils.init_plugins(os.path.join('fixtures', 'plugins_integration'))
+        tattler_utils.init_plugins(Path(__file__).parent / 'fixtures' / 'plugins_integration')
         with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
             maddrb.return_value = data_contacts['123']
             with mock.patch('tattler.server.tattler_utils.pluginloader.process_context') as mproc:

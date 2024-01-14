@@ -2,6 +2,8 @@ import os
 import unittest
 from unittest import mock
 
+from pathlib import Path
+
 # suppress warning when SMSSendable is imported
 os.environ['TATTLER_BULKSMS_TOKEN'] = 'A:B'
 
@@ -9,8 +11,10 @@ from tattler.server import sendable
 
 
 class UtilsTest(unittest.TestCase):
-    template_base = os.path.join('fixtures', 'templates')
-    blacklist_path = os.path.join('fixtures', 'blacklist.txt')
+    """Test utility functions exposed by module itself"""
+    
+    template_base = Path() / 'fixtures' / 'templates'
+    blacklist_path = Path('fixtures') / 'blacklist.txt'
     recipients = {
         'email': ['support@test123.com'],
         'sms': ['+11234567898', '00417689876']
@@ -46,4 +50,3 @@ class UtilsTest(unittest.TestCase):
         with mock.patch('tattler.server.sendable.Sendable.send') as msend:
             sendable.send_notification('email', 'event_with_email_and_sms', ['u1@x.com'], mode='debug', blacklist='inexistent-file-1234.txt')
             self.assertEqual(msend.call_count, 1)
-            

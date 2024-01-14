@@ -1,3 +1,5 @@
+"""Definitions to declare Tattler plugins and logic to load them"""
+
 import importlib
 from importlib.abc import MetaPathFinder
 import pkgutil
@@ -91,6 +93,14 @@ class AddressbookPlugin(TattlerPlugin):
         :return:                User's first name (e.g. "Paul"), or None if unknown."""
         return None
 
+    def language(self, recipient_id: str, role: Optional[str]=None) -> Optional[str]:
+        """Return the user's language, if known; only supported in tattler enterprise edition.
+
+        :param recipient_id:    Unique identifier for the intended recipient, e.g. user ID from IAM system.
+        :param role:            Intended role within the account to get address for, e.g. 'billing' or 'technical'.
+        :return:                Language code requested by the user (e.g. "en" or "en_US" -- consult with template designer), or None if unknown."""
+        return None
+
     def attributes(self, recipient_id: str, role: Optional[str]=None) -> Mapping[str, Optional[str]]:
         """Return all attributes for a user at once.
 
@@ -115,6 +125,7 @@ class AddressbookPlugin(TattlerPlugin):
             'mobile': self.mobile(recipient_id, role),
             'account_type': self.account_type(recipient_id, role),
             'first_name': self.first_name(recipient_id, role),
+            'language': self.language(recipient_id, role)
         }
         res['sms'] = res['mobile']
         return res

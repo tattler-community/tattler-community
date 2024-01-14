@@ -1,7 +1,15 @@
+"""Definition of TemplateMgr, a class to inspect available templates and their properties"""
+
+import os
+import logging
 from typing import Iterable
 from pathlib import Path
 
-from tattler.server.sendable import vector_sendables
+from tattler.server.sendable import vector_sendables, Sendable
+
+logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
+log = logging.getLogger(__name__)
+
 
 class DoesNotExist(Exception):
     pass
@@ -60,6 +68,17 @@ class TemplateMgr:
             if vtype.exists(event_name, self.base_path):
                 vectors.add(vtype.vector())
         return vectors
+
+    def available_languages(self, event_name: str, vector: str) -> Iterable[str]:
+        """Return list of language codes that an event's vector is available with.
+        
+        :param event_name:  Name of event to look up available languages for.
+        :param vector:      Name of vector within event to look up available languages for.
+
+        :return:            List of language codes available for the event's vector.
+        """
+        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition only operates with the default language for %s:%s. See https://tattler.readthedocs.io/en/latest/templatedesigners.html#multilingual-templates and https://tattler.dev/#enterprise .", event_name, vector)
+        return []
 
 def get_scopes(base_path: Path) -> Iterable[str]:
     """Returns the set of available scopes (subdirs) of an event directory.
