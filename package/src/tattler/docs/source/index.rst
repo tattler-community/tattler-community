@@ -77,17 +77,6 @@ System Context
        Rel(Tattler, SMS, "Deliver SMS<br/>notification")
        Rel(User, Tattler, "Receive<br/>notifications.")
 
-
-Advanced features
------------------
-
-Additionally, Tattler supports some advanced deployment scenarios:
-
-- Deliver notifications from components on different servers or inside containers.
-- Tokenize contact information, so components only deal with user IDs, and Tattler expands the associated user information.
-- Collect additional variables about a user in one place (account type, resources used, solvency, ...), make them available to notifications from all subsystems.
-- Restrict access to your users' contact data in your database to Tattler only, preventing data leaks in case of a hack.
-
 License
 =======
 
