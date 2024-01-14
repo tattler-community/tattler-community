@@ -49,4 +49,4 @@ test_py:
     - cd package
     - pip install build
     - python -m build
-    - pip install 'dist/tattler-1.1.0-py3-none-any.whl[Jinja]'
+    - pip install 'dist/tattler-1.1.1-py3-none-any.whl[Jinja]'
