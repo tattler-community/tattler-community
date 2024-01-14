@@ -27,6 +27,8 @@ Hints
     - Make sure there's a reasonable "action" for each event. A weak action suggests a low-value notification.
 - Carefully balance how much to tell in the notifications itself vs recall the user to your website to get the information there.
 
+.. tip:: Found anything unclear or needy of further explanation? Do send us the feedback at `docs@tattler.dev <mailto:docs@tattler.dev>`_ !
+
 The table
 ---------
 

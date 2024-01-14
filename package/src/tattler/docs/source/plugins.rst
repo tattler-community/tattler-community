@@ -1,3 +1,5 @@
+.. tip:: Found anything unclear or needy of further explanation? Do send us the feedback at `docs@tattler.dev <mailto:docs@tattler.dev>`_ !
+
 Tattler plug-ins
 ==================
 
