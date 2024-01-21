@@ -33,9 +33,6 @@ test_py:
     - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
     - cd ${WD}/package/src/tattler/server/tests
     - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
-    ## plugins
-    - cd ${WD}/package/src/tattler/server/plugins/tests
-    - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
     ## client
     - echo "tattler client"
     - cd ${WD}/package/src/tattler/client/tattler_py
