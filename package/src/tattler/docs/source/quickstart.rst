@@ -94,12 +94,15 @@ Tattler includes a little utility to easily trigger notifications from the comma
 
 .. code-block:: bash
 
-   tattler_notify -s '127.0.0.1:11503' your@email.com demoscope demoevent
+   tattler_notify -s '127.0.0.1:11503' -m production your@email.com demoscope demoevent
 
 Done!
 
 This does exactly the same as `Send a notification via HTTP`_, using the same REST API, and
 actually relying on tattler's python client SDK which we'll look into next.
+
+- Argument ``-s`` provides the SMTP address to use to deliver email.
+- Argument ``-m`` controls what notification mode the client should request, as ``TATTLER_MASTER_MODE`` did for the server.
 
 
 Send a notification via python
@@ -113,7 +116,7 @@ Tattler includes a little python client library:
 
    from tattler.client.tattler_py import send_notification
 
-   send_notification('demoscope', 'demoevent', 'your@email.com', srv_addr='127.0.0.1', srv_port=11503)
+   send_notification('demoscope', 'demoevent', 'your@email.com', mode='production', srv_addr='127.0.0.1', srv_port=11503)
 
 Again, this code does the same as shown in `Send a notification via HTTP`_: it contacts
 ``tattler_server`` on the same REST API endpoint.
@@ -194,6 +197,8 @@ Here we have restarted ``tattler_server`` with the following additional configur
 * :ref:`TATTLER_SMTP_ADDRESS <configuration:TATTLER_SMTP_ADDRESS>` controls IP address and port number of the SMTP server to use for email delivery
 * :ref:`TATTLER_SMTP_AUTH <configuration:TATTLER_SMTP_AUTH>` provides username and password to authenticate at that server with, if set. Remove it if no authentication is required.
 * :ref:`TATTLER_SMTP_TLS <configuration:TATTLER_SMTP_TLS>` controls whether to use STARTTLS when talking with that server. Set it to enable it. Remove it to disable it.
+
+Done!
 
 Now, how can you possibly pass sensitive information like SMTP credentials
 over environment variables on the command line?
