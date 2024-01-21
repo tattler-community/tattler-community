@@ -206,5 +206,5 @@ over environment variables on the command line?
 You don't 🙂 The :ref:`deployment guide <sysadmins/base_config:Base configuration>`
 shows you how to deploy configuration cleanly, privately and maintainably.
 
-Now that you some instant gratification, proceed with learning how to take advantage
+And now -- after some instant gratification, let's proceed with learning how to take advantage
 of tattler in real-world enterprise scenarios.
