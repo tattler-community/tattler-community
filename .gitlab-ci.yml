@@ -76,7 +76,7 @@ pages:
     - pip install -r requirements_docs.txt
     - make html
     - version_docs=$(awk -F= '/^release/ { print $2 }' source/conf.py | grep -Eo '[0-9.]+')
-    - echo "Version numbers of package and docs: $version_package vs $version_docs"
+    #- echo "Version numbers of package and docs: $version_package vs $version_docs"
     - test -n "$version_package" -a "$version_package" = "$version_docs"
     - cd $WD
     - echo Build documentation
