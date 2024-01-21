@@ -38,12 +38,18 @@ def getenv(name: str, default: Optional[str]=None) -> Optional[str]:
     """Get variable from environment -- allowing mocking"""
     return os.getenv(name, default)
 
-def init_plugins(search_path: str|os.PathLike=None) -> None:
-    """Load plugins, if any path for them is available."""
-    if search_path is None:
-        search_path = getenv("TATTLER_PLUGIN_PATH", None)
-    search_path = Path(search_path)
-    initpaths = ([search_path] if search_path else []) + native_plugins_path
+def init_plugins(search_path: Optional[str|os.PathLike]=None) -> None:
+    """Load plugins, if any path for them is available.
+    
+    :param search_path:     Path to a directory holding plug-in files, or None to only load native plug-ins."""
+    initpaths = []
+    if search_path is not None:
+        search_path = Path(search_path)
+        if search_path.is_dir():
+            initpaths = [search_path]
+        else:
+            log.warning("Ignoring plug-in path '%s' as it's not a directory. Fix with envvar TATTLER_PLUGIN_PATH.", search_path)
+    initpaths += native_plugins_path
     pluginloader.init([str(x) for x in initpaths])
 
 
@@ -79,9 +85,11 @@ def get_template_processor() -> TemplateProcessor:
 
 def get_template_manager(base_path: str | os.PathLike, scope_name: Optional[str]=None) -> TemplateMgr:
     """Return a suitable template manager for a given template path and scope name."""
-    base_path = Path(base_path)
-    wpath = base_path / scope_name if scope_name else base_path
-    return TemplateMgr(wpath)
+    if isinstance(base_path, str):
+        base_path = Path(base_path)
+    if scope_name is not None:
+        base_path = base_path.joinpath(scope_name) if scope_name else base_path
+    return TemplateMgr(base_path)
 
 def mk_correlation_id(prefix: Optional[str]='tattler') -> str:
     """Generate a random correlation ID, for sessions where none has been pre-provided."""

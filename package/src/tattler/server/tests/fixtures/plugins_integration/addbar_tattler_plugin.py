@@ -1,5 +1,5 @@
-from tattler.server.pluginloader import ContextTattlerPlugin, ContextType
+from tattler.server.pluginloader import ContextPlugin, ContextType
 
-class AddBarTattlerPlugin(ContextTattlerPlugin):
+class AddBarTattlerPlugin(ContextPlugin):
     def process(self, context: ContextType) -> ContextType:
         return context | {'bar': 345}

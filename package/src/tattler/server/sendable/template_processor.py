@@ -42,9 +42,9 @@ class TemplateProcessor:
             try:
                 bcontent = self.base_content % full_context
                 full_context = {'base_content': bcontent, **full_context}
-            except (TypeError, KeyError) as err:
-                raise TypeError(f"Error expanding base template with base TemplateProcessor. Is the right template processor selected? '{err}'") from err
+            except KeyError as err:
+                raise KeyError(f"Error expanding base template with base TemplateProcessor. One or more template-required variable were undefined ({err.args[0]})? Original error: '{err}'. Context: {context}") from err            
         try:
             return self.content % full_context
-        except (TypeError, KeyError) as err:
-            raise TypeError(f"Error expanding template with base TemplateProcessor. Is the right template processor selected? '{err}'") from err
+        except KeyError as err:
+            raise KeyError(f"Error expanding template with base TemplateProcessor. One or more template-required variable were undefined ({err.args[0]})? Original error: '{err}'. Context: {context}") from err

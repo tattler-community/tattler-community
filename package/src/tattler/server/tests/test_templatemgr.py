@@ -42,3 +42,8 @@ class TemplateManagerTest(unittest.TestCase):
         tm = TemplateMgr(self.good_templates_path)
         self.assertGreater(tm.available_events(with_hidden=True), tm.available_events(with_hidden=False))
         self.assertEqual({'_base', '_other_hidden_event'}, tm.available_events(with_hidden=True) - tm.available_events(with_hidden=False))
+    
+    def test_multilingualism_succeeds_empty(self):
+        """available_languages() can be called safely but always returns empty set"""
+        tm = TemplateMgr(self.good_templates_path)
+        self.assertEqual(set(), set(tm.available_languages('valid_event', 'sms')))

@@ -9,6 +9,9 @@ from datetime import datetime
 # to run server and test clients in parallel
 import threading
 from urllib.request import Request, urlopen
+from pathlib import Path
+from importlib.abc import Traversable
+from importlib.readers import MultiplexedPath
 
 from testutils import get_template_dir
 
@@ -273,8 +276,9 @@ class TattlerHttpServerTest(unittest.TestCase):
         with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
             mgetenv.side_effect = lambda x, y=None: {'TATTLER_TEMPLATE_BASE': None}.get(x, os.getenv(x, y))
             # mgetenv.side_effect = ValueError
-            want_path_suffix = PurePath('tattler') / 'templates'
-            self.assertIn(str(want_path_suffix), str(tattlersrv_http.get_templates_path()))
+            want_path = Path(__file__).parent.parent.parent / 'templates'
+            # want_path_suffix = PurePath('tattler') / 'templates'
+            self.assertEqual(str(want_path), str(tattlersrv_http.get_templates_path()))
 
     def test_plugins_only_loaded_if_configured(self):
         with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.init_plugins') as minit:
@@ -302,6 +306,24 @@ class TattlerHttpServerTest(unittest.TestCase):
                     mgetenv.side_effect = lambda x, y=None: {'TATTLER_LISTEN_ADDRESS': '1.2.3.4:45'}.get(x, os.getenv(x, y))
                     tattlersrv_http.main()
                     mserve.assert_called_with('1.2.3.4', 45)
+
+    def test_main_runs(self):
+        """main() function runs gracefully with basic configuration parameters"""
+        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattlersrv_http.http.server.HTTPServer'):
+                mgetenv.side_effect = lambda x, y=None: y
+                tattlersrv_http.main()
+
+    def test_demo_templates(self):
+        """get_template_manager runs if multiple template folders are automatically found"""
+        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattlersrv_http.files') as mfiles:
+                mgetenv.side_effect = lambda k,v=None: {'TATTLER_TEMPLATE_BASE': None}.get(k, os.getenv(k, v))
+                p1 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates1')
+                p2 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates2')
+                mfiles.return_value: Traversable = MultiplexedPath(p1, p2)
+                self.assertIsInstance(tattlersrv_http.get_templates_path(), Path)
+                self.assertTrue(mfiles.mock_calls)
 
 if __name__ == '__main__':
     unittest.main()

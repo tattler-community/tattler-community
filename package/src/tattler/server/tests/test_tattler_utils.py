@@ -206,8 +206,18 @@ class TestTattlerUtils(unittest.TestCase):
     def test_native_plugins_are_initialized_last(self):
         """Native plugins are initialized after user-requested plugins"""
         with mock.patch('tattler.server.tattler_utils.pluginloader.init') as mpinit:
-            tattler_utils.init_plugins('foobar')
-            mpinit.assert_called_with(['foobar'] + [str(x) for x in tattler_utils.native_plugins_path])
+            tattler_utils.init_plugins('.')
+            mpinit.assert_called_with(['.'] + [str(x) for x in tattler_utils.native_plugins_path])
+
+    def test_invalid_plugin_directory_ignored(self):
+        """Plug-in loading ignores and warns about invalid plug-in paths"""
+        with mock.patch('tattler.server.tattler_utils.pluginloader.init') as mpinit:
+            with mock.patch('tattler.server.tattler_utils.log') as mlog:
+                tattler_utils.init_plugins('foobar')
+                mlog.warning.assert_called()
+                self.assertTrue(mlog.warning.call_args.args)
+                self.assertIn('not a directory', mlog.warning.call_args.args[0])
+                mpinit.assert_called_with([str(x) for x in tattler_utils.native_plugins_path])
 
     def test_plugins_are_initialized_from_correct_path(self):
         tattler_utils.init_plugins(Path(__file__).parent / 'fixtures' / 'plugins_integration')

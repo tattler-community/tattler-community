@@ -77,7 +77,7 @@ class TemplateMgr:
 
         :return:            List of language codes available for the event's vector.
         """
-        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition only operates with the default language for %s:%s. See https://tattler.readthedocs.io/en/latest/templatedesigners.html#multilingual-templates and https://tattler.dev/#enterprise .", event_name, vector)
+        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition only operates with the default language for %s:%s. See https://tattler.readthedocs.io/en/latest/templatedesigners/multilingualism.html and https://tattler.dev/#enterprise .", event_name, vector)
         return []
 
 def get_scopes(base_path: Path) -> Iterable[str]:

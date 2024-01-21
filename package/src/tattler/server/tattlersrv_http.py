@@ -172,15 +172,15 @@ def get_templates_path() -> Path:
     Else, use the internal path to native demo templates.
     """
     templproc_base_path = getenv('TATTLER_TEMPLATE_BASE')
-    if not templproc_base_path:
-        return files('tattler.templates')
-    else:
+    if templproc_base_path:
         templproc_base_path = Path(templproc_base_path)
-        try:
-            tattler_utils.get_template_manager(templproc_base_path)
-            return templproc_base_path
-        except ValueError as err:
-            log.error("Template directory ('%s') check failed. Fix this before notification requests come in. I do real-time loading, so I'll keep going now.", err)
+    else:
+        templproc_base_path = files('tattler.templates').joinpath('.')
+    try:
+        tattler_utils.get_template_manager(templproc_base_path)
+        return templproc_base_path
+    except ValueError as err:
+        log.error("Template directory ('%s') check failed. Fix this before notification requests come in. I do real-time loading, so I'll keep going now.", err)
     return templproc_base_path
 
 def parse_opts_and_serve():
@@ -194,7 +194,7 @@ def parse_opts_and_serve():
 
 def main():
     """Logic run when module run as main"""
-    tattler_utils.init_plugins(getenv("TATTLER_PLUGIN_PATH", None))
+    tattler_utils.init_plugins(getenv("TATTLER_PLUGIN_PATH"))
     try:
         srv = parse_opts_and_serve()
         if srv:

@@ -25,14 +25,17 @@ email_re = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 def get_smtp_server(connstr: str) -> [str, int]:
     """Acquire usable SMTP (host, port) pair from a connection string"""
-    conn_re = '(.*)(:[0-9]+)?'
-    if len(connstr.split(':')) > 2: # IPv6?
-        conn_re = r'\[(.*)\](:[0-9]+)?'
-    m = re.match(conn_re, connstr)
-    if not m:
-        raise ValueError(f"Invalid connection string {connstr}: can't detect server and (optional) port parts. Use srv:port or [srv6]:port")
-    srv, port = m.groups()
-    return srv, port
+    def retres(srv, port):
+        return srv, (int(port) if port else 25)
+    connstr_ipv4_re = re.compile(r'^(?P<srv>(\d+\.){3}\d+)(:(?P<port>\d+))?$')
+    mtc = connstr_ipv4_re.match(connstr)
+    if mtc:
+        return retres(mtc.group('srv'), mtc.group('port'))
+    connstr_ipv6_re = re.compile(r'^\[(?P<srv>[a-fA-F0-9:]+)\](:(?P<port>\d+))?$')
+    mtc = connstr_ipv6_re.match(connstr)
+    if mtc:
+        return retres(mtc.group('srv'), mtc.group('port'))
+    raise ValueError(f"Invalid connection string {connstr}: can't detect server and (optional) port parts. Use srv:port or [srv6]:port")
 
 class EmailSendable(Sendable):
     """An e-mail message."""
@@ -58,7 +61,7 @@ class EmailSendable(Sendable):
             raw_content += self._get_template_raw_element(part_fname)
         return raw_content
 
-    def _auto_encode(self, content: str) -> [bytes, str]:
+    def _auto_encode(self, content: str) -> (bytes, str):
         """Return content encoded with the simplest possible encoding, and the ID of the encoding used."""
         # determine minimum encoding suited for this content
         for enc in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
@@ -69,7 +72,42 @@ class EmailSendable(Sendable):
         # if we got here, none of the encodings worked for the content
         raise RuntimeError(f"Unable to find suitable encoding for content '{content}' among ascii, latin1 and utf8")
 
-    def _build_msg(self, context: Mapping[str, Any]) -> MIMEMultipart | MIMENonMultipart:
+    def _build_part_encoded(self, part_filename: str, context: Optional[Mapping[str, Any]]=None) -> (bytes, str):
+        """Load content, expand it, and encode it; return content and resulting encoding.
+
+        :param part_filename:   Filename of the part to load, e.g. 'body_plain'.
+        :param context:         Optional variables to expand template with.
+
+        :return:                Pair holding content encoded into a byte string, and name of encoding.
+        """
+        context = context or {}
+        part_content = self._get_content_element(part_filename, context)
+        return self._auto_encode(part_content)
+
+    def _add_msg_parts(self, msg: MIMEMultipart | MIMENonMultipart, context: Optional[Mapping[str, Any]]=None) -> None:
+        """Add text/html and/or text/plain parts to MIME message by loading and expanding templates and determining their encoding.
+        
+        :param msg:             Message to add available parts to.
+        :param context:         Optional variables to expand template with.
+        """
+        if 'body_html' not in self._get_available_parts().values():
+            part_content, charset = self._build_part_encoded('body_plain', context)
+            msg.set_charset(charset)
+            msg.set_payload(part_content)
+        else:
+            msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
+            # Record the MIME types of both parts - text/plain and text/html.
+            for part_type, part_fname in self._get_available_parts().items():
+                part_content, charset = self._build_part_encoded(part_fname, context)
+                msg.attach(MIMEText(part_content, part_type, charset))
+
+    def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> MIMEMultipart | MIMENonMultipart:
+        """Load all parts of the message and return a final email assembly.
+        
+        :param context:         Optional variables to expand template with.
+
+        :return:                Email object with all required parts filled out.
+        """
         # Create message container - the correct MIME type is multipart/alternative.
         if 'body_html' in self._get_available_parts().values():
             msg = MIMEMultipart('alternative')
@@ -83,19 +121,7 @@ class EmailSendable(Sendable):
         subj, charset = self._auto_encode(self.subject(context))
         msg['Subject'] = Header(subj, charset).encode()
 
-        # see if the message must be multi-part or plain-text
-        if 'body_html' not in self._get_available_parts().values():
-            part_content = self._get_content_element('body_plain', context)
-            part_content, charset = self._auto_encode(part_content)
-            msg.set_charset(charset)
-            msg.set_payload(part_content)
-        else:
-            msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
-            # Record the MIME types of both parts - text/plain and text/html.
-            for part_type, part_fname in self._get_available_parts().items():
-                part_content = self._get_content_element(part_fname, context)
-                part_content, charset = self._auto_encode(part_content)
-                msg.attach(MIMEText(part_content, part_type, charset))
+        self._add_msg_parts(msg, context)
 
         # add priority information, if required
         msg = self._add_priority_info(msg)
