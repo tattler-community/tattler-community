@@ -37,7 +37,7 @@ Run tattler server
 This causes the following basic scenario:
 
 - ``tattler_server`` listens for requests on `<http://127.0.0.1:11503>`_.
-- ``tattler_server`` looks for notifications to send into the local working directory ``.``
+- ``tattler_server`` looks for notifications to send into the local working directory ``.`` plus one "demo" notification embedded into tattler's distribution.
 - ``tattler_server`` delivers notification to the actual recipient (no dry-run!) due to the :ref:`TATTLER_MASTER_MODE <configuration:TATTLER_MASTER_MODE>` environment variable.
 
 Send a notification via HTTP
@@ -56,6 +56,26 @@ Here's what this does:
 - It asks to send the notification for ``demoevent``, which is built into tattler's distribution.
 - It asks to send it to ``your@email.com``.
 
+Tried and failed?
+^^^^^^^^^^^^^^^^^
+
+There are good chances that you got an error here::
+
+   # on the client
+   [{"id": "email:f2591ba6-f25a-4276-b780-26210c0c728b", "vector": "email", "resultCode": 1, "result": "error", "detail": "[Errno 61] Connection refused"}]
+
+   # on the server
+   ConnectionRefusedError: [Errno 61] Connection refused
+
+If you did, it's because you have no SMTP server running on ``127.0.0.1``. This is common unless you are testing on a server.
+
+No worries: pointing tattler to your actual SMTP server is as easy as setting environment variable ``TATTLER_SMTP_ADDRESS``.
+
+Read about these `basic customizations <quickstart:Some basic customizations>` for more.
+
+Why demo? Why email?
+^^^^^^^^^^^^^^^^^^^^
+
 Now here's a couple of things which might turn your nose:
 
 "Why ``demoevent``? I thought tattler allowed me to send my own notifications!"
@@ -63,9 +83,6 @@ Now here's a couple of things which might turn your nose:
 
 "Why ``your@email.com``? I thought tattler would look up user information for me!"
    That's right. Tattler really shines when it loads your data for you. We'll look into that in the :ref:`plug-ins section <plugins/index:Tattler plug-ins>`.
-
-"Why do I get no email?"
-   You likely need a special address for your SMTP server. We'll look into further customization :ref:`later too <quickstart:Some basic customizations>`.
 
 
 Send a notification via command-line
@@ -178,7 +195,11 @@ Here we have restarted ``tattler_server`` with the following additional configur
 * :ref:`TATTLER_SMTP_AUTH <configuration:TATTLER_SMTP_AUTH>` provides username and password to authenticate at that server with, if set. Remove it if no authentication is required.
 * :ref:`TATTLER_SMTP_TLS <configuration:TATTLER_SMTP_TLS>` controls whether to use STARTTLS when talking with that server. Set it to enable it. Remove it to disable it.
 
-Done!
+Now, how can you possibly pass sensitive information like SMTP credentials
+over environment variables on the command line?
+
+You don't 🙂 The :ref:`deployment guide <sysadmins/base_config:Base configuration>`
+shows you how to deploy configuration cleanly, privately and maintainably.
 
 Now that you some instant gratification, proceed with learning how to take advantage
 of tattler in real-world enterprise scenarios.
