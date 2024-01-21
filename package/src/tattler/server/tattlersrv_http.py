@@ -168,7 +168,7 @@ def serve(address='', port=20000):
 def get_templates_path() -> Path:
     """Check validity and return path to templates from environment settings, or default.
     
-    If envvar TEMPLATE_BASE is set, use that.
+    If envvar TATTLER_TEMPLATE_BASE is set, use that.
     Else, use the internal path to native demo templates.
     """
     templproc_base_path = getenv('TATTLER_TEMPLATE_BASE')
