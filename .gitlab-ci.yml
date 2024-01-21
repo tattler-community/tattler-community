@@ -50,6 +50,10 @@ test_py:
     - pip install build
     - python -m build
     - pip install 'dist/tattler-1.1.1-py3-none-any.whl[Jinja]'
+    ## validate links
+    - echo "Validating links"
+    - cd $WD/utils
+    - python validate_links.py ../package/src ${WD}/urlcache.csv
 
 pages:
   stage: deploy_docs
