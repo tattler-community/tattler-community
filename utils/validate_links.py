@@ -23,7 +23,7 @@ cached_urls = {}
 exclude_paths = ['/test', '/venv', '__pycache__', 'docs/build/', 'templates/', 'tattler.egg-info']
 
 # ignore URLs that contain any of these literal strings; empty to exclude none
-exclude_urls = ['127.0.0.1', 'api.bulksms.com/v1', 'pypi.tattler.dev', '/company.intranet', '/multilingualism.html']
+exclude_urls = ['127.0.0.1', 'api.bulksms.com/v1', 'pypi.tattler.dev', '/company.intranet']
 # only consider URLs that contain any of these literal strings; empty to include all
 # include_urls = ['tattler.dev', 'tattler.readthedocs.io']
 include_urls = []
