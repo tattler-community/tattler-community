@@ -2,11 +2,20 @@ import os
 import unittest
 import unittest.mock
 from pathlib import Path
+from typing import Set
 
 from tattler.server import sendable
 
-from tattler.server.sendable.tests.testutils import temp_envvar, get_lines_without_comments, data_recipients
 
+data_recipients = {
+    'email': ['support@test123.com'],
+    'sms': ['+11234567898', '00417689876']
+}
+
+
+def get_lines_without_comments(blacklist_path: str) -> Set[str]:
+    """Return the set of lines in """
+    return {line.strip() for line in Path(blacklist_path).read_text('utf-8').splitlines() if not line.startswith('#')}
 
 class SendableTest(unittest.TestCase):
     """Tests for default sendables."""
@@ -36,11 +45,14 @@ class SendableTest(unittest.TestCase):
 
     def test_sendable_debug_argument(self):
         # debut recipient in constructor
-        for vname, vclass in sendable.vector_sendables.items():
-            want_rcpt = data_recipients[vname][0]
-            with temp_envvar('TATTLER_DEBUG_RECIPIENT_' + vname.upper(), want_rcpt):
+        with unittest.mock.patch('tattler.server.sendable.vector_email.getenv') as mgetenv:
+            for vname, vclass in sendable.vector_sendables.items():
+                want_rcpt = data_recipients[vname][0]
+                envvarname = 'TATTLER_DEBUG_RECIPIENT_' + vname.upper()
+                mgetenv.side_effect = lambda k,v=None: { envvarname: want_rcpt }.get(k, os.getenv(k, v))
                 s = vclass('event_with_email_and_sms', data_recipients[vname], template_base=self.template_base, debug_recipient=want_rcpt)
                 self.assertEqual(s.debug_recipient(), want_rcpt)
+                mgetenv.reset_mock()
 
     def test_sendable_debug_envvar(self):
         # debut recipient in constructor
@@ -111,7 +123,7 @@ class SendableTest(unittest.TestCase):
             s = vclass('event_with_email_and_sms', data_recipients[vname], template_base=self.template_base)
             s.blacklist(self.blacklist_path)
             bl_items = get_lines_without_comments(self.blacklist_path)
-            for bitem in get_lines_without_comments(self.blacklist_path):
+            for bitem in bl_items:
                 self.assertTrue(s.is_blacklisted(bitem))
             for i in range(100):
                 self.assertFalse(s.is_blacklisted(data_recipients[vname][0]+str(i)))

@@ -2,6 +2,7 @@ import unittest
 from unittest import mock
 import os
 import random
+from pathlib import Path
 
 from tattler.server import pluginloader
 
@@ -17,7 +18,7 @@ def get_addressbook_retval():
 
 class PluginLoaderTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.plugin_paths = [os.path.join('fixtures', 'plugins')]
+        self.plugin_paths = [str(Path(__file__).parent / 'fixtures' / 'plugins')]
         return super().setUp()
 
     def test_missing_path_loads_no_plugins(self):
@@ -43,17 +44,24 @@ class PluginLoaderTest(unittest.TestCase):
         """Classes that are tattler interfaces themselves are not recognized as plugins"""
         self.assertIsNone(pluginloader.plugin_category('TattlerPlugin', pluginloader.TattlerPlugin))
         self.assertIsNone(pluginloader.plugin_category('AddressbookPlugin', pluginloader.AddressbookPlugin))
-        self.assertIsNone(pluginloader.plugin_category('ContextTattlerPlugin', pluginloader.ContextTattlerPlugin))
+        self.assertIsNone(pluginloader.plugin_category('ContextPlugin', pluginloader.ContextPlugin))
 
     def test_plugin_category_recognizes_valid_classes(self):
         """Classes that are tattler interfaces themselves are not recognized as plugins"""
         class Foo(pluginloader.TattlerPlugin): pass
         class FooAddr(pluginloader.AddressbookPlugin): pass
-        class FooCtx(pluginloader.ContextTattlerPlugin): pass
+        class FooCtx(pluginloader.ContextPlugin): pass
 
         self.assertIsNone(pluginloader.plugin_category('Foo', Foo))
         self.assertEqual('addressbook', pluginloader.plugin_category('FooAddr', FooAddr))
         self.assertEqual('context', pluginloader.plugin_category('FooCtx', FooCtx))
+
+    def test_plugins_initialized_in_alphanumeric_order(self):
+        """Plug-in classes are initialized in alphanumeric order of their class name"""
+        path = str(Path(__file__).parent / 'fixtures/plugin_loading_order')
+        loaded_plugins = pluginloader.load_plugins_from_modules([path])
+        self.assertIn('context', loaded_plugins)
+        self.assertEqual(['OneTattlerPlugin', 'ThreeTattlerPlugin', 'TwoTattlerPlugin'], list(loaded_plugins['context'].keys()))
 
     def test_only_valid_plugins_are_initialized(self):
         """Only plugins respecting their interface are loaded, and have their setup() function called"""
@@ -61,30 +69,76 @@ class PluginLoaderTest(unittest.TestCase):
             with mock.patch('tattler.server.pluginloader.importlib'):
                 with mock.patch('tattler.server.pluginloader.plugin_category') as misplug:
                     with mock.patch('tattler.server.pluginloader.inspect') as minsp:
-                        mcandmod.return_value = {f'module{i}{pluginloader.plugins_suffix}':None for i in range(1, 5)}
-                        minsp.getmembers.side_effect = [
-                            [[f'classname{i}', mock.MagicMock()]]
-                            for i, n in enumerate(mcandmod.return_value)] # return different values at each subsequent call
-                        misplug.side_effect = lambda n, cl: 'context' if ('1' in n or '3' in n) else None
-                        plugcand = pluginloader.load_candidate_modules(self.plugin_paths)
-                        plugmap = pluginloader.load_plugins(plugcand)
-                        self.assertEqual({'context'}, set(plugmap.keys()))
-                        self.assertEqual(2, len(plugmap['context']))
-                        for _, pobj in plugmap['context'].items():
-                            pobj.setup.assert_called()
+                        with mock.patch('tattler.server.pluginloader.check_sanity'):
+                            mcandmod.return_value = {f'module{i}{pluginloader.plugins_suffix}':None for i in range(1, 5)}
+                            minsp.getmembers.side_effect = [
+                                [[f'classname{i}', mock.MagicMock()]]
+                                for i, n in enumerate(mcandmod.return_value)] # return different values at each subsequent call
+                            misplug.side_effect = lambda n, cl: 'context' if ('1' in n or '3' in n) else None
+                            plugcand = pluginloader.load_candidate_modules(self.plugin_paths)
+                            plugmap = pluginloader.load_plugins(plugcand)
+                            self.assertEqual({'context'}, set(plugmap.keys()))
+                            self.assertEqual(2, len(plugmap['context']))
+                            for _, pobj in plugmap['context'].items():
+                                pobj.setup.assert_called()
+
+    def test_plugins_failing_sanity_check_are_not_loaded(self):
+        """Plug-in classes that fail sanity_check() are not loaded"""
+        with mock.patch('tattler.server.pluginloader.load_candidate_modules') as mcandmod:
+            with mock.patch('tattler.server.pluginloader.importlib'):
+                with mock.patch('tattler.server.pluginloader.plugin_category') as misplug:
+                    with mock.patch('tattler.server.pluginloader.inspect') as minsp:
+                        with mock.patch('tattler.server.pluginloader.check_sanity') as mcs:
+                            modnames = {f'module{i}{pluginloader.plugins_suffix}':None for i in range(1, 5)}
+                            mcandmod.return_value = modnames
+                            mcs.side_effect = [True for _ in list(modnames)[:-1]] + [False]
+                            minsp.getmembers.side_effect = [
+                                [[f'classname{i}', mock.MagicMock()]]
+                                for i, n in enumerate(mcandmod.return_value)] # return different values at each subsequent call
+                            misplug.side_effect = lambda n, cl: 'context' if ('1' in n or '3' in n) else None
+                            plugcand = pluginloader.load_candidate_modules(self.plugin_paths)
+                            plugmap = pluginloader.load_plugins(plugcand)
+                            self.assertEqual({'context'}, set(plugmap.keys()))
+                            self.assertEqual(2, len(plugmap['context']))
+                            for _, pobj in plugmap['context'].items():
+                                pobj.setup.assert_called()
+
+    def test_deprecated_contextclassname_loaded(self):
+        """Plug-ins using deprecated class name are still loaded."""
+        fpath = Path(__file__).parent / 'fixtures/plugins_sanity_check'
+        loaded_plugins = pluginloader.load_plugins_from_modules([str(fpath)])
+        self.assertIn('context', loaded_plugins)
+        self.assertIn('WarnTattlerPlugin', loaded_plugins['context'])
+
+    def test_sanity_check_warns_deprecation(self):
+        """Loading plug-ins warns if a class implements deprecated ContextTattlerPlugin instead of ContextPlugin"""
+        class FooTattlerPlugin(pluginloader.ContextPlugin): pass
+        class BarTattlerPlugin(pluginloader.ContextTattlerPlugin): pass
+        self.assertEqual(True, pluginloader.check_sanity(FooTattlerPlugin.__name__, 'footatt', FooTattlerPlugin))
+        self.assertEqual(True, pluginloader.check_sanity(BarTattlerPlugin.__name__, 'bartatt', BarTattlerPlugin))
+        with mock.patch('tattler.server.pluginloader.log') as mlog:
+            self.assertEqual(True, pluginloader.check_sanity(FooTattlerPlugin.__name__, 'footatt', FooTattlerPlugin))
+            mlogwarn: mock.MagicMock = mlog.warning
+            mlogwarn.assert_not_called()
+            mlog.reset_mock()
+            self.assertEqual(True, pluginloader.check_sanity(BarTattlerPlugin.__name__, 'bartatt', BarTattlerPlugin))
+            mlogwarn.assert_called()
+            self.assertIn('eprecat', mlogwarn.call_args.args[0])
+            self.assertIn('ContextTattlerPlugin', mlogwarn.call_args.args[0])
 
     def test_init_tolerates_failing_plugins(self):
         with mock.patch('tattler.server.pluginloader.plugin_category') as misplug:
             with mock.patch('tattler.server.pluginloader.inspect') as minsp:
-                pname = f'module1{pluginloader.plugins_suffix}'
-                mcandmod = {pname:None}
-                mockpluginclass = mock.MagicMock()
-                mockpluginclass().setup.side_effect = RuntimeError
-                misplug.return_value = 'context'
-                minsp.getmembers.return_value = [['foo', mockpluginclass]]
-                plugmap = pluginloader.load_plugins(mcandmod)
-                mockpluginclass().setup.assert_called()
-                self.assertEqual(0, len(plugmap))
+                with mock.patch('tattler.server.pluginloader.check_sanity') as mcs:
+                    pname = f'module1{pluginloader.plugins_suffix}'
+                    mcandmod = {pname:None}
+                    mockpluginclass = mock.MagicMock()
+                    mockpluginclass().setup.side_effect = RuntimeError
+                    misplug.return_value = 'context'
+                    minsp.getmembers.return_value = [['foo', mockpluginclass]]
+                    plugmap = pluginloader.load_plugins(mcandmod)
+                    mockpluginclass().setup.assert_called()
+                    self.assertEqual(0, len(plugmap))
 
     def test_process_context_runs_all_enabled_plugins(self):
         """All enabled context plugins are executed when processing"""

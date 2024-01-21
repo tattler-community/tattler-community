@@ -7,9 +7,9 @@ stages:
 test_py:
   stage: test_py
   coverage: '/^Code coverage:\s\d+\.\d+$/'
-  except:
-    changes:
-      - "tattler/package/src/tattler/docs/**/*"
+  #except:
+  #  changes:
+  #    - "tattler/package/src/tattler/docs/**/*"
   cache:
     key: tattler_cache
     paths:
@@ -49,7 +49,7 @@ test_py:
     - cd ${WD}/package
     - pip install build
     - python -m build
-    - pip install 'dist/tattler-1.1.1-py3-none-any.whl[Jinja]'
+    - pip install dist/tattler-1.1.1-py3-none-any.whl
     ## validate links
     - echo "Validating links"
     - cd $WD/utils
@@ -61,10 +61,10 @@ pages:
     key: docs_cache
     paths:
       - venv_docs
-  only:
-    changes:
-      - "tattler/package/src/tattler/docs/**/*"
-      - .gitlab-ci.yml
+  #only:
+  #  changes:
+  #    - "tattler/package/src/tattler/docs/**/*"
+  #    - .gitlab-ci.yml
   script:
     - WD=$(pwd)
     - rm -rf .public public
