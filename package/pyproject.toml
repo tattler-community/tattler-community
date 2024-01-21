@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tattler"
-version = "1.1.1"
+version = "1.2.0"
 authors = [{name = "Michele Mazzucchi", email = "support@tattler.dev"}]
 license = {text="License :: OSI Approved :: BSD License"}
 classifiers = [
@@ -19,10 +19,13 @@ classifiers = [
     ]
 description = "A client-server notification system for HTML emails, sms and more."
 readme = "README.rst"
-dependencies = []
+dependencies = [
+    "Jinja2 >= 3.1.2",
+    "humanize >= 4.7.0"
+]
 
 [project.scripts]
-tattler_server = "tattler.server.tattlersrv_http:main[Jinja]"
+tattler_server = "tattler.server.tattlersrv_http:main"
 tattler_notify = "tattler.client.tattler_py.tattler_cmd:main"
 
 [project.urls]
@@ -31,15 +34,9 @@ Documentation = "https://tattler.readthedocs.io/"
 Repository = "https://gitlab.com/tattler/tattler-community"
 Issues = "https://gitlab.com/tattler/tattler-community/-/issues"
 
-[project.optional-dependencies]
-Jinja = [
-    "Jinja2 >= 3.1.2",
-    "humanize >= 4.7.0"
-]
-
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"tattler.templates.samplescope.sampleevent" = ["*"]
-"tattler.templates.samplescope.sampleevent.email" = ["*"]
+"tattler.templates.demoscope.demoevent" = ["*"]
+"tattler.templates.demoscope.demoevent.email" = ["*"]

@@ -3,12 +3,12 @@ info:
   title: "Tattler API"
   description: This API allows sending notifications. It operates with UserIDs, where the server takes care of locating the concrete addresses (e-mail, mobile number, telegram handle...) available for each recipient.
   version: 0.1.0
-  termsOfService: "https://www.buddyns.com/terms-of-use/"
+  termsOfService: "https://tattler.dev/"
   contact:
-    email: "support@buddyns.com"
+    email: "support@tattler.dev"
 
 servers:
-  - url: https://tattler.dev/api/v2
+  - url: https://tattler.dev/api-spec/
     description: Notification server
 
 paths:
