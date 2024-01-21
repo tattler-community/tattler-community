@@ -29,7 +29,7 @@ def parse_cmdline(args):
                 port = int(port)
         return srv, port
 
-    parser = argparse.ArgumentParser(prog='tattler_client', description='Send notifications through a tattler server')
+    parser = argparse.ArgumentParser(prog='tattler_notify', description='Send notifications through a tattler server')
     parser.add_argument('recipient', help='ID of recipient to notify')
     parser.add_argument('scope', help='name of scope holding event')
     parser.add_argument('event_name', help='name of event to notify')
