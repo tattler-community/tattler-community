@@ -23,12 +23,15 @@ Trigger a demo notification via HTTP:
 
 .. code-block:: bash
 
-   curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=your@email.com'
+   # make sure to replace ``your@email.com`` with your actual email address
+   curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
 
 ... or via command-line utility:
 
 .. code-block:: bash
 
+   # load the same virtual environment where you installed tattler server
+   . venv/bin/activate
    tattler_notify -s '127.0.0.1:11503' your@email.com demoscope demoevent
 
 ... or via tattler's python SDK:
