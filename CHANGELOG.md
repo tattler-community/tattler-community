@@ -1,3 +1,11 @@
+# 1.2.0 -- 2024-01-20
+
+- ship with Jinja as default template engine to simplify installation and docs
+- Context plug-ins now inherit ContextPlugin class
+- Renamed demo notification to `demoscope`/`demoevent` (from `sample`)
+- Improved documentation, now broken down into sections
+- Added ready-to-use examples for plug-ins that query SQL database
+
 # 1.1.1 -- 2024-01-14
 
 - fix built-in demo failing to build the sample SMS template
