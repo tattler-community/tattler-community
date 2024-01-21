@@ -49,7 +49,7 @@ test_py:
     - cd ${WD}/package
     - pip install build
     - python -m build
-    - pip install dist/tattler-1.1.1-py3-none-any.whl
+    - pip install dist/tattler-1.2.0-py3-none-any.whl
     ## validate links
     - echo "Validating links"
     - cd $WD/utils
@@ -76,7 +76,8 @@ pages:
     - pip install -r requirements_docs.txt
     - make html
     - version_docs=$(awk -F= '/^release/ { print $2 }' source/conf.py | grep -Eo '[0-9.]+')
-    - test -n "$version_package" -a "$version_package" != "$version_docs" || { echo "Version numbers of package and docs are inconsistent! $version_package vs $version_docs ." && exit 1 }
+    - echo Version numbers of package and docs $version_package vs $version_docs
+    - test -n "$version_package" -a "$version_package" = "$version_docs"
     - cd $WD
     - echo Build documentation
     - test -d venv_docs -a ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt -nt venv_docs && rm -rf venv_docs

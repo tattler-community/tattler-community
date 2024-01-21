@@ -1,7 +1,55 @@
 .. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/package/src/tattler/docs/source/tattler-logo-large-colorneutral.png
 
-Tattler -- an enterprise notification system
-============================================
+Quick start
+===========
+
+Install tattler:
+
+.. code-block:: bash
+
+   # create a virtual environment and load it
+   python3 -m venv venv
+   . venv/bin/activate
+   # install tattler into it
+   pip install tattler
+
+Run tattler server:
+
+.. code-block:: bash
+
+   TATTLER_MASTER_MODE=production TATTLER_SMTP_ADDRESS="127.0.0.1:25" tattler_server
+
+Trigger a demo notification via HTTP:
+
+.. code-block:: bash
+
+   # make sure to replace ``your@email.com`` with your actual email address
+   curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
+
+... or via command-line utility:
+
+.. code-block:: bash
+
+   # load the same virtual environment where you installed tattler server
+   . venv/bin/activate
+   # make sure to replace ``your@email.com`` with your actual email address
+   tattler_notify -s '127.0.0.1:11503' your@email.com demoscope demoevent
+
+... or via tattler's python SDK:
+
+.. code-block:: python3
+
+   from tattler.client.tattler_py import send_notification
+
+   # make sure to replace ``your@email.com`` with your actual email address
+   send_notification('demoscope', 'demoevent', 'your@email.com', srv_addr='127.0.0.1', srv_port=11503)
+
+Done! Check out the `quickstart <https://tattler.readthedocs.io/en/latest/quickstart.html>`_
+in tattler's documentation for a smoother intro.
+
+
+What is tattler?
+================
 
 Do you want to send beautifully branded notifications to your users?
 
@@ -65,7 +113,7 @@ Enterprise customers get extended, enterprise-specific features:
 - Rate control: prevent faulty applications from flooding users with notifications.
 - Audit trail: record each delivery along with a positive confirmation ID from its delivery system.
 - Auto-text: design HTML emails only, Tattler automatically creates text-form fallback.
-- Multi-lingual support: automatically send which language a user should be notified with.
+- Multilingual support: automatically send which language a user should be notified with.
 - Additional delivery vectors to `Telegram <https://telegram.org>`_ and `WhatsApp <https://www.whatsapp.com>`_.
 
 We are grateful to enterprise customers for securing the project's sustainability and
@@ -79,4 +127,3 @@ Commercial users may support tattler in 2 ways:
 
 Find further information on commercial use on `tattler's website <https://tattler.dev>`_, and write
 to ``enterprise at tattler.dev`` for further information such as invoicing, terms, support etc.
-
