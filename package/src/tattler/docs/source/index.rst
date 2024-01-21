@@ -1,81 +1,50 @@
-.. tattler documentation master file, created by
-   sphinx-quickstart on Tue Dec  5 13:35:55 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. image:: tattler-logo-large-colorneutral.png
 
 Tattler -- an enterprise notification system
 ============================================
 
-Tattler is an enterprise notification system. It allows you to send notifications from any
-application like this:
+Do you want to send beautifully branded notifications to your users?
+
+Tattler makes it easy for you. Your application makes a simple HTTP call to tattler:
 
 .. code-block:: bash
 
    curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=123'
 
-Tattler then sends a beautiful, branded notification to the user
-across email and/or SMS.
+and tattler does this for you:
 
-Tattler does the heavy lifting of notifications for you:
+1. Find out what vectors event ``password_changed`` should be notified to. Email? SMS? More?
+2. Determine for which of those vectors user ``123`` provided contact data for.
+3. Load the respective notification templates.
+4. Fetch any data your templates require (with easy-to-write plug-ins). For example: on what plan is the user? Any unpaid invoice?
+5. Encode all the resulting content into an actual notification -- e.g. a multi-part MIME email including HTML and plain text parts.
+6. Deliver the final content through SMTP and an SMS delivery network.
 
-- Personalize notifications to each user with templates.
-- Compose compatible HTML emails with text fallback.
-- Look up user contacts to deliver email or SMS.
-- Tag notifications with unique IDs to aid Support teams.
+That's a few chores removed -- so you can focus on your communication, brand and customer journey.
 
-... so you can focus on your customer journey and brand.
+Why tattler?
+------------
 
-Introducing Tattler usually simplifies a lot of code, and consolidates communication
-to your users making it easier to manage and improve.
+Introducing Tattler simplifies code and consolidates your communication to your users, making it easier to manage and improve.
 
-Your product managers will love having a trivial process to organize communication across the
-customer journey, and the resulting visibility.
+**Product managers**
+   Will love having a clear view of the communication across the customer journey, and the ease of improving it.
 
-Your template designers will love the flexibility and ability to care of user-visible content
-without distractions.
+**Template designers**
+   Will love the design power and ability to focus on content without technical distractions. 
 
-Your devs will love the massive simplification in their code for just triggering
-notifications with one HTTP POST request and without having to seek all ancillary data.
+**Developers**
+   Will love the massive simplification in their code — firing notifications without having to collect all ancillary data.
 
-Your support team will love having access to all notifications sent to users,
-and its trivial root-cause analysis across many systems.
+**Customer support**
+   Will love being able to easily trace notifications to log trails in other systems that led to firing them. 
 
-Your sys admins will love having one single point of exit for user notifications, and the
-ability to trigger notifications across different containers or even servers.
+**Sys admins**
+   Will love having one single point of exit for notifications and the ease of compartmentalizing access to sensitive data. 
 
-System Context
-^^^^^^^^^^^^^^
+Tattler is `well-documented <https://tattler.readthedocs.io>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
+and has outstanding quality thanks to its exceptional 90%+ test coverage.
 
-.. mermaid::
-   
-   C4Context
-       title System Context diagram for Tattler
-       Enterprise_Boundary(b0, "Enterprise context") {
-           Person(ProdMan, "Product manager", "Owns the customer journey.")
-           Person(TemplDev, "Template developer", "Implements graphical<br/>and voice brand.")
-           Person(SWDev, "Software Developer", "Codes systems which,<br/>trigger notifications")
-           Person(SysAdm, "System Administrator", "Deploy and operate systems.")
-           System(Tattler, "Tattler", "Sends notifications<br/>over various vectors.")
-
-           System_Ext(WebApp, "WebApp")
-           System_Ext(BillSys, "Billing System")
-           System_Ext(BookingSys, "Booking System")
-
-           Rel(ProdMan, Tattler, "Define notifications<br/>across customer journey.")
-           Rel(TemplDev, Tattler, "Author and style<br/>notifications.")
-           Rel(SWDev, Tattler, "Build notification triggers<br/>into existing systems.")
-           Rel(SysAdm, Tattler, "Deploy, configure,<br/>secure.")
-
-           Rel(WebApp, Tattler, "Trigger notification")
-           Rel(BillSys, Tattler, "Trigger notification")
-           Rel(BookingSys, Tattler, "Trigger notification")
-       }
-       Person(User, "User", "Consumes services of enterprise.")
-       System(SMTP, "SMTP", "E-mail delivery<br/>system")
-       System(SMS, "SMS", "SMS delivery<br/>system")
-       Rel(Tattler, SMTP, "Deliver email<br/>notification")
-       Rel(Tattler, SMS, "Deliver SMS<br/>notification")
-       Rel(User, Tattler, "Receive<br/>notifications.")
 
 License
 =======
@@ -96,7 +65,7 @@ Enterprise customers get extended, enterprise-specific features:
 - Rate control: prevent faulty applications from flooding users with notifications.
 - Audit trail: record each delivery along with a positive confirmation ID from its delivery system.
 - Auto-text: design HTML emails only, Tattler automatically creates text-form fallback.
-- Multi-lingual support: automatically send which language a user should be notified with.
+- Multilingual support: automatically send which language a user should be notified with.
 - Additional delivery vectors to `Telegram <https://telegram.org>`_ and `WhatsApp <https://www.whatsapp.com>`_.
 
 We are grateful to enterprise customers for securing the project's sustainability and
@@ -118,19 +87,19 @@ Contents
 Proceed to the following contents to learn about deploying and using Tattler for your project.
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
    
    quickstart
    roles
-   keyconcepts
+   keyconcepts/index
    productmanagers
-   templatedesigners
-   developers
-   plugins
-   sysadmins
+   templatedesigners/index
+   developers/index
+   plugins/index
+   sysadmins/index
    configuration
    enterprise
-
+   diagrams
 
 Indices and tables
 ==================

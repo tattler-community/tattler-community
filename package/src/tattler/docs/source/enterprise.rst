@@ -26,7 +26,7 @@ Proceed as follows:
 3. Install tattler enterprise edition with your new access credentials:
     .. code-block:: bash
 
-        pip install --index-url https://pypi.tattler.dev/projects/ 'tattler[Jinja]'
+        pip install --index-url https://pypi.tattler.dev/projects/ tattler
 
 Tattler enterprise edition is a drop-in replacement to Tattler community edition.
 
@@ -49,4 +49,4 @@ Downgrade as follows:
     .. code-block:: bash
 
         pip uninstall -y tattler
-        pip install 'tattler[Jinja]'
+        pip install tattler

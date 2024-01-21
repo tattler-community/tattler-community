@@ -36,7 +36,7 @@ They define what notifications are sent upon which business event.
 
 They also define:
 
-- what :ref:`vectors <keyconcepts:notification vectors>` the event should be notified in (email? SMS? telegram?).
+- what :ref:`vectors <keyconcepts/vectors:notification vectors>` the event should be notified in (email? SMS? telegram?).
 - what general information should be sent to the user upon that event.
 
 Deliverables:
@@ -56,12 +56,12 @@ As part of this, they need to:
 - Know or define what variables to use in their templates.
 - name the templates and communicate those names to developers.
 
-See documentation for :doc:`template designers <templatedesigners>`.
+See documentation for :ref:`template designers <templatedesigners/index:template designers>`.
 
 Application developers
 ----------------------
 
-They determine which systems will trigger notifications for which events (i.e. what :ref:`scopes <keyconcepts:notification scopes>` are available).
+They determine which systems will trigger notifications for which events (i.e. what :ref:`scopes <keyconcepts/scopes:notification scopes>` are available).
 
 They then code the code to ask tattler to actually send those events.
 
@@ -70,7 +70,7 @@ In some advanced scenarios, they also write plug-ins for tattler, for example:
 - "Addressbook" plug-ins: to extract contact information about users, so enterprise applications only tell tattler to "notify user #123 about event 'password_changed'", and tattler is able to look up the respective email address and mobile number.
 - "Context" plug-ins: to provide variables to template designers. For example, variables hosting the plan the user is on, or how much of the purchased resources is currently used.
 
-See documentation for :doc:`application developers <developers>`.
+See documentation for :ref:`developers <developers/index:developers>`.
 
 Application users
 -----------------
@@ -91,4 +91,4 @@ They are resposible for:
 - Configuration of system and network so every relevant 3rd system can reach Tattler's notification interface.
 - Software updates.
 
-See documentation for :doc:`system administrators <sysadmins>`.
+See documentation for :doc:`system administrators <sysadmins/index>`.

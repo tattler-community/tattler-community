@@ -11,7 +11,7 @@ Configuration
 TATTLER_TEMPLATE_BASE
 ---------------------
 
-The path where tattler should find :ref:`notification events <keyconcepts_notification_events>`, or more specifically notification
+The path where tattler should find :ref:`notification events <keyconcepts/events:notification events>`, or more specifically notification
 scopes which then include templates for notification events.
 
 
@@ -28,13 +28,13 @@ TATTLER_MASTER_MODE
 
 "Master" mode to operate with. This mode limits the mode requested in every incoming notification request.
 
-See :ref:`notification modes <keyconcepts:notification mode>`.
+See :ref:`notification modes <keyconcepts/mode:notification mode>`.
 
 
 TATTLER_SUPERVISOR_RECIPIENT_*
 ------------------------------
 
-Recipient address to copy notifications to when sent in ``staging`` :ref:`notification mode <keyconcepts:notification mode>`.
+Recipient address to copy notifications to when sent in ``staging`` :ref:`notification mode <keyconcepts/mode:notification mode>`.
 
 Notifications are sent to the actual recipient, and *copied* to the supervisor recipient.
 
@@ -47,7 +47,7 @@ This variable should be set for every desired vector:
 TATTLER_DEBUG_RECIPIENT_*
 -------------------------
 
-Recipient address to send notifications to when sent in ``debug`` :ref:`notification mode <keyconcepts:notification mode>`.
+Recipient address to send notifications to when sent in ``debug`` :ref:`notification mode <keyconcepts/mode:notification mode>`.
 
 This variable should be set for every desired vector:
 
@@ -65,7 +65,7 @@ This file is read-only for tattler. Tattler looks up content anew at every deliv
 If the file is missing, inaccessible or unreadable, the entry is considered valid (not blacklisted).
 
 This is a text file containing one blacklisted entry per line. Entries of different
-:ref:`vectors <keyconcepts:notification vectors>` can be mixed in one same blacklist file.
+:ref:`vectors <keyconcepts/vectors:notification vectors>` can be mixed in one same blacklist file.
 
 
 TATTLER_BULKSMS_TOKEN
@@ -79,7 +79,10 @@ The token is formatted as a pair of (user_id, secret) separated by a colon, i.e.
 TATTLER_SMTP_ADDRESS
 --------------------
 
-The IP address (IPv4 or IPv6) and port number of the host to use for SMTP delivery, formatted as ``ip_address:port_number``.
+The IP address (IPv4 or IPv6) and port number of the host to use for SMTP delivery, formatted as:
+
+- For IPv4: ``ip_address:port_number`` or simply ``ip_address`` to default on port 25. E.g. ``192.168.0.1:26``
+- For IPv6: ``[ip6_address]:port_number`` or simply ``[ip6_address]`` to default on port 25. E.g. ``[2a00:1450:400a:802::2005]:25``
 
 
 TATTLER_SMTP_TLS

@@ -1,0 +1,20 @@
+.. mermaid::
+
+    C4Context
+    title Container diagram for Tattler
+    Person(TemplDev, "Template developer", "Implements graphical<br/>and voice brand.")
+    Person(SWDev, "Software Developer", "Codes systems which,<br/>trigger notifications")
+    System_Boundary(TattlerCont, "Tattler container") {
+        System(Tattler, "Tattler", "Sends notifications<br/>over various vectors.")
+        SystemDb_Ext(TattlerTempl, "Notification templates", "Text and style to deliver.")
+        System_Ext(TattlerPlugins, "Custom plug-ins", "Look up user contacts<br/>and other data.")
+        Rel(Tattler, TattlerTempl, "Loads from")
+        Rel(Tattler, TattlerPlugins, "Loads info from")
+        Rel(SWDev, TattlerPlugins, "Develops and maintains.")
+    }
+    Rel(TemplDev, TattlerTempl, "Writes")
+    Rel(SWDev, BookingSys, "Develops and maintains.")
+    System_Boundary(Client_Sys, "Client system") {
+        System_Ext(BookingSys, "Booking System", "Manages reservations by users.")        
+    }
+    Rel(BookingSys, Tattler, "Request to notify")

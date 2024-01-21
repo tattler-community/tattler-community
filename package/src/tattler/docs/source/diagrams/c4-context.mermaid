@@ -1,0 +1,30 @@
+.. mermaid::
+   
+   C4Context
+       title System Context diagram for Tattler
+       Enterprise_Boundary(b0, "Enterprise context") {
+           Person(ProdMan, "Product manager", "Owns the customer journey.")
+           Person(TemplDev, "Template developer", "Implements graphical<br/>and voice brand.")
+           Person(SWDev, "Software Developer", "Codes systems which,<br/>trigger notifications")
+           Person(SysAdm, "System Administrator", "Deploy and operate systems.")
+           System(Tattler, "Tattler", "Sends notifications<br/>over various vectors.")
+
+           System_Ext(WebApp, "WebApp")
+           System_Ext(BillSys, "Billing System")
+           System_Ext(BookingSys, "Booking System")
+
+           Rel(ProdMan, Tattler, "Define notifications<br/>across customer journey.")
+           Rel(TemplDev, Tattler, "Author and style<br/>notifications.")
+           Rel(SWDev, Tattler, "Build notification triggers<br/>into existing systems.")
+           Rel(SysAdm, Tattler, "Deploy, configure,<br/>secure.")
+
+           Rel(WebApp, Tattler, "Trigger notification")
+           Rel(BillSys, Tattler, "Trigger notification")
+           Rel(BookingSys, Tattler, "Trigger notification")
+       }
+       Person(User, "User", "Consumes services of enterprise.")
+       System(SMTP, "SMTP", "E-mail delivery<br/>system")
+       System(SMS, "SMS", "SMS delivery<br/>system")
+       Rel(Tattler, SMTP, "Deliver email<br/>notification")
+       Rel(Tattler, SMS, "Deliver SMS<br/>notification")
+       Rel(User, Tattler, "Receive<br/>notifications.")
