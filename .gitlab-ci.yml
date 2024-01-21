@@ -1,12 +1,21 @@
 image: python:3.10
 
+stages:
+  - test_py
+  - deploy_docs
+
 test_py:
+  stage: test_py
   coverage: '/^Code coverage:\s\d+\.\d+$/'
+  except:
+    changes:
+      - "tattler/package/src/tattler/docs/**/*"
   cache:
     key: tattler_cache
     paths:
       - venv/
       - .cache/pip/
+      - urlcache.csv
   script:
     # setup: base system
     - WD=$(pwd)
@@ -17,36 +26,65 @@ test_py:
     - pip install coverage
     ## server
     - echo "tattler server"
-    - cd package/src/tattler/server
-    - pip install -r docs/requirements_test.txt
+    - pip install -r ${WD}/package/src/tattler/server/docs/requirements_test.txt
     - pip freeze
-    - cd sendable/tests
+    ## sendable
+    - cd ${WD}/package/src/tattler/server/sendable/tests
     - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
-    - cd ../../tests
+    - cd ${WD}/package/src/tattler/server/tests
     - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
     ## client
     - echo "tattler client"
-    - cd ../../client/tattler_py
+    - cd ${WD}/package/src/tattler/client/tattler_py
     - pip install -r docs/requirements_test.txt
     - pip freeze
     - cd tests
     - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
-    - cd $WD
     ## print coverage information
-    - coverage combine $WD/package/src/tattler/server/tests/.coverage $WD/package/src/tattler/server/sendable/tests/.coverage  $WD/package/src/tattler/client/tattler_py/tests/.coverage
+    - cd $WD
+    - coverage combine $(find . -name .coverage)
     - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=2 ; echo ""
-    ## documentation
-    - cd package
+    ## packaging
+    - echo "tattler server packaging"
+    - cd ${WD}/package
+    - pip install build
+    - python -m build
+    - pip install 'dist/tattler-1.1.1-py3-none-any.whl[Jinja]'
+
+pages:
+  stage: deploy_docs
+  cache:
+    key: docs_cache
+    paths:
+      - venv_docs
+  only:
+    changes:
+      - "tattler/package/src/tattler/docs/**/*"
+      - .gitlab-ci.yml
+  script:
+    - WD=$(pwd)
+    - rm -rf .public public
+    - mkdir -p .public
+    - echo Test that tattler version declared in code matches version declared in docs
+    - cd ${WD}/package
     - version_package=$(awk -F= '/^version/ { print $2 }' pyproject.toml | grep -Eo '[0-9.]+')
-    - cd src/tattler/docs
+    - cd ${WD}/package/src/tattler/docs
     - pip install -r requirements_docs.txt
     - make html
     - version_docs=$(awk -F= '/^release/ { print $2 }' source/conf.py | grep -Eo '[0-9.]+')
     - test -n "$version_package" -a "$version_package" = "$version_docs" || echo "Version numbers of package and docs are inconsistent! $version_package vs $version_docs ."
     - cd $WD
-    ## packaging
-    - echo "tattler server packaging"
-    - cd package
-    - pip install build
-    - python -m build
-    - pip install 'dist/tattler-1.1.1-py3-none-any.whl[Jinja]'
+    - echo Build documentation
+    - test -d venv_docs -a ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt -nt venv_docs && rm -rf venv_docs
+    - test -d venv_docs || python3 -m venv venv_docs
+    - . venv_docs/bin/activate
+    - test venv_docs -nt ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt || pip install -r ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt
+    - cd ${WD}/package/src/tattler/docs
+    - PYTHONPATH=${WD}/package/src make html
+    - cp -R build/html/* ${WD}/.public/
+    - cd $WD
+    - ls .public
+    - mv .public public
+  artifacts:
+    paths:
+      - public

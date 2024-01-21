@@ -1,59 +1,50 @@
-Tattler -- enterprise notification system
-===========================================
+.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/package/src/tattler/docs/source/tattler-logo-large-colorneutral.png
 
-Overview
---------
+Tattler -- an enterprise notification system
+============================================
 
-Tattler is an enterprise notification system. It allows you to send notifications from any
-application like this:
+Do you want to send beautifully branded notifications to your users?
+
+Tattler makes it easy for you. Your application makes a simple HTTP call to tattler:
 
 .. code-block:: bash
 
    curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=123'
 
+and tattler does this for you:
 
-Tattler then sends a beautiful, branded notification to the user
-across email and/or SMS.
+1. Find out what vectors event ``password_changed`` should be notified to. Email? SMS? More?
+2. Determine for which of those vectors user ``123`` provided contact data for.
+3. Load the respective notification templates.
+4. Fetch any data your templates require (with easy-to-write plug-ins). For example: on what plan is the user? Any unpaid invoice?
+5. Encode all the resulting content into an actual notification -- e.g. a multi-part MIME email including HTML and plain text parts.
+6. Deliver the final content through SMTP and an SMS delivery network.
 
-Tattler does the heavy lifting of notifications for you:
+That's a few chores removed -- so you can focus on your communication, brand and customer journey.
 
-- Personalize notifications to each user with templates.
-- Compose compatible HTML emails with text fallback.
-- Look up user contacts to deliver email or SMS.
-- Tag notifications with unique IDs to aid Support teams.
+Why tattler?
+------------
 
-... so you can focus on your customer journey and brand.
+Introducing Tattler simplifies code and consolidates your communication to your users, making it easier to manage and improve.
 
-Introducing Tattler usually simplifies a lot of code, and consolidates communication
-to your users making it easier to manage and improve.
+**Product managers**
+   Will love having a clear view of the communication across the customer journey, and the ease of improving it.
 
-Your product managers will love having a trivial process to organize communication across the
-customer journey, and the resulting visibility.
+**Template designers**
+   Will love the design power and ability to focus on content without technical distractions. 
 
-Your template designers will love the flexibility and ability to care of user-visible content
-without distractions.
+**Developers**
+   Will love the massive simplification in their code — firing notifications without having to collect all ancillary data.
 
-Your devs will love the massive simplification in their code for just triggering
-notifications with one HTTP POST request and without having to seek all ancillary data.
+**Customer support**
+   Will love being able to easily trace notifications to log trails in other systems that led to firing them. 
 
-Your support team will love having access to all notifications sent to users,
-and its trivial root-cause analysis across many systems.
+**Sys admins**
+   Will love having one single point of exit for notifications and the ease of compartmentalizing access to sensitive data. 
 
-Your sys admins will love having one single point of exit for user notifications, and the
-ability to trigger notifications across different containers or even servers.
+Tattler is `well-documented <https://tattler.readthedocs.io>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
+and has outstanding quality thanks to its exceptional 90%+ test coverage.
 
-
-Advanced features
------------------
-
-Additionally, Tattler supports some advanced deployment scenarios:
-
-- Deploy containerized components, that only communicate via TCP.
-- Deliver notifications from multiple components, even if on different servers (billing, web application, batch processes etc)
-- Tokenize contact information, so components only deal with user IDs, and Tattler expands the associated user information.
-- Collect additional variables about a user in one place (free/paid, resources used, ...), and make it available to notifications from all subsystems.
-- Insulate notification system from other systems.
-- Restrict access to your users' contact data in your database to Tattler only, preventing data leaks in case of a hack.
 
 License
 =======
@@ -88,3 +79,4 @@ Commercial users may support tattler in 2 ways:
 
 Find further information on commercial use on `tattler's website <https://tattler.dev>`_, and write
 to ``enterprise at tattler.dev`` for further information such as invoicing, terms, support etc.
+
