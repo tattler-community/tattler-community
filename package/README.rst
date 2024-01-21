@@ -32,6 +32,7 @@ Trigger a demo notification via HTTP:
 
    # load the same virtual environment where you installed tattler server
    . venv/bin/activate
+   # make sure to replace ``your@email.com`` with your actual email address
    tattler_notify -s '127.0.0.1:11503' your@email.com demoscope demoevent
 
 ... or via tattler's python SDK:
@@ -40,6 +41,7 @@ Trigger a demo notification via HTTP:
 
    from tattler.client.tattler_py import send_notification
 
+   # make sure to replace ``your@email.com`` with your actual email address
    send_notification('demoscope', 'demoevent', 'your@email.com', srv_addr='127.0.0.1', srv_port=11503)
 
 Done! Check out the `quickstart <https://tattler.readthedocs.io/en/latest/quickstart.html>`_
