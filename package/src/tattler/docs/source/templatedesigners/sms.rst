@@ -51,7 +51,7 @@ Such messages may be up to 160 characters long; ASCII messages longer than this 
 as multiple messages, which the receiving mobile phone is capable of concatenating back together.
 The delivery price will obviously multiply correspondingly.
 
-Messages that include characters beyond the GSM_03.38 set -- such as an emoji, or arabic --
+Messages that include characters beyond the GSM_03.38 set -- such as an emoji, or Arabic --
 can be sent too. This will reduce the maximum message length to 70. Longer content is supported
 (up to 400 characters) and will be broken down into multiple messages, and be priced correspondingly.
 

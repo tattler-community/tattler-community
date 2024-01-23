@@ -33,7 +33,7 @@ Scopes are non-empty text strings which may only contain letters, numbers and th
 For example ``billing_system2_partners``.
 
 Notification scopes are visible in tattler's :ref:`configuration:TATTLER_TEMPLATE_BASE`: they are
-the first-level children (mywebapp, fulfiller, pmtintegrator).
+the first-level children (myWebApp, fulfiller, pmtintegrator).
 
 .. code-block:: text
     

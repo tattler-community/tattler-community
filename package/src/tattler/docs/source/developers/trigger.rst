@@ -1,7 +1,7 @@
 Code a notification trigger
 ---------------------------
 
-Pick a system to triger a notification. Write code to have this system make an HTTP
+Pick a system to trigger a notification. Write code to have this system make an HTTP
 POST request to tattler server's API.
 
 In ``curl`` the request to send notification ``password_changed`` in scope ``mywebapp`` to user

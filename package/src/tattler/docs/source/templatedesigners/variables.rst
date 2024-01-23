@@ -4,7 +4,7 @@ Template variables
 Variables can come into templates from 3 places:
 
 1. **tattler variables** -- available in every notification.
-2. **client variables** -- availabile based on what and when the application sends it. Usually one event always receives the same set of variables.
+2. **client variables** -- available based on what and when the application sends it. Usually one event always receives the same set of variables.
 3. **plug-in variables** -- may be a mixture of the two above.
 
 This origin plays no role in the template itself, but you need to know the origin
@@ -35,7 +35,7 @@ user_firstname
 
 Type: str
 
-Firstname, guessed from email addressed.
+First name, guessed from email addressed.
 
 The guessing is surprisingly reliable:
 
@@ -44,7 +44,7 @@ The guessing is surprisingly reliable:
 - Users like ``jdoe@`` can still make sense of their greeting and understand they are themselves to blame.
 
 
-This logic may still be overridden by an addressbook plug-in to produce a reliable first name.
+This logic may still be overridden by an address book plug-in to produce a reliable first name.
 Speak to your :ref:`application developer <roles:application developers>`.
 
 
@@ -53,7 +53,7 @@ user_account_type
 
 type: str | None
 
-The name of the account type this user is on. This is always ``None`` unless provided by an addressbook plug-in.
+The name of the account type this user is on. This is always ``None`` unless provided by an address book plug-in.
 Speak to your :ref:`application developer <roles:application developers>`.
 
 This is useful e.g. to build conditional text and address paying and free users in different ways.
@@ -106,7 +106,7 @@ notification_vector
 Type: str
 
 Name of the vector which is being sent. The template designer usually knows already, but this may be useful
-in some advanced templating scenarios.
+in some advanced template scenarios.
 
 
 notification_scope

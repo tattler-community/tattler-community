@@ -12,4 +12,4 @@ need to do to use it is to provide your ``body_html`` content and omit the
 ``body_plain`` file.
 
 If you do provide a ``body_plain`` file in your event template, then Tattler
-will skip auto-text and use the content your provided in it as plaintext version.
+will skip auto-text and use the content your provided in it as plain text version.

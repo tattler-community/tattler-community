@@ -158,7 +158,7 @@ TATTLER_TELEGRAM_BOT_TOKEN
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
-Token for the Bot used to send messages via Telgram.
+Token for the Bot used to send messages via Telegram.
 
 Only required if you actually send messages via Telegram.
 

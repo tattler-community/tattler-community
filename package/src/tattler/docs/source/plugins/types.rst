@@ -24,7 +24,7 @@ This file must fulfill these requirements:
 
 - Be placed in the folder pointed to by the :ref:`TATTLER_PLUGIN_PATH <configuration:TATTLER_PLUGIN_PATH>` configuration directive.
 
-- Be filenamed with suffix ``_tattler_plugin.py``.
+- Be named with suffix ``_tattler_plugin.py``.
 
 - Contain one class which subclasses either:
    - class :class:`AddressbookPlugin <tattler.server.pluginloader.AddressbookPlugin>` if you are providing an :ref:`Addressbook plug-in <plugins/addressbook:Addressbook plug-ins>`.

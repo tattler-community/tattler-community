@@ -42,7 +42,7 @@ Introducing Tattler simplifies code and consolidates your communication to your 
 **Sys admins**
    Will love having one single point of exit for notifications and the ease of compartmentalizing access to sensitive data. 
 
-Tattler is `well-documented <https://tattler.readthedocs.io>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
+Tattler is `well-documented <https://docs.tattler.dev>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
 and has outstanding quality thanks to its exceptional 90%+ test coverage.
 
 

@@ -78,7 +78,7 @@ directly into the event template folder -- like you learned to do for the mono-l
                     └── subject
 
 How to avoid duplicate definitions for a language -- one for the language code and one for the default language?
-Use symlinks. Define the event templates for the default language in the event folder, and then create a language
+Use symbolic links. Define the event templates for the default language in the event folder, and then create a language
 folder as a symbolic link to its parent:
 
 .. code-block:: bash

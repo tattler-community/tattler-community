@@ -14,7 +14,7 @@ The :ref:`TATTLER_TEMPLATE_BASE <configuration:TATTLER_TEMPLATE_BASE>` folder co
 And each scope-folder contains events for that scope.
 If scopes confuse you, define them later, together with your :ref:`developer <developers/index:developers>`.
 
-You can start by wrapping all events into one single scope -- say "mywebapp" -- so your
+You can start by wrapping all events into one single scope -- say "myWebApp" -- so your
 ``TATTLER_TEMPLATE_BASE`` folder structure would look like this:
 
 .. code-block:: text
@@ -26,7 +26,7 @@ You can start by wrapping all events into one single scope -- say "mywebapp" -- 
 Events
 ^^^^^^
 
-Events are folders within a scope. So once you create forlders -- under your scope "mywebapp" --
+Events are folders within a scope. So once you create folders -- under your scope "myWebApp" --
 for the events your fantasy :ref:`product manager <productmanagers:the table>`, your ``TATTLER_TEMPLATE_BASE``
 would look like this:
 

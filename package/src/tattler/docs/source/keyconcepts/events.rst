@@ -24,7 +24,7 @@ tattler uses Jinja as default template processor, so an event template for SMS c
 Some properties of event templates:
 
 * Are vector-specific, i.e. you'll have different content to deliver the same event via email vs SMS.
-* Can be parametrized with variables -- which is why they are "templates". See `Context`_
+* Can be parameterized with variables -- which is why they are "templates". See `Context`_
 * Can contain multiple parts. For example, emails include a subject, a body, and potentially HTML content.
 * Are "expanded" at delivery time, so you can change them without restarting ``tattler_server``.
 * Are stored as files in a directory structure.

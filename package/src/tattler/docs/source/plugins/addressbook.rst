@@ -1,7 +1,7 @@
 Addressbook plug-ins
 ====================
 
-Addressbook plug-ins look up user information:
+Address book plug-ins look up user information:
 
 - email address
 - mobile number
@@ -13,13 +13,13 @@ They allow client applications to tell tattler "Notify user #123 about event XYZ
 tattler takes care of loading the necessary contacts depending on what
 :ref:`vectors <keyconcepts/vectors:notification vectors>` the event should be sent to.
 
-You may provide multiple addressbook plug-ins. They are processed in sequence until
+You may provide multiple address book plug-ins. They are processed in sequence until
 one is able to return contacts for the user inquired.
 
-Writing an addressbook plug-in
-------------------------------
+Writing an address book plug-in
+-------------------------------
 
-Addressbook plug-ins are python files that
+Address book plug-ins are python files that
 
 - are placed in the :ref:`plug-in directory <configuration:TATTLER_PLUGIN_PATH>`,
 - implement the AddressbookPlugin interface.
@@ -30,17 +30,17 @@ Create a directory for plug-ins:
 
     # create a directory to hold tattler plug-ins
     mkdir -p ~/tattler_plugins
-    # create a file for your AddressBook plug-in (mind the suffix!)
+    # create a file for your Address Book plug-in (mind the suffix!)
     touch ~/tattler_plugins/mycontacts_tattler_plugin.py
 
 Plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
 
-Now implement the addressbook plug-in:
+Now implement the address book plug-in:
 
 .. code-block:: python
 
     # file ~tattler_plugins/mycontacts_tattler_plugin.py
-    """AddressBook plug-in for tattler to load contacts from the enterprise' IAM"""
+    """Address Book plug-in for tattler to load contacts from the enterprise' IAM"""
 
     import urllib.request
 
