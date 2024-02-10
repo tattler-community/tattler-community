@@ -1,5 +1,6 @@
 """The abstract class parent to any message that can be delivered"""
 
+import re
 import os
 import os.path
 import logging
@@ -25,7 +26,12 @@ def getenv(name, default=None):
 class Sendable:
     """An template message that can be bound and sent."""
 
-    def __init__(self, event: str, recipients: Iterable[str], template_processor: type(TemplateProcessor)=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
+    # a dictionary of variable names required for the sendable to operate. validate_configuration() will raise if any is missing or empty
+    required_settings = {
+        # name:     [required: bool, validator: Optional[callable]]
+    }
+
+    def __init__(self, event: str, recipients: Iterable[str], template_processor: type[TemplateProcessor]=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
         """Build an object which can be expanded into content and delivered through a vector.
         
         :param: event:              Event name to search among event templates database.
@@ -42,17 +48,53 @@ class Sendable:
         self.nid = str(uuid.uuid4())
         self.event_name = event
         self.language_code = None
-        self.load_language(language_code)
+        if language_code is not None:
+            self.load_language(language_code)
         self.template_base = Path(template_base)
-        self.template_processor: type(TemplateProcessor) = template_processor
+        self.template_processor: type[TemplateProcessor] = template_processor
         self.debug_recipient_val = debug_recipient
+
+    def validate_recipient(self, recipient: str) -> str:
+        """Return normalized recipient, or raise ValueError if invalid."""
+        return recipient
+
+    def validate_template(self) -> None:
+        """Raise iff any required part is missing or a part is not well-formed.
+        
+        :raise ValueError:     when any part of the template is invalid; exception message describes what."""
+        if 'body' not in self._get_template_elements():
+            raise ValueError("Required part 'body' is missing.")
+
+    @classmethod
+    def validate_configuration(cls) -> None:
+        """Raise iff a configuration parameter is missing or invalid.
+        
+        :raise ValueError:     when any part of the configuration is invalid; exception message describes what."""
+        bp = getenv('TATTLER_BLACKLIST_PATH')
+        if bp is not None:
+            try:
+                Blacklist(from_filename=bp)
+            except FileNotFoundError as err:
+                raise ValueError(f"Blacklist setting TATTLER_BLACKLIST_PATH={bp} cannot be open.") from err
+        for vname, vrequirement in cls.required_settings.items():
+            vmandatory, vvalidator = vrequirement
+            if getenv(vname) is None:
+                if vmandatory:
+                    raise ValueError(f"Required setting '{vname}' to deliver over {cls.vector()} is missing.")
+            else:
+                val = getenv(vname).strip()
+                if vvalidator and not vvalidator(val):
+                    raise ValueError(f"Setting '{vname}'='{val}' is malformed.")
+
+    def setup(self) -> None:
+        """Validate that the necessary configuration is available and usable, and prepare object accordingly; raise RuntimeError otherwise."""
 
     def load_language(self, language_code: Optional[str]=None) -> None:
         """Setup the sendable to operate with the given language.
         
         :param language_code:       Language code of event to look up (only supported in tattler enterprise edition).
         """
-        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition does not support language '%s' and falls back to the default language. See https://tattler.readthedocs.io/en/latest/templatedesigners/multilingualism.html and https://tattler.dev/#enterprise .", language_code)
+        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition does not support language '%s' and falls back to the default language. See https://docs.tattler.dev/templatedesigners/multilingualism.html and https://tattler.dev/#enterprise .", language_code)
 
     def _get_template_pathname(self, base: bool=False) -> Path:
         """Return the path to the root folder of the event template for the vector.
@@ -120,10 +162,6 @@ class Sendable:
             return self._bl.blacklisted(recipient.strip().lower())
         return False
 
-    def validate_recipient(self, recipient: str) -> str:
-        """Return normalized recipient, or raise ValueError if invalid."""
-        return recipient
-
     def event(self) -> str:
         """Return the event name for the current sendable"""
         return self.event_name
@@ -141,7 +179,7 @@ class Sendable:
         """Return the content of the sendable."""
         templbody = self.raw_content()
         templ: TemplateProcessor = self.template_processor(templbody)
-        return templ.expand(context)
+        return templ.expand(context).strip()
     
     def debug_recipient(self) -> str:
         """Return recipient to send to when in debug mode."""
@@ -170,10 +208,12 @@ class Sendable:
 
     def do_send(self, recipients: Iterable[str], priority: Optional[int]=None, context: Optional[Mapping[str, Any]]=None) -> None:
         """Concretely send the message, regardless of what mode we're in."""
-        raise NotImplementedError("Cannot send untyped Sendable object.")
+        raise NotImplementedError("Cannot send untyped Sendable object.")   # pragma: no cover
 
     def send(self, context: Optional[Mapping[str, Any]]=None, priority: Optional[int]=None, mode: str=default_mode) -> None:
         """Send the message honoring the mode we're in."""
+        self.setup()
+
         mode = mode.lower()
         context = context or {}
         self.context = context

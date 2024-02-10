@@ -34,3 +34,13 @@ class TattlerModuleTest(unittest.TestCase):
             for wanted_name, wanted_val in wanted_vars.items():
                 self.assertIn(wanted_name, mnotif().send.call_args.kwargs)
                 self.assertEqual(mnotif().send.call_args.kwargs[wanted_name], wanted_val)
+
+    def test_send_notification_reports_failure(self):
+        """If underlying send() fails, client returns False"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP') as mtatcli:
+            mtatcli.return_value.send.side_effect = RuntimeError("Foobar")
+            res = tattler_py.send_notification('scope', 'event', 'rcpt')
+            self.assertIsInstance(res, tuple)
+            self.assertEqual(2, len(res))
+            self.assertEqual(False, res[0])
+            self.assertIsInstance(res[1], dict)

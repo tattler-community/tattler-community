@@ -2,13 +2,18 @@ import os
 import re
 import random
 import string
+from typing import Optional
 
 DEFAULT_ADDRESS = '127.0.0.1'
 DEFAULT_PORT = 11503
 
+def getenv(name: str, default: Optional[str]=None) -> Optional[str]:
+    """Get variable from environment -- allowing mocking"""
+    return os.getenv(name, default)
+
 def get_server_endpoint(envvar_name='TATTLER_SERVER'):
     """Retrieve the endpoint parameters for the server from the environment."""
-    endpoint = os.getenv(envvar_name)
+    endpoint = getenv(envvar_name)
     if not endpoint:
         raise RuntimeError(f"No endpoint set: missing or empty '{envvar_name}' envvar.")
     # IPv4

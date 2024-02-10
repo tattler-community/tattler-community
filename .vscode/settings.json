@@ -1,0 +1,7 @@
+{
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/package/src",
+        "${workspaceFolder}/package/src/tattler/server",
+        "${workspaceFolder}/package/src/tattler/client",
+    ]
+}

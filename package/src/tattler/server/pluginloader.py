@@ -130,6 +130,17 @@ class AddressbookPlugin(TattlerPlugin):
         :return:                Mobile number to deliver to, or None if unknown."""
         return None
 
+    def telegram(self, recipient_id: str, role: Optional[str]=None) -> Optional[str]:
+        """Return the telegram ID for the recipient, if known.
+
+        Nota bene: The Telegram platform requires the user to have contacted the bot before
+        the bot is allowed to message the user.
+
+        :param recipient_id:    Unique identifier for the intended recipient, e.g. user ID from IAM system.
+        :param role:            Intended role within the account to get address for, e.g. 'billing' or 'technical'.
+        :return:                Telegram chat id to deliver to, or None if unknown."""
+        return None
+
     def account_type(self, recipient_id: str, role: Optional[str]=None) -> Optional[str]:
         """Return the type of account that the user is on, if known and relevant.
 
@@ -161,7 +172,10 @@ class AddressbookPlugin(TattlerPlugin):
         individual contacts -- such as :meth:`email`.
 
         This method's default implementation simply collects the attributes by calling the respective
-        individual, e.g. 'email': ``self.email()``.
+        individual, e.g. 'email': ``self.email()``. A key should be returned for every required vector
+        name. The default implementation of this method simply collects the return values of the individual
+        methods, such as {'mobile': self.mobile() }, and then adds aliases for the vector names, such as
+        {'sms': ='mobile', 'whatsapp': ='mobile'}.
 
         Implementing this method is more efficient if your lookup returns all user contacts in one call,
         e.g. because they are all in one database. Implementing the individual contact methods may help
@@ -176,11 +190,13 @@ class AddressbookPlugin(TattlerPlugin):
         res = {
             'email': self.email(recipient_id, role),
             'mobile': self.mobile(recipient_id, role),
+            'telegram': self.telegram(recipient_id, role),
             'account_type': self.account_type(recipient_id, role),
             'first_name': self.first_name(recipient_id, role),
-            'language': self.language(recipient_id, role)
+            'language': self.language(recipient_id, role),
         }
         res['sms'] = res['mobile']
+        res['whatsapp'] = res['mobile']
         return res
 
     def recipient_exists(self, recipient_id: str) -> bool:

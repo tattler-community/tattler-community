@@ -1,9 +1,11 @@
+"""Tests for pluginloader module"""
+
 import unittest
 from unittest import mock
-import os
 import random
 from pathlib import Path
 
+from tattler.server.sendable import vector_sendables
 from tattler.server import pluginloader
 
 def get_addressbook_retval():
@@ -17,6 +19,8 @@ def get_addressbook_retval():
 
 
 class PluginLoaderTest(unittest.TestCase):
+    """Tests for pluginloader loading and class definitions"""
+
     def setUp(self) -> None:
         self.plugin_paths = [str(Path(__file__).parent / 'fixtures' / 'plugins')]
         return super().setUp()
@@ -209,6 +213,13 @@ class PluginLoaderTest(unittest.TestCase):
             mocks[4].attributes.assert_not_called()
             self.assertEqual(5, len(have_contacts))
 
+    def test_lookup_contacts_returns_none_upon_unknown(self):
+        """lookup() returns None if no plug-in returns data for a contact"""
+        with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
+            have_contacts = pluginloader.lookup_contacts('inexistent')
+            self.assertIsNone(have_contacts)
+            return
+
     def test_lookup_contacts_tolerates_failing_plugins(self):
         """An addressbook plugin raising exceptions does not prevent subsequent ones from running"""
         with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
@@ -230,6 +241,12 @@ class PluginLoaderTest(unittest.TestCase):
             mocks[2].recipient_exists.assert_called()
             mocks[2].attributes.assert_called()
             self.assertEqual(have_contacts, mocks[2].attributes.return_value)
+
+    def test_attributes_returns_all_vectors(self):
+        """Default attributes() implementation returns keys for all vectors"""
+        plo = pluginloader.AddressbookPlugin()
+        res = plo.attributes('1234')
+        self.assertGreaterEqual(set(res.keys()), set(vector_sendables.keys()))
 
 
 if __name__ == '__main__':

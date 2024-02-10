@@ -7,12 +7,13 @@ import uuid
 from typing import Mapping, Iterable
 from tattler.client.tattler_py.serialization import serialize_json
 
-from tattler.client.tattler_py.tattler_client_utils import get_server_endpoint
+from tattler.client.tattler_py.tattler_client_utils import get_server_endpoint, getenv
 
 log = logging.getLogger(__name__)
-log.setLevel(os.getenv('LOG_LEVEL', 'info').upper())
+log.setLevel(getenv('LOG_LEVEL', 'info').upper())
 
 _default_deadletter_path = os.path.join(os.sep, 'tmp', 'tattler_deadletter')
+
 
 class TattlerClient:
     """Connection controller class to access tattler server functionality."""
@@ -53,7 +54,7 @@ class TattlerClient:
 
     def deadletter_store(self, params: Mapping[str, str]) -> None:
         """Store an error into a deadletter file, if envvar TATTLER_DEADLETTER_PATH is configured."""
-        dldir_path = os.getenv("TATTLER_DEADLETTER_PATH", _default_deadletter_path)
+        dldir_path = getenv("TATTLER_DEADLETTER_PATH", _default_deadletter_path)
         try:
             os.makedirs(dldir_path, exist_ok=True)
         except OSError as err:

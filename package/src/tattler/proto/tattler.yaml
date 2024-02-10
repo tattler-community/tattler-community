@@ -8,7 +8,7 @@ info:
     email: "support@tattler.dev"
 
 servers:
-  - url: https://tattler.dev/api-spec/
+  - url: https://tattler.dev/api/v2
     description: Notification server
 
 paths:

@@ -6,7 +6,7 @@ stages:
 
 test_py:
   stage: test_py
-  coverage: '/^Code coverage:\s\d+\.\d+$/'
+  coverage: '/^Code coverage:\s\d+$/'
   except:
     changes:
       - "tattler/package/src/tattler/docs/**/*"
@@ -46,13 +46,13 @@ test_py:
     ## print coverage information
     - cd $WD
     - coverage combine $(find . -name .coverage)
-    - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=2 ; echo ""
+    - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
     ## packaging
     - echo "tattler server packaging"
     - cd ${WD}/package
     - pip install build
     - python -m build
-    - pip install dist/tattler-1.2.0-py3-none-any.whl
+    - pip install dist/tattler-1.3.0-py3-none-any.whl
     ## validate links
     - echo "Validating links"
     - cd $WD/utils
