@@ -1,24 +1,19 @@
-import json
-import re
-import os
-import logging
-from typing import Optional
-from urllib.parse import urlparse, parse_qsl
-from datetime import datetime, date
-from pathlib import Path
-from importlib.resources import files
+"""Main module with logic to start tattler server"""
 
+import json
+import logging
+import re
 import http.server
 
-from tattler.server import sendable
+from datetime import datetime, date
+from urllib.parse import urlparse, parse_qsl
+
+from tattler.enterprise.server import sendable
 from tattler.server import pluginloader   # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
 from tattler.server.templatemgr import get_scopes
 from tattler.server import tattler_utils
-
-def getenv(varname: str, defaultval: Optional[str]=None) -> Optional[str]:
-    """Wrapper for getenv() to simplify mocking during testing"""
-    return os.getenv(varname, defaultval)
+from tattler.server.tattler_utils import getenv
 
 
 logging.basicConfig(level=getenv('LOG_LEVEL', 'info').upper())
@@ -77,7 +72,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         log.info("%s", self.requestline)
         if self.path == '/notification/':
             # serve list of scopes
-            scopes = sorted(get_scopes(get_templates_path()))
+            scopes = sorted(get_scopes(tattler_utils.get_template_mgr().base_path))
             log.info("Sending scopes: %s", scopes)
             return self.send(200, json.dumps(scopes))
         reqparts = notification_req_re.match(self.path)
@@ -90,14 +85,12 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         if event and not reqparts.group('evprop'):
             return self.send_error(404, "Unknown path requested")
         try:
-            tman = tattler_utils.get_template_manager(get_templates_path(), scope)
-        except ValueError:
+            tman = tattler_utils.get_template_mgr(scope)
+        except FileNotFoundError:
             return self.send_error(400, f"Unknown scope '{scope}'")
         if event is None:
             events = sorted(tman.available_events())
             return self.send(200, json.dumps(events))
-        if not reqparts.group('evprop'):
-            self.send_error(404, f"Unknown path requested. Did you mean {self.path}/vectors/ ?")
         # serve list of vectors in event
         vectors = sorted(tman.available_vectors(event))
         return self.send(200, json.dumps(vectors))
@@ -143,7 +136,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         log.info("<-%s:Sending corrId=%s; ev=%s@%s; rcpt=%s; v=%s; defs=%s...", self.client_address, correlation_id, event, scope, recipient_user, vectors, definitions)
         # do send
         try:
-            notif_jobs = tattler_utils.send_notification_user_vectors(get_templates_path(), recipient_user, vectors, scope, event, definitions, correlation_id, mode=mode)
+            notif_jobs = tattler_utils.send_notification_user_vectors(recipient_user, vectors, scope, event, definitions, correlation_id, mode=mode)
             if not notif_jobs:
                 return self.send_error(400, f"Unknown recipient {recipient_user} - no contacts found.")
         except ValueError as err:
@@ -165,28 +158,10 @@ def serve(address='', port=20000):
     except OSError as err:
         log.error("Unable to bind %s: %s", (address, port), err)
 
-def get_templates_path() -> Path:
-    """Check validity and return path to templates from environment settings, or default.
-    
-    If envvar TATTLER_TEMPLATE_BASE is set, use that.
-    Else, use the internal path to native demo templates.
-    """
-    templproc_base_path = getenv('TATTLER_TEMPLATE_BASE')
-    if templproc_base_path:
-        templproc_base_path = Path(templproc_base_path)
-    else:
-        templproc_base_path = files('tattler.templates').joinpath('.')
-    try:
-        tattler_utils.get_template_manager(templproc_base_path)
-        return templproc_base_path
-    except ValueError as err:
-        log.error("Template directory ('%s') check failed. Fix this before notification requests come in. I do real-time loading, so I'll keep going now.", err)
-    return templproc_base_path
-
 def parse_opts_and_serve():
     """Collect server endpoint settings from environment and start server on them."""
     host, port = getenv('TATTLER_LISTEN_ADDRESS', '127.0.0.1:11503').rsplit(':', 1)
-    tprocpath = get_templates_path()
+    tprocpath = tattler_utils.check_templates_health()
     assert tprocpath is not None
     log.info("Using templates from %s", tprocpath)
     port = int(port)

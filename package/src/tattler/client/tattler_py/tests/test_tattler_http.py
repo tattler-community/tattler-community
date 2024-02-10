@@ -54,6 +54,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertEqual('application/json', mreq.Request.call_args.kwargs['headers']['Content-Type'])
     
     def test_send_all_vectors_fail_yields_failure(self):
+        """If notification to every requested vector fails, then the whole notification returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen().__enter__().read.return_value = b"""[{
                 "id": "email:d696e498-cc1a-4dc8-b893-2070e1b58187",
@@ -71,6 +72,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertEqual(res, False)
 
     def test_send_receive_no_response(self):
+        """If server response is empty, send() returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen().__enter__().read.return_value = b""
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
@@ -78,6 +80,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertEqual(res, False)
 
     def test_send_receive_unparsable_response(self):
+        """If server response is non-empty but unparsable, send() returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen().__enter__().read.return_value = b"""[{"""
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
@@ -86,6 +89,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
 
 
     def test_send_failure(self):
+        """If HTTP request returns a network-level error, send() returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for ertype in [urllib.error.URLError("errormsg123"), urllib.error.HTTPError('url', 500, "errormsg123", {}, None)]:
                 mreq.urlopen.side_effect = ertype

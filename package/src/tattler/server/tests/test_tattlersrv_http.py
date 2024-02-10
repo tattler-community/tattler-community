@@ -1,10 +1,10 @@
-from pathlib import PurePath
 import os
 import logging
 import urllib
 import json
 import unittest
 import unittest.mock
+import urllib.error
 from datetime import datetime
 # to run server and test clients in parallel
 import threading
@@ -116,17 +116,20 @@ class TattlerHttpServerTest(unittest.TestCase):
     def test_list_events_wrong_scope(self):
         url = self.mkreq('/notification/inexev123/')
         with self.assertRaises(urllib.error.URLError):
-            urlopen(url)
+            with urlopen(url):
+                pass
 
     def test_get_details_event_without_vector_suffix_fails(self):
         url = self.mkreq('/notification/jinja/jinja_event/')
         with self.assertRaises(urllib.error.URLError):
-            urlopen(url)
+            with urlopen(url):
+                pass
 
     def test_get_details_event_inexistent(self):
         url = self.mkreq('/notification/jinja/inexevent98765/')
         with self.assertRaises(urllib.error.URLError):
-            urlopen(url)
+            with urlopen(url):
+                pass
 
     def test_get_vectors_event_single_result(self):
         url = self.mkreq('/notification/jinja/jinja_event/vectors/')
@@ -148,7 +151,8 @@ class TattlerHttpServerTest(unittest.TestCase):
         with unittest.mock.patch('tattler.server.tattler_utils.send_notification_user_vectors') as msend:
             msend.side_effect = Exception
             with self.assertRaises(urllib.error.URLError):
-                urlopen(req)
+                with urlopen(req):
+                    pass
 
     def test_send_empty_body(self):
         req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST')
@@ -262,7 +266,7 @@ class TattlerHttpServerTest(unittest.TestCase):
     def test_send_vector_rejected_iff_inexistent(self):
         """Failure if requesting notification to a specific vector which is not supported by the event."""
         req = self.mkreq('/notification/jinja/jinja_humanize/?user=123&vector=email', method='POST')
-        with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
+        with unittest.mock.patch('tattler.server.tattlersrv_http.pluginloader.lookup_contacts') as mcontacts:
             mcontacts.return_value = data_contacts['123']
             with self.assertRaises(urllib.error.HTTPError) as err:
                 with urlopen(req):  # to avoid resource leaks
@@ -273,12 +277,17 @@ class TattlerHttpServerTest(unittest.TestCase):
 
     def test_demotemplates_fallback(self):
         """Demo templates are loaded if no other templates are found"""
-        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+        with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.getenv') as mgetenv:
             mgetenv.side_effect = lambda x, y=None: {'TATTLER_TEMPLATE_BASE': None}.get(x, os.getenv(x, y))
+            url = self.mkreq('/notification/')
+            with urlopen(url) as resp:
+                self.assertEqual(resp.status, 200)
+                have_resp = json.load(resp)
+                self.assertEqual(['demoscope'], list(have_resp))
             # mgetenv.side_effect = ValueError
             want_path = Path(__file__).parent.parent.parent / 'templates'
             # want_path_suffix = PurePath('tattler') / 'templates'
-            self.assertEqual(str(want_path), str(tattlersrv_http.get_templates_path()))
+            self.assertEqual(str(want_path), str(tattlersrv_http.tattler_utils.get_template_mgr().base_path))
 
     def test_plugins_only_loaded_if_configured(self):
         with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.init_plugins') as minit:
@@ -314,16 +323,48 @@ class TattlerHttpServerTest(unittest.TestCase):
                 mgetenv.side_effect = lambda x, y=None: y
                 tattlersrv_http.main()
 
-    def test_demo_templates(self):
-        """get_template_manager runs if multiple template folders are automatically found"""
+    def test_malformed_request(self):
+        """Server responds 404 to malformed requests"""
         with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
-            with unittest.mock.patch('tattler.server.tattlersrv_http.files') as mfiles:
-                mgetenv.side_effect = lambda k,v=None: {'TATTLER_TEMPLATE_BASE': None}.get(k, os.getenv(k, v))
-                p1 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates1')
-                p2 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates2')
-                mfiles.return_value: Traversable = MultiplexedPath(p1, p2)
-                self.assertIsInstance(tattlersrv_http.get_templates_path(), Path)
-                self.assertTrue(mfiles.mock_calls)
+            with unittest.mock.patch('tattler.server.tattlersrv_http.urlparse') as murlparse:
+                murlparse.side_effect = ValueError("Foobar")
+                url = self.mkreq('/notification/a/b/', method='POST')
+                with self.assertRaises(urllib.error.HTTPError) as err:
+                    with urlopen(url):
+                        pass
+                    self.assertEqual(400, err.exception.status)
+
+    def test_validate_templates_at_startup(self):
+        """server calls check_templates_health() and aborts upon errors"""
+        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattlersrv_http.tattler_utils.check_templates_health') as mcheck:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_LISTEN_ADDRESS': '127.0.0.1:11555'}.get(x, os.getenv(x, y))
+                want_exc = ValueError('fooXYZ')
+                mcheck.side_effect = want_exc
+                with self.assertRaises(ValueError):
+                    tattlersrv_http.main()
+
+    def test_server_stops_upon_user_interruption(self):
+        """Server stops if user presses Ctrl-C"""
+        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattlersrv_http.http.server.HTTPServer') as mhttp:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_LISTEN_ADDRESS': '127.0.0.1:11555'}.get(x, os.getenv(x, y))
+                mhttp.side_effect = KeyboardInterrupt()
+                tattlersrv_http.main()
+    
+    def test_server_stops_upon_bind_error(self):
+        """Server stops with error message if requested socket address cannot be acquired"""
+        with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattlersrv_http.http.server.HTTPServer') as mhttp:
+                with unittest.mock.patch('tattler.server.tattlersrv_http.log') as mlog:
+                    mgetenv.side_effect = lambda x, y=None: {'TATTLER_LISTEN_ADDRESS': '127.0.0.1:11555'}.get(x, os.getenv(x, y))
+                    mhttp.side_effect = OSError()
+                    tattlersrv_http.main()
+                    mlog.error.assert_called()
+                    self.assertIn("Unable to bind", mlog.error.call_args.args[0])
+    
+
+
 
 if __name__ == '__main__':
     unittest.main()

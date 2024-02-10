@@ -23,9 +23,17 @@ cached_urls = {}
 exclude_paths = ['/test', '/venv', '__pycache__', 'docs/build/', 'templates/', 'tattler.egg-info']
 
 # ignore URLs that contain any of these literal strings; empty to exclude none
-exclude_urls = ['127.0.0.1', 'api.bulksms.com/v1', 'pypi.tattler.dev', '/company.intranet']
+exclude_urls = [
+    '127.0.0.1',
+    'api.bulksms.com/v1',
+    'pypi.tattler.dev',
+    '/company.intranet',
+    '/api.telegram.org/',
+    '//tattler.dev/api/v2',
+    '//graph.facebook.com/v19.0/',
+    ]
 # only consider URLs that contain any of these literal strings; empty to include all
-# include_urls = ['tattler.dev', 'tattler.readthedocs.io']
+# include_urls = ['tattler.dev', 'docs.tattler.dev']
 include_urls = []
 
 # do not attempt to open a URL for longer than these many seconds

@@ -8,11 +8,10 @@ from typing import Mapping, Iterable, Optional, Any
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
 from email.mime.text import MIMEText
-from email.header import Header
 from email.utils import formatdate
 import smtplib
 
-from tattler.server.sendable.vector_sendable import Sendable, getenv
+from tattler.server.sendable import vector_sendable
 
 # SMTP X-Priority header
 _valid_priorities = [1, 2, 3, 4, 5]
@@ -23,31 +22,53 @@ log = logging.getLogger(__name__)
 
 email_re = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
+ip4_re = re.compile(r'^(?P<srv>(\d+\.){3}\d+)')
+ip6_re = re.compile(r'^\[(?P<srv>[a-fA-F0-9:]+)\]')
+hostname_re = re.compile(r'^(?P<srv>([a-z0-9_-]+\.)+[a-z0-9_-]+)')
+port_re = re.compile(r'(:(?P<port>\d+))?$')
+
 def get_smtp_server(connstr: str) -> [str, int]:
     """Acquire usable SMTP (host, port) pair from a connection string"""
     def retres(srv, port):
         return srv, (int(port) if port else 25)
-    connstr_ipv4_re = re.compile(r'^(?P<srv>(\d+\.){3}\d+)(:(?P<port>\d+))?$')
-    mtc = connstr_ipv4_re.match(connstr)
-    if mtc:
-        return retres(mtc.group('srv'), mtc.group('port'))
-    connstr_ipv6_re = re.compile(r'^\[(?P<srv>[a-fA-F0-9:]+)\](:(?P<port>\d+))?$')
-    mtc = connstr_ipv6_re.match(connstr)
-    if mtc:
-        return retres(mtc.group('srv'), mtc.group('port'))
+    connstr = connstr.lower()
+    host_re = { 'ipv4': ip4_re, 'ipv6': ip6_re, 'hostname': hostname_re, }
+    for matchtype, regex in host_re.items():
+        port = None
+        if port_re.search(connstr):
+            port = port_re.search(connstr).group('port')
+        mtc = regex.search(connstr)
+        if mtc:
+            log.debug("Server description matches %s type.", matchtype)
+            return retres(mtc.group('srv'), port)
     raise ValueError(f"Invalid connection string {connstr}: can't detect server and (optional) port parts. Use srv:port or [srv6]:port")
 
-class EmailSendable(Sendable):
+
+class EmailSendable(vector_sendable.Sendable):
     """An e-mail message."""
+
+    required_settings = {
+        'TATTLER_EMAIL_SENDER': [False, email_re.match],
+        'TATTLER_SUPERVISOR_RECIPIENT_EMAIL': [False, email_re.match],
+        'TATTLER_DEBUG_RECIPIENT_EMAIL': [False, email_re.match],
+        'TATTLER_SMTP_ADDRESS': [False, lambda x: (ip4_re.match(x) or ip6_re.match(x) or hostname_re.match(x))],
+    }
 
     def _get_available_parts(self) -> Mapping[str, str]:
         """Return the list of parts composing the template."""
         parts = self._get_template_elements()
         part_types = {
-            'body_html': 'text/html',
-            'body_plain': 'text/plain',
+            'body_plain': 'plain',
+            'body_html': 'html',        # place HTML last (RFC 1341)
         }
         return {ptype: pname for pname, ptype in part_types.items() if pname in parts}
+
+    def validate_template(self):
+        """Raise iff any required part is missing or a part is not well-formed."""
+        parts = set(self._get_template_elements())
+        required = {'body_plain', 'subject'}
+        if required - parts:
+            raise ValueError(f"Required parts are missing: {required - parts}")
 
     def raw_content(self) -> str:
         """Return raw content as either a single-part message or a multi-part MIME message"""
@@ -61,29 +82,6 @@ class EmailSendable(Sendable):
             raw_content += self._get_template_raw_element(part_fname)
         return raw_content
 
-    def _auto_encode(self, content: str) -> (bytes, str):
-        """Return content encoded with the simplest possible encoding, and the ID of the encoding used."""
-        # determine minimum encoding suited for this content
-        for enc in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
-            try:
-                return content.encode(enc), enc
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                continue
-        # if we got here, none of the encodings worked for the content
-        raise RuntimeError(f"Unable to find suitable encoding for content '{content}' among ascii, latin1 and utf8")
-
-    def _build_part_encoded(self, part_filename: str, context: Optional[Mapping[str, Any]]=None) -> (bytes, str):
-        """Load content, expand it, and encode it; return content and resulting encoding.
-
-        :param part_filename:   Filename of the part to load, e.g. 'body_plain'.
-        :param context:         Optional variables to expand template with.
-
-        :return:                Pair holding content encoded into a byte string, and name of encoding.
-        """
-        context = context or {}
-        part_content = self._get_content_element(part_filename, context)
-        return self._auto_encode(part_content)
-
     def _add_msg_parts(self, msg: MIMEMultipart | MIMENonMultipart, context: Optional[Mapping[str, Any]]=None) -> None:
         """Add text/html and/or text/plain parts to MIME message by loading and expanding templates and determining their encoding.
         
@@ -91,15 +89,14 @@ class EmailSendable(Sendable):
         :param context:         Optional variables to expand template with.
         """
         if 'body_html' not in self._get_available_parts().values():
-            part_content, charset = self._build_part_encoded('body_plain', context)
-            msg.set_charset(charset)
+            part_content = self._get_content_element('body_plain', context)
             msg.set_payload(part_content)
         else:
             msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
             # Record the MIME types of both parts - text/plain and text/html.
             for part_type, part_fname in self._get_available_parts().items():
-                part_content, charset = self._build_part_encoded(part_fname, context)
-                msg.attach(MIMEText(part_content, part_type, charset))
+                part_content = self._get_content_element(part_fname, context)
+                msg.attach(MIMEText(part_content, part_type))
 
     def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> MIMEMultipart | MIMENonMultipart:
         """Load all parts of the message and return a final email assembly.
@@ -118,8 +115,7 @@ class EmailSendable(Sendable):
         msg['From'] = self.sender()
         msg['To'] = ", ".join(self.recipients)
         msg['Date'] = formatdate()
-        subj, charset = self._auto_encode(self.subject(context))
-        msg['Subject'] = Header(subj, charset).encode()
+        msg['Subject'] = self.subject(context)
 
         self._add_msg_parts(msg, context)
 
@@ -138,7 +134,7 @@ class EmailSendable(Sendable):
 
     def sender(self) -> str:
         """Return the default address to use as sender for EmailSendable"""
-        sender_email = getenv("TATTLER_EMAIL_SENDER", None)
+        sender_email = vector_sendable.getenv("TATTLER_EMAIL_SENDER", None)
         if sender_email is None:
             log.debug("Envvar TATTLER_EMAIL_SENDER not set. Using '%s' as Email From.", sender_email)
             return f"{getpass.getuser()}@{socket.gethostname()}".lower()
@@ -157,9 +153,8 @@ class EmailSendable(Sendable):
         if self.priority is None:
             # try to load it from template
             try:
-                with open(os.path.join(self._get_template_pathname(), 'priority'), encoding='utf-8') as f:
-                    self.set_priority(f.readline().strip())
-            except IOError:
+                self.set_priority(self._get_template_raw_element('priority').strip())
+            except FileNotFoundError:
                 return msg
         msg.add_header('X-Priority', str(self.priority))
         return msg
@@ -194,19 +189,18 @@ class EmailSendable(Sendable):
         if priority is not None:
             self.set_priority(priority)
         msg = self.content(context)
-        smtp_server, smtp_server_port = get_smtp_server(getenv("TATTLER_SMTP_ADDRESS", '127.0.0.1'))
+        smtp_server, smtp_server_port = get_smtp_server(vector_sendable.getenv("TATTLER_SMTP_ADDRESS", '127.0.0.1'))
         try:
             server = smtplib.SMTP(smtp_server, smtp_server_port)
         except ConnectionRefusedError:
             log.error("Failed to connect to SMTP server (%s:%s) to deliver email. Giving up.", smtp_server, smtp_server_port)
             raise
-        smtp_tls = getenv("TATTLER_SMTP_TLS", None)
+        smtp_tls = vector_sendable.getenv("TATTLER_SMTP_TLS", None)
         if smtp_tls:
             server.starttls()
-        smtp_auth = getenv("TATTLER_SMTP_AUTH", None)
+        smtp_auth = vector_sendable.getenv("TATTLER_SMTP_AUTH", None)
         if smtp_auth:
-            u, p = smtp_auth.split(':')
+            u, p = smtp_auth.split(':', 1)
             server.login(u, p)
         server.sendmail(self.sender(), recipients, msg)
         server.quit()
-

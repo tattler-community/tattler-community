@@ -1,11 +1,12 @@
 """Implementation of tattler client using HTTP interface to connect to tattler server"""
 
+import json
 from urllib import request
 from typing import Mapping, Iterable
 
 from tattler.client.tattler_py.tattler_client import TattlerClient, log
 
-from tattler.client.tattler_py.serialization import serialize_json, deserialize_json
+from tattler.client.tattler_py.serialization import serialize_json
 
 class TattlerClientHTTP(TattlerClient):
     """HTTP implementation of TattlerClient"""
@@ -29,7 +30,7 @@ class TattlerClientHTTP(TattlerClient):
         try:
             log.debug("Sending request URL = '%s'", req.get_full_url())
             with request.urlopen(req) as f:
-                res = f.read()
+                res: bytes = f.read()
         except Exception as err:
             log.exception("Error {%s} sending notif %s: %s", type(err), correlationId, err)
             return False
@@ -37,7 +38,7 @@ class TattlerClientHTTP(TattlerClient):
             log.warning("Notification delivery to failed -- no data provided.")
             return False
         try:
-            res = deserialize_json(res)
+            res = json.loads(res.decode())
         except ValueError:
             log.exception("Unable to JSON-decode server response:")
             return False
@@ -53,19 +54,16 @@ class TattlerClientHTTP(TattlerClient):
         """Return list of vectors available events within this scope."""
         url = f'http://{self.endpoint}/notification/'
         with request.urlopen(url) as f:
-            res = f.read()
-            return deserialize_json(res)
+            return json.loads(f.read().decode())
 
     def events(self):
         """Return list of vectors available events within this scope."""
         url = f'http://{self.endpoint}/notification/{self.scope_name}/'
         with request.urlopen(url) as f:
-            res = f.read()
-            return deserialize_json(res)
+            return json.loads(f.read().decode())
 
     def vectors(self, event):
         """Return list of vectors available vectors within this scope."""
         url = f'http://{self.endpoint}/notification/{self.scope_name}/{event}/vectors/'
         with request.urlopen(url) as f:
-            res = f.read()
-            return deserialize_json(res)
+            return json.loads(f.read().decode())

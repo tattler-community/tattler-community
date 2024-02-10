@@ -21,47 +21,47 @@ def get_random_ip6():
 
 class NetNotifClientUtilsTest(unittest.TestCase):
     def test_get_server_endpoint_raises_if_unset(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             mos.return_value = None
             with self.assertRaises(RuntimeError):
                 tattler_client_utils.get_server_endpoint()
 
     def test_get_server_endpoint_raises_if_empty(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             mos.return_value = ''
             with self.assertRaises(RuntimeError):
                 tattler_client_utils.get_server_endpoint()
 
     def test_get_server_endpoint_accepts_address_only_ip4(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             for _ in range(100):
                 want_addr = get_random_ip4()
                 mos.return_value = want_addr
                 self.assertEqual(tattler_client_utils.get_server_endpoint(), (want_addr, tattler_client_utils.DEFAULT_PORT))
 
     def test_get_server_endpoint_accepts_address_only_ip6(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             for _ in range(100):
                 want_addr = get_random_ip6()
                 mos.return_value = f'[{want_addr}]'
                 self.assertEqual(tattler_client_utils.get_server_endpoint(), (want_addr, tattler_client_utils.DEFAULT_PORT))
 
     def test_get_server_endpoint_accepts_port_only(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             want_addr = tattler_client_utils.DEFAULT_ADDRESS
             for want_port in [1, 8765]:
                 mos.return_value = f":{want_port}"
                 self.assertEqual(tattler_client_utils.get_server_endpoint(), (want_addr, want_port))
 
     def test_get_server_endpoint_accepts_address_ip4_and_port(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             for want_addr in [get_random_ip4() for i in range(10)]:
                 for want_port in [random.randint(1, 65536) for i in range(10)]:
                     mos.return_value = f"{want_addr}:{want_port}"
                     self.assertEqual(tattler_client_utils.get_server_endpoint(), (want_addr, want_port))
 
     def test_get_server_endpoint_accepts_address_ip6_and_port(self):
-        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.os.getenv') as mos:
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
             for want_addr in [get_random_ip6() for i in range(10)]:
                 for want_port in [random.randint(1, 65536) for i in range(10)]:
                     mos.return_value = f"[{want_addr}]:{want_port}"

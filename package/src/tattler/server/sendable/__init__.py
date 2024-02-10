@@ -12,7 +12,7 @@ from tattler.server.sendable.vector_email import EmailSendable
 # map vector names to their associated Sendable class
 vector_sendables = {
         'sms':      SMSSendable,
-        'email':    EmailSendable
+        'email':    EmailSendable,
         }
 
 modes = {'debug', 'staging', 'production'}
@@ -20,7 +20,7 @@ modes = {'debug', 'staging', 'production'}
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger('sendable')
 
-def get_vector_class(vector_name: str) -> type(Sendable):
+def get_vector_class(vector_name: str) -> type[Sendable]:
     """Return the class to use to build notifications for a given vector name.
     
     :param vector_name:     Name of the vector for which the class should be returned.
@@ -32,7 +32,7 @@ def get_vector_class(vector_name: str) -> type(Sendable):
     except KeyError as err:
         raise ValueError(f"Can't generate Sendable for unknown vector '{vector_name}'. Valid values: {list(vector_sendables)}.") from err
 
-def make_notification(vector: str, event: str, recipient_list: Iterable[str], template_processor: type(TemplateProcessor)=TemplateProcessor, template_base: Optional[str]=None, language_code: Optional[str]=None) -> Sendable:
+def make_notification(vector: str, event: str, recipient_list: Iterable[str], template_processor: type[TemplateProcessor]=TemplateProcessor, template_base: Optional[str]=None, language_code: Optional[str]=None) -> Sendable:
     """Return a Sendable for a given event.
 
     Return a sendable for the given type, event, recipient. If 'context'
@@ -58,7 +58,7 @@ def make_notification(vector: str, event: str, recipient_list: Iterable[str], te
         kwargs['language_code'] = language_code
     return vector_class(event, recipient_list, **kwargs)
 
-def send_notification(vector: str, event: str, recipient_list: Iterable[str], context: Optional[Mapping[str, Any]]=None, template_processor: type(TemplateProcessor)=TemplateProcessor, template_base: Optional[str]=None, priority: Optional[int]=None, mode: Optional[str]=None, blacklist: Optional[str]=None, language_code: Optional[str]=None) -> None:
+def send_notification(vector: str, event: str, recipient_list: Iterable[str], context: Optional[Mapping[str, Any]]=None, template_processor: type[TemplateProcessor]=TemplateProcessor, template_base: Optional[str]=None, priority: Optional[int]=None, mode: Optional[str]=None, blacklist: Optional[str]=None, language_code: Optional[str]=None) -> None:
     """Send a notification to a recipient list."""
     ntf = make_notification(vector, event, recipient_list, template_processor=template_processor, template_base=template_base, language_code=language_code)
     kwargs = {}

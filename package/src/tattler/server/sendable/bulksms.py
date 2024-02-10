@@ -69,7 +69,7 @@ class BulkSMS:
 		
 	def send(self, recipients, content, sender=None, priority=False):
 		"""Send message to some recipients."""
-		if type(recipients) is str:
+		if isinstance(recipients, str):
 			recipients = [recipients]
 		recipients = [normalize_recipient(r) for r in recipients]
 		params = {
