@@ -2,4 +2,11 @@ Hi {{ user_firstname }}!
 
 Here is your first notification from tattler. Congrats!
 
+This is a plain text version of the notification: your e-mail client apparently
+lacks support for HTML !
+
+The HTML version of this notification showcases some templating and design
+elements, so you might want to access this notification with an HTML-enabled
+e-mail client to see them.
+
 P.S.: this was notification #{{ notification_id }}

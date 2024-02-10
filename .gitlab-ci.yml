@@ -7,9 +7,9 @@ stages:
 test_py:
   stage: test_py
   coverage: '/^Code coverage:\s\d+\.\d+$/'
-  #except:
-  #  changes:
-  #    - "tattler/package/src/tattler/docs/**/*"
+  except:
+    changes:
+      - "tattler/package/src/tattler/docs/**/*"
   cache:
     key: tattler_cache
     paths:
@@ -33,6 +33,9 @@ test_py:
     - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
     - cd ${WD}/package/src/tattler/server/tests
     - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    ## plugins
+    - cd ${WD}/package/src/tattler/server/plugins/tests
+    - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
     ## client
     - echo "tattler client"
     - cd ${WD}/package/src/tattler/client/tattler_py
@@ -61,10 +64,10 @@ pages:
     key: docs_cache
     paths:
       - venv_docs
-  #only:
-  #  changes:
-  #    - "tattler/package/src/tattler/docs/**/*"
-  #    - .gitlab-ci.yml
+  only:
+    changes:
+      - "tattler/package/src/tattler/docs/**/*"
+      - .gitlab-ci.yml
   script:
     - WD=$(pwd)
     - rm -rf .public public
