@@ -63,7 +63,6 @@ Tattler is enterprise-friendly. Enterprise customers can purchase subscriptions 
 Enterprise customers get extended, enterprise-specific features:
 
 - Rate control: prevent faulty applications from flooding users with notifications.
-- Audit trail: record each delivery along with a positive confirmation ID from its delivery system.
 - Auto-text: design HTML emails only, Tattler automatically creates text-form fallback.
 - Multilingual support: automatically send which language a user should be notified with.
 - Additional delivery vectors to `Telegram <https://telegram.org>`_ and `WhatsApp <https://www.whatsapp.com>`_.
