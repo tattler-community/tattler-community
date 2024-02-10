@@ -1,3 +1,10 @@
+# 1.3.0 -- 2024-02-10
+
+- Fix regression from 1.2.0 preventing loading of templates.
+- Fix regression from 1.2.0 where priority of HTML content causing some clients to favor plain text display.
+- New demo notification packed with useful tips and reusable style/elements for your own templates.
+- Support hostnames in TATTLER_SMTP_ADDRESS envvar.
+
 # 1.2.0 -- 2024-01-20
 
 - ship with Jinja as default template engine to simplify installation and docs
