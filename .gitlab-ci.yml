@@ -6,7 +6,7 @@ stages:
 
 test_py:
   stage: test_py
-  coverage: '/^Code coverage:\s\d+\.\d+$/'
+  coverage: '/^Code coverage:\s\d+$/'
   except:
     changes:
       - "tattler/package/src/tattler/docs/**/*"
@@ -46,7 +46,7 @@ test_py:
     ## print coverage information
     - cd $WD
     - coverage combine $(find . -name .coverage)
-    - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=2 ; echo ""
+    - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
     ## packaging
     - echo "tattler server packaging"
     - cd ${WD}/package
