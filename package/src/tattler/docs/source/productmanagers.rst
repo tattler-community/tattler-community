@@ -4,7 +4,7 @@ Product managers
 Your role:
 
 - Make a list of events that need to be notified.
-- Define which vector each event should be notified to (email? sms? more?).
+- Define which vector each event should be notified to (Email? SMS? more?).
 - Draft what approximate information should be included in that notification.
 
 The good news: we have little documentation for you, because you have the

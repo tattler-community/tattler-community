@@ -23,6 +23,22 @@ Only log events with a severity equal or higher than this.
 Supported values: ``debug``, ``info``, ``warning``, ``error``.
 
 
+TATTLER_SMS_SENDER
+------------------
+
+Mobile number to use as sender for notification SMSes, e.g. ``+16315551234``.
+
+If unset, tattler will let the delivery network apply the default source number.
+
+
+TATTLER_EMAIL_SENDER
+--------------------
+
+Email address to use as sender for notification emails.
+
+If unset, tattler lets the SMTP library determine the default address, which usually looks like ``running_username@hostname``.
+
+
 TATTLER_MASTER_MODE
 -------------------
 
@@ -58,7 +74,11 @@ This variable should be set for every desired vector:
 TATTLER_BLACKLIST_PATH
 ----------------------
 
-Path to a file to be used to store blacklist.
+Path to a file to be used to store blacklist: a list of recipient addresses that tattler will skip sending to if asked.
+
+Blacklists are useful for a variety of scenarios, including omitting delivery to addresses that are known to bounce,
+especially when such deliveries come at a monetary or reputational cost, such as in the case of delivery through services
+like Amazon SES.
 
 This file is read-only for tattler. Tattler looks up content anew at every delivery attempt.
 
@@ -79,10 +99,11 @@ The token is formatted as a pair of (user_id, secret) separated by a colon, i.e.
 TATTLER_SMTP_ADDRESS
 --------------------
 
-The IP address (IPv4 or IPv6) and port number of the host to use for SMTP delivery, formatted as:
+The address and port number of the host to use for SMTP delivery, formatted as:
 
 - For IPv4: ``ip_address:port_number`` or simply ``ip_address`` to default on port 25. E.g. ``192.168.0.1:26``
 - For IPv6: ``[ip6_address]:port_number`` or simply ``[ip6_address]`` to default on port 25. E.g. ``[2a00:1450:400a:802::2005]:25``
+- For hostname: ``hostname:port_number`` or simply ``hostname`` to default on port 25. E.g. ``smtp.gmail.com:465``
 
 
 TATTLER_SMTP_TLS
@@ -123,12 +144,14 @@ Name of the template processor to use.
 Default: ``jinja``
 
 
-TATTLER_WHATSAPP_FROM_NUMBER
-----------------------------
+TATTLER_WHATSAPP_SENDER
+-----------------------
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
-The phone number to use as source when sending messages via WhatsApp.
+The "Phone number ID" to use as source when sending messages via WhatsApp, e.g ``263465548029294``. Nota bene: this is not a phone number!
+This is the numeric identifier which Meta uses to refer to the actual phone number. Find this within you "Meta for developers" account,
+selecting the App and then its WhatsApp settings.
 
 Only required if you actually send messages via WhatsApp.
 
@@ -158,7 +181,7 @@ TATTLER_TELEGRAM_BOT_TOKEN
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
-Token for the Bot used to send messages via Telgram.
+Token for the Bot used to send messages via Telegram.
 
 Only required if you actually send messages via Telegram.
 

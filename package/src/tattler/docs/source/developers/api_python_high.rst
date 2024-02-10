@@ -17,7 +17,7 @@ The high-level API in it allows you to trigger a notification with one line of c
 Here you notice additional parameters:
 
 * A client context: a dictionary containing variable definitions, which tattler will pass on to the template.
-* A correlationId: a string identifying the transaction at the client, which tattler will log into its own logs and audit trails.
+* A correlationId: a string identifying the transaction at the client, which tattler will log into its own logs to aid cross-system troubleshooting.
 
 Here's a brief reference of the function:
 

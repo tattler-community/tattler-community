@@ -8,7 +8,7 @@ Email templates
 +------------------------+---------------------------------------------------------------------------------+
 | Encoding               | ASCII                                                                           |
 +------------------------+---------------------------------------------------------------------------------+
-| Content type           | HTML and/or plaintext.                                                          |
+| Content type           | HTML and/or plain text.                                                         |
 +------------------------+---------------------------------------------------------------------------------+
 | Maximum content length | Several MegaBytes.                                                              |
 +------------------------+---------------------------------------------------------------------------------+
@@ -125,7 +125,7 @@ Setting this file makes sense with only 2 values:
 * ``1`` for "high priority"
 * ``5`` for "low priority"
 
-Value ``3`` (normal priority) is a non-action, and the values inbetween are not meaningful.
+Value ``3`` (normal priority) is a non-action, and the values in-between are not meaningful.
 
 Setting messages as high-priority raises the visibility of the notification in the user's mailbox,
 which loads notification fatigue even further -- so use it sparingly. A case where high-priority

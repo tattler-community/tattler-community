@@ -10,7 +10,7 @@ WhatsApp templates
 +------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | Encoding               | UTF-8.                                                                                                                       |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------+
-| Content type           | Plaintext or markdown.                                                                                                       |
+| Content type           | Plain text or markdown.                                                                                                      |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------+
 | Maximum content length | 1024 characters.                                                                                                             |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------+
@@ -38,14 +38,16 @@ content into a text file named ``body`` within it::
 	
     Meta -- the company owning WhatsApp, poses a number of requirements to send WhatsApp messages:
 
-    - You need to setup a business account.
+    - You need to setup a `developer account <https://developers.facebook.com>`_ and `business account <https://business.facebook.com>`_.
 
-    - You need to indicate a mobile number that your messages will appear as sent from.
+    - You need to register a mobile number that your messages will appear as sent from. Meta will provide you one such number for testing purposes.
 
     - There are fees to pay beyond a certain volume of messages.
 
     - Your recipient obviously needs to have WhatsApp active on their mobile phone. WhatsApp provides no feedback on whether this is the case, so Tattler will always return success when delivering to WhatsApp.
 
+    - New requirements are introduced over time. For example, you may be only be able to open a conversation with a template message, unless the user had contacted your source number first.
+    
     See `WhatsApp Cloud API's documentation <https://developers.facebook.com/docs/whatsapp/cloud-api/>`_
     for more details.
 

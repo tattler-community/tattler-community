@@ -42,7 +42,7 @@ Introducing Tattler simplifies code and consolidates your communication to your 
 **Sys admins**
    Will love having one single point of exit for notifications and the ease of compartmentalizing access to sensitive data. 
 
-Tattler is `well-documented <https://tattler.readthedocs.io>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
+Tattler is `well-documented <https://docs.tattler.dev>`_, has `safeguarded longevity <https://tattler.dev#enterprise>`_
 and has outstanding quality thanks to its exceptional 90%+ test coverage.
 
 
@@ -63,7 +63,6 @@ Tattler is enterprise-friendly. Enterprise customers can purchase subscriptions 
 Enterprise customers get extended, enterprise-specific features:
 
 - Rate control: prevent faulty applications from flooding users with notifications.
-- Audit trail: record each delivery along with a positive confirmation ID from its delivery system.
 - Auto-text: design HTML emails only, Tattler automatically creates text-form fallback.
 - Multilingual support: automatically send which language a user should be notified with.
 - Additional delivery vectors to `Telegram <https://telegram.org>`_ and `WhatsApp <https://www.whatsapp.com>`_.

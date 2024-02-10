@@ -74,6 +74,6 @@ Your client application may request to restrict delivery to some vectors only:
     # use e.g. vector=email,sms
     curl -X POST 'https://127.0.0.1:11503/notification/mywebapp/password_changed/?user=your@email.com&vector=email,sms'
 
-If a vector ist listed which cannot be sent to (content or recipient address not available), the respective vector is ignored.
+If a vector is listed which cannot be sent to (content or recipient address not available), the respective vector is ignored.
 
 

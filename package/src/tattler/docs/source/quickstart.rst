@@ -1,7 +1,7 @@
 .. tip:: Found anything unclear or needy of further explanation? Do send us the feedback at `docs@tattler.dev <mailto:docs@tattler.dev>`_ !
 
-Quickstart
-==========
+Quick start
+===========
 
 This guides you to:
 
@@ -48,13 +48,14 @@ You can do this via plain HTTP request, e.g. using ``curl``:
 .. code-block:: bash
 
    # Open a new terminal and let tattler server run in the previous one
-   curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=your@email.com'
+   curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
 
 Here's what this does:
 
 - It contacts tattler_server at its REST endpoint ``http://127.0.0.1:11503/notification/``.
 - It asks to send the notification for ``demoevent``, which is built into tattler's distribution.
 - It asks to send it to ``your@email.com``.
+- It asks to actually send it to the indicated recipient, with ``mode=production``.
 
 Tried and failed?
 ^^^^^^^^^^^^^^^^^
@@ -71,7 +72,7 @@ If you did, it's because you have no SMTP server running on ``127.0.0.1``. This 
 
 No worries: pointing tattler to your actual SMTP server is as easy as setting environment variable ``TATTLER_SMTP_ADDRESS``.
 
-Read about these `basic customizations <quickstart:Some basic customizations>` for more.
+Read about these :ref:`basic customizations <quickstart:Some basic customizations>` for more.
 
 Why demo? Why email?
 ^^^^^^^^^^^^^^^^^^^^

@@ -84,10 +84,10 @@ System administrators
 
 They make sure that tattler gets to run and then stays running.
 
-They are resposible for:
+They are responsible for:
 
 - Installation and configuration of tattler.
-- Optionally containarization.
+- Optionally containerization.
 - Configuration of system and network so every relevant 3rd system can reach Tattler's notification interface.
 - Software updates.
 

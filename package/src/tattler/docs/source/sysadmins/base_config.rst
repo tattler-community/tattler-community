@@ -9,7 +9,7 @@ Start by providing the following basic ones:
 - :ref:`TATTLER_DEBUG_RECIPIENT_EMAIL <configuration:TATTLER_DEBUG_RECIPIENT_*>` -- to what email address tattler should send any notification fired during this testing time, instead of the real recipient.
 - :ref:`TATTLER_MASTER_MODE <configuration:TATTLER_MASTER_MODE>` -- whether to divert notifications to a debug address, or to send them to the real recipient.
 
-As the number of variable grows, you'll get unconfortable with a long command-line.
+As the number of variable grows, you'll get uncomfortable with a long command-line.
 
 And that becomes critical once you want to pass sensitive data, such as database access credentials,
 potentially for your own :ref:`plug-ins <plugins/index:Tattler plug-ins>`.
