@@ -37,3 +37,4 @@ content into a text file named ``body`` within it::
 .. caution:: The Telegram platform poses some requirements to deliver messages!
 
     - `Create a Telegram Bot <https://core.telegram.org/bots/features#creating-a-new-bot>`_ that will send messages to your users.
+    - Users must authorize the bot before Telegram allows it to send them messages. They can do so by opening a chat the bot, or you can collect their authorization with a `Telegram Login button <https://core.telegram.org/widgets/login>`_ .
