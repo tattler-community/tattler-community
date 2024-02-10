@@ -7,8 +7,8 @@ from importlib.resources import files
 
 from tattler.server import pluginloader           # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
-from tattler.enterprise.server.templatemgr import TemplateMgr
-from tattler.enterprise.server import sendable
+from tattler.server.templatemgr import TemplateMgr
+from tattler.server import sendable
 from tattler.server.sendable.template_processor import TemplateProcessor
 from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
@@ -203,16 +203,9 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         raise ValueError(f"Recipient unknown '{recipient_user}'. Aborting notification.")
     log.debug("Contacts for recipient %s are: %s", recipient_user, user_contacts)
     user_available_vectors = {vname for vname in vectors if user_contacts.get(vname, None) is not None}
-    usrlang = user_contacts.get('language', None)
     log.info("Recipient %s is reachable over %d vectors of the %d requested: %s", recipient_user, len(user_available_vectors), len(vectors), user_available_vectors)
     retval = []
     for vname in user_available_vectors:
-        if usrlang is not None:
-            log.debug("User #%s has language preference '%s' -> checking if it's supported by the event template ...")
-            veclangs = tman.available_languages(event_name, vname)
-            if usrlang not in veclangs:
-                msg = f"User '{recipient_user}' has language '{usrlang}', which is not available for {event_name}:{vname}@{event_scope}. Available languages for it are: {veclangs}."
-                raise ValueError(msg)
         recipient = user_contacts[vname]
         template_context = core_template_variables(recipient_user, correlationId, mode, vname, event_scope, event_name)
         if context:

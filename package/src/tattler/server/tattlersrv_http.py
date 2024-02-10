@@ -8,7 +8,7 @@ import http.server
 from datetime import datetime, date
 from urllib.parse import urlparse, parse_qsl
 
-from tattler.enterprise.server import sendable
+from tattler.server import sendable
 from tattler.server import pluginloader   # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
 from tattler.server.templatemgr import get_scopes
