@@ -203,6 +203,7 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         raise ValueError(f"Recipient unknown '{recipient_user}'. Aborting notification.")
     log.debug("Contacts for recipient %s are: %s", recipient_user, user_contacts)
     user_available_vectors = {vname for vname in vectors if user_contacts.get(vname, None) is not None}
+    usrlang = None
     log.info("Recipient %s is reachable over %d vectors of the %d requested: %s", recipient_user, len(user_available_vectors), len(vectors), user_available_vectors)
     retval = []
     for vname in user_available_vectors:
