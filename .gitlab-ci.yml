@@ -9,7 +9,7 @@ test_py:
   coverage: '/^Code coverage:\s\d+$/'
   except:
     changes:
-      - "tattler/package/src/tattler/docs/**/*"
+      - "docs/**/*"
   cache:
     key: tattler_cache
     paths:
@@ -66,7 +66,7 @@ pages:
       - venv_docs
   only:
     changes:
-      - "tattler/package/src/tattler/docs/**/*"
+      - "docs/**/*"
       - .gitlab-ci.yml
   script:
     - WD=$(pwd)
@@ -75,7 +75,7 @@ pages:
     - echo Test that tattler version declared in code matches version declared in docs
     - cd ${WD}/package
     - version_package=$(awk -F= '/^version/ { print $2 }' pyproject.toml | grep -Eo '[0-9.]+')
-    - cd ${WD}/package/src/tattler/docs
+    - cd ${WD}/docs
     - pip install -r requirements_docs.txt
     - make html
     - version_docs=$(awk -F= '/^release/ { print $2 }' source/conf.py | grep -Eo '[0-9.]+')
@@ -83,11 +83,11 @@ pages:
     - test -n "$version_package" -a "$version_package" = "$version_docs"
     - cd $WD
     - echo Build documentation
-    - test -d venv_docs -a ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt -nt venv_docs && rm -rf venv_docs
+    - test -d venv_docs -a ${WD}/docs/requirements_docs.txt -nt venv_docs && rm -rf venv_docs
     - test -d venv_docs || python3 -m venv venv_docs
     - . venv_docs/bin/activate
-    - test venv_docs -nt ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt || pip install -r ${WD}/tattler/package/src/tattler/docs/requirements_docs.txt
-    - cd ${WD}/package/src/tattler/docs
+    - test venv_docs -nt ${WD}/docs/requirements_docs.txt || pip install -r ${WD}/docs/requirements_docs.txt
+    - cd ${WD}/docs
     - PYTHONPATH=${WD}/package/src make html
     - cp -R build/html/* ${WD}/.public/
     - cd $WD
