@@ -86,6 +86,7 @@ class TestTattlerUtils(unittest.TestCase):
                     self.assertIn('context', msend.call_args.kwargs)
                     extra_variables = {
                         # name: want
+                        'user_id': '123',
                         'user_email': data_contacts['123']['email'],
                         'user_sms': data_contacts['123']['sms'],
                         'user_firstname': data_contacts['123']['email'].split('@', 1)[0].lower().capitalize(),

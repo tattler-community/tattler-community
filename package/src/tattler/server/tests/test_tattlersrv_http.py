@@ -33,7 +33,8 @@ class TattlerHttpServerTest(unittest.TestCase):
         os.environ['TATTLER_TEMPLATE_BASE'] = get_template_dir()
         logging.info("Setting template base -> %s", os.getenv('TATTLER_TEMPLATE_BASE'))
         self.server = tattlersrv_http.parse_opts_and_serve()
-        self.server_thread = None
+        if self.server is None:
+            raise self.fail("Unable to start server thread. There's likely another server instance running on the same port.")
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.orig_env = os.environ.copy()
         os.environ['TATTLER_MASTER_MODE'] = 'production'

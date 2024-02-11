@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "tattler"
 version = "1.3.0"
 authors = [{name = "Michele Mazzucchi", email = "support@tattler.dev"}]
-license = {text="License :: OSI Approved :: BSD License"}
+# have license information implicitly loaded from LICENSE* file
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3 :: Only",

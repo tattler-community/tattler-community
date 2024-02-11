@@ -104,6 +104,7 @@ def core_template_variables(recipient_user: str, correlationId: Optional[str], m
     notId = corrId.rsplit(':', 1)[1] if ':' in corrId else corrId
     notId = notId[-max_notification_id_len:]
     return {
+        'user_id': recipient_user,
         'user_email': recipient_contacts.get('email', None),
         'user_sms': recipient_contacts.get('sms', None),
         'user_firstname': userfirstname or 'user',
