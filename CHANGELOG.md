@@ -1,3 +1,9 @@
+# 1.3.1 -- 2024-02-11
+
+- Include new README with screenshots, better description, quickstart, contributing infos and links.
+- Add 'user_id' variable to native template context.
+- Streamline python package by removing superfluous docs sources, now moved to repo root.
+
 # 1.3.0 -- 2024-02-10
 
 - Fix regression from 1.2.0 preventing loading of templates.

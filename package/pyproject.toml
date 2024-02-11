@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tattler"
-version = "1.3.0"
+version = "1.3.1"
 authors = [{name = "Michele Mazzucchi", email = "support@tattler.dev"}]
 # have license information implicitly loaded from LICENSE* file
 classifiers = [
