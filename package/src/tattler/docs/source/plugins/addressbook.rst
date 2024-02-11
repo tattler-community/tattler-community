@@ -22,68 +22,21 @@ Writing an address book plug-in
 Address book plug-ins are python files that
 
 - are placed in the :ref:`plug-in directory <configuration:TATTLER_PLUGIN_PATH>`,
-- implement the AddressbookPlugin interface.
+- implement the ``AddressbookPlugin`` interface of class :class:`tattler.server.pluginloader.AddressbookPlugin` .
 
-Create a directory for plug-ins:
+Keep in mind that plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
 
-.. code-block:: bash
+To create an addressbook plug-in, refer to the
+:ref:`respective section in the quickstart <quickstart:Write an addressbook plug-in>`.
 
-    # create a directory to hold tattler plug-ins
-    mkdir -p ~/tattler_plugins
-    # create a file for your Address Book plug-in (mind the suffix!)
-    touch ~/tattler_plugins/mycontacts_tattler_plugin.py
+Tattler's repository includes
+`sample plug-ins <https://gitlab.com/tattler/tattler-community/-/tree/main/sqladdressbook_tattler_plugin.py>`,
+so it's a good idea for you to start from there.
 
-Plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
+You may organize tattler plug-ins in either of two locations:
 
-Now implement the address book plug-in:
-
-.. code-block:: python
-
-    # file ~tattler_plugins/mycontacts_tattler_plugin.py
-    """Address Book plug-in for tattler to load contacts from the enterprise' IAM"""
-
-    import urllib.request
-
-    from tattler.server.pluginloader import AddressbookPlugin
-
-    # load contact data from a CSV filename, formatted like this:
-    #   user_id,email,mobile_number
-    email_csv_filename = '/var/db/user_emails.csv'
-
-    class CompanyAddressbook(AddressbookPlugin):
-        def email(self, recipient_id, role=None):
-            """Look up email address in email CSV file"""
-            with open(contacts_csv_filename) as csvf:
-                for line in csvf:
-                    user_id, email, mobile = line.strip().split(',')
-                    if user_id == recipient_id:
-                        return email
-            return None
-
-        def mobile(self, recipient_id, role=None):
-            """Look up mobile number on intranet webpage"""
-            url = f"http://company.intranet/contacts/{recipient_id}/mobile/"
-            try:
-                with urllib.request.urlopen(url) as resp:
-                    return resp.read(300)
-            except:
-                pass
-            return None
-
-Done.
-
-Now reload tattler with the new plug-in directory:
-
-.. code-block:: bash
-
-    TATTLER_PLUGIN_PATH=~/tattler_plugins \
-        TATTLER_TEMPLATE_BASE=~/notification_events \
-        TATTLER_MASTER_MODE=production \
-        tattler_server
-
-Tattler will log the following while starting::
-
-    [..] Loading plugin CompanyAddressbook (<class 'mycontacts_tattler_plugin.CompanyAddressbook'>) from module mycontacts_tattler_plugin
+- a ``/usr/libexec/tattler`` directory, if you opted to place tattler data into your main filesystem hierarchy.
+- a ``tattler/plugins`` directory, if you opted to place tattler data into an own directory.
 
 More details
 ------------

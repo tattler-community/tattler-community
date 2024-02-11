@@ -14,6 +14,14 @@ This section lists **tattler variables**. For client variables and plug-in varia
 speak with your :ref:`application developer <roles:application developers>`.
 
 
+user_id
+^^^^^^^^^^
+
+Type: str
+
+Recipient id as passed to tattler in the client request.
+
+
 user_email
 ^^^^^^^^^^
 
