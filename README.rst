@@ -3,7 +3,7 @@
 .. image:: https://gitlab.com/tattler/tattler-community/badges/main/coverage.svg
 
 
-.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/package/src/tattler/docs/source/tattler-logo-large-colorneutral.png
+.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/docs/source/tattler-logo-large-colorneutral.png
 
 Table of contents
 =================
