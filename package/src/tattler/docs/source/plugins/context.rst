@@ -24,24 +24,25 @@ This enables them to "fire" based on the event being notified, or the recipient,
     plug-ins inheriting from it are loaded.
 
 
-Example plugin
---------------
+Writing a context plug-in
+-------------------------
 
-.. code-block:: python
+Context plug-ins are python files that
 
-    # filename: billinginfo_tattler_plugin.py
+- are placed in the :ref:`plug-in directory <configuration:TATTLER_PLUGIN_PATH>`,
+- implement the ``ContextPlugin`` interface of class :class:`tattler.server.pluginloader.ContextPlugin`.
 
-    from tattler.server.pluginloader import ContextPlugin
+Keep in mind that plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
 
-    class BillingInfoTattlerPlugin(ContextPlugin):
-        def setup(self):
-            self.billingdb = connect(billing_db)
+To create a context plug-in, refer to the
+:ref:`respective section in the quickstart <quickstart:Write a context plug-in>`.
 
-        def processing_required(self, context):
-            return 'invoice_number' in context
+Tattler's repository includes
+`sample plug-ins <https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqlcontext_tattler_plugin.py>`,
+so it's a good idea for you to start from there.
 
-        def process(self, context):
-            return context | {
-                'invoice_date': self.billingdb.select(number=context['invoice_number']).date,
-                'invoice_amount': self.billingdb.select(number=context['invoice_number']).total_amount,
-            }
+You may organize tattler plug-ins in either of two locations:
+
+- a ``/usr/libexec/tattler`` directory, if you opted to place tattler data into your main filesystem hierarchy.
+- a ``tattler/plugins`` directory, if you opted to place tattler data into an own directory.
+
