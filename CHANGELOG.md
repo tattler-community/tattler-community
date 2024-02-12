@@ -1,4 +1,4 @@
-# 1.3.1 -- 2024-02-11
+# 1.4.0 -- 2024-02-12
 
 - Include new README with screenshots, better description, quickstart, contributing infos and links.
 - Add 'user_id' variable to native template context.
