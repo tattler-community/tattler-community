@@ -1,12 +1,60 @@
-Hi {{ user_firstname }}!
+[ ](https://tattler.dev)
 
-Here is your first notification from tattler. Congrats!
+Hey {{ user_firstname }}!
 
-This is a plain text version of the notification: your e-mail client apparently
-lacks support for HTML !
+Here is your first notification through [Tattler](https://tattler.dev). Congrats!
 
-The HTML version of this notification showcases some templating and design
-elements, so you might want to access this notification with an HTML-enabled
-e-mail client to see them.
+Feel free to clone me!
 
-P.S.: this was notification #{{ notification_id }}
+Feel free to clone & customize this template for your own branded notifications!
+
+Some practical advice
+
+Beware of these when designing your notification stationery:
+
+Encoding Make sure to explicitly declare the encoding — usually UTF-8 — with a <meta charse="utf-8"> tag — like in this example. HTML / CSS Avoid complex CSS and HTML because you'd be surprised how poorly e-mail applications support it. Commonplace Gmail is among the worst by a margin. Refer to [CanIEmail](https://caniemail.com) for what works where. Logos If you include a logo, do your best to embed it as SVG (like in this example). If you source an image hosted elsewhere, many clients block remote assets for privacy reasons — and you might easily accidentally remove, rename or relocate the image over time. Unsubscribe Remember to include a reference (footer?) to guide your reader who no longer wants to receive your communications. Omitting it will only inflame their frustration. Notification ID Tattler provides you with variable notification_id. Display it somewhere so you can easily locate the notification in your logs or notification sentbox, if you use any. Dark mode Beware that most e-mail clients display your content with inverted colors if the reader uses a dark mode setting. Test how your template is displayed on one such client to ensure the result is readable, as often it isn't. If you want more control, add selective styling for dark mode with @media queries in your template's CSS — as exemplified in this template.
+
+Some reusable elements
+
+Buttons
+
+Stick with a basic a anchor with some CSS:
+
+[Call us! →](tel:00123456789)
+
+Tables
+
+E-mail clients support tables more broadly than the display: flex CSS property, so rely on tables if you want maximum compatibility.
+
+  Items   U. price  Quantity  Price 
+  Banana  0.50 €    3         1.50 €
+  Apple   0.35 €    10        3.50 €
+  Total                       5.00 €
+  
+
+Lists
+
+The list of tips above is a Definition List, which are supported by most clients.
+
+Unordered lists work on most clients too:
+
+  * The order of the elements doesn't matter here.
+  * Elements could be reshuffled without changing the meaning.
+
+And so do ordered lists:
+
+  1. First walking,
+  2. and then running.
+
+Custom fonts (type faces)
+
+Custom fonts will work in many cases, but be prepared for exceptions.
+
+The most portable approach is a [@font-face](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face) CSS definition — like done in this template.
+
+Custom fonts only work on few e-mail clients, so consider them an optimization.
+
+However, you can portably use the [font](https://developer.mozilla.org/en-US/docs/Web/CSS/font) tag to declare a generic family.
+
+— notification #{{ notification_id }} —
+[Tattler](https://tattler.dev)  [Documentation](https://docs.tattler.dev)  [Source code](https://gitlab.com/tattler/tattler-community)  [Unsubscribe](https://tattler.dev/#unsubscribe)
