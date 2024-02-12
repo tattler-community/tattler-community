@@ -34,7 +34,8 @@ and tattler does this for you:
 4. Expand the template and encode the content into an actual notification -- e.g. a multi-part MIME email with HTML and plain text fallback.
 5. Deliver the final content through SMTP and an SMS delivery network.
 
-Tattler makes notifications better and simpler -- so you can focus on your communication, brand and customer journey.
+Tattler is designed with simplicity in mind. It strives to be easy to adopt and useful among common needs -- so you
+can focus on your communication, brand and customer journey.
 
 If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
 and a cron job which monitors inventory -- then your simplification gains with tattlers get multipled 🚀
@@ -45,13 +46,17 @@ and a cron job which monitors inventory -- then your simplification gains with t
 Examples
 ========
 
-Here's an example notification with HTML email:
+Here's an example notification with HTML email, and its corresponding plain text version:
 
-.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-email-html.png
+.. list-table:: 
 
-And its plain text fallback:
+    * - .. figure:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-email-html.png
 
-.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-email-plaintext.png
+           Fig 1. Example notification as HTML email.
+
+      - .. figure:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-email-plaintext.png
+
+           Fig 2. Its corresponding plain text version.
 
 And here's an example SMS notification:
 
@@ -81,7 +86,7 @@ Run tattler server:
    
    # if you need to customize your SMTP settings
    export TATTLER_SMTP_ADDRESS="127.0.0.1:25"
-   export TATTLER_SMTP_AUTH="username:password" # you'll learn secure configuration later
+   export TATTLER_SMTP_AUTH="username:password" # you will learn secure configuration later
    export TATTLER_SMTP_TLS=yes
 
    # run tattler server on default 127.0.0.1:11503
@@ -91,6 +96,8 @@ Trigger a demo notification via HTTP:
 
 .. code-block:: bash
 
+   # in a new terminal:
+   
    # replace ``your@email.com`` with your actual email address
    curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
 

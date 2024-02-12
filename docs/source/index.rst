@@ -1,11 +1,11 @@
 .. image:: tattler-logo-large-colorneutral.png
 
-Tattler -- an enterprise notification system
-============================================
+Tattler -- a notification system for humans
+===========================================
 
-Do you want to send beautifully branded notifications to your users?
+Are you building an online service and need to send beautiful, branded notifications via email or SMS to your users?
 
-Tattler makes it easy for you. Your application makes a simple HTTP call to tattler:
+Tattler makes that easy for you. Your application makes a simple HTTP call to tattler:
 
 .. code-block:: bash
 
@@ -13,14 +13,39 @@ Tattler makes it easy for you. Your application makes a simple HTTP call to tatt
 
 and tattler does this for you:
 
-1. Find out what vectors event ``password_changed`` should be notified to. Email? SMS? More?
-2. Determine for which of those vectors user ``123`` provided contact data for.
-3. Load the respective notification templates.
-4. Fetch any data your templates require (with easy-to-write plug-ins). For example: on what plan is the user? Any unpaid invoice?
-5. Encode all the resulting content into an actual notification -- e.g. a multi-part MIME email including HTML and plain text parts.
-6. Deliver the final content through SMTP and an SMS delivery network.
+1. Load your templates for event ``password_changed``, and see where it should be notified. (Email? SMS? More?)
+2. Load the email address and mobile number for user ``123`` as required -- with trivial-to-write plug-ins.
+3. Load any variable that your templates require -- with trivial-to-write plug-ins. (What plan is the user on? How much of the plan is used up?)
+4. Expand the template and encode the content into an actual notification -- e.g. a multi-part MIME email with HTML and plain text fallback.
+5. Deliver the final content through SMTP and an SMS delivery network.
 
-That's a few chores removed -- so you can focus on your communication, brand and customer journey.
+Tattler is designed with simplicity in mind. It strives to be easy to adopt and useful among common needs -- so you
+can focus on your communication, brand and customer journey.
+
+If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
+and a cron job which monitors inventory -- then your simplification gains with tattlers get multipled 🚀
+
+.. image:: ../../demos/tattler-benefit.png
+
+Examples
+========
+
+Here's an example notification with HTML email, and its corresponding plain text version:
+
+.. list-table:: 
+
+    * - .. figure:: ../../demos/tattler-notification-example-email-html.png
+
+           Fig 1. Example notification as HTML email.
+
+      - .. figure:: ../../demos/tattler-notification-example-email-plaintext.png
+
+           Fig 2. Its corresponding plain text version.
+
+And here's an example SMS notification:
+
+.. image:: ../../demos/tattler-notification-example-sms.png
+
 
 Why tattler?
 ------------
@@ -54,30 +79,11 @@ Tattler is open-source software (BSD 3-clause license), and includes the feature
 Enterprise users
 ================
 
-Tattler is enterprise-friendly. Enterprise customers can purchase subscriptions and get:
+Tattler is `enterprise-friendly <https://tattler.dev/#enterprise>`_. Enterprise users avail of a
+subscription which provides a bugfixing warranty, extra features, and patronage for the continuity
+of the project.
 
-- Support from the development team for a fast and secure deployment.
-- A bug-fixing guarantee: we'll fix any bug you report in an expedite fashion.
-- Level-3 troubleshooting support from our development team.
-
-Enterprise customers get extended, enterprise-specific features:
-
-- Rate control: prevent faulty applications from flooding users with notifications.
-- Auto-text: design HTML emails only, Tattler automatically creates text-form fallback.
-- Multilingual support: automatically send which language a user should be notified with.
-- Additional delivery vectors to `Telegram <https://telegram.org>`_ and `WhatsApp <https://www.whatsapp.com>`_.
-
-We are grateful to enterprise customers for securing the project's sustainability and
-quality the benefit of all.
-
-Commercial users may support tattler in 2 ways:
-
-1. By getting onto an enterprise license -- with the perks listed above.
-
-2. By becoming a sponsor -- with the additional perk of having your company featured as a sponsor on our website and documentation.
-
-Find further information on commercial use on `tattler's website <https://tattler.dev>`_, and write
-to ``enterprise at tattler.dev`` for further information such as invoicing, terms, support etc.
+See :doc:`enterprise` for more.
 
 
 Contents
