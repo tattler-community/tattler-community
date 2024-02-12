@@ -25,7 +25,7 @@ Install
    python3 -m venv ~/tattler_quickstart/venv
    . ~/tattler_quickstart/venv/bin/activate
 
-   # install tattler
+   # install tattler into it
    pip install tattler
 
 Run tattler server
@@ -58,7 +58,9 @@ You can do this via plain HTTP request, e.g. using ``curl``:
 
 .. code-block:: bash
 
-   # Open a new terminal and let tattler server run in the previous one
+   # in a new terminal:
+   
+   # replace ``your@email.com`` with your actual email address
    curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
 
 Here's what this does:
@@ -77,7 +79,12 @@ In the terminal running ``tattler_server`` you'll see the notification go out su
 
 ... and your mailbox will show the demo notification:
 
-.. image:: ../../../../../demos/tattler-notification-demo-email-html-light.png
+
+.. list-table:: 
+
+    * - .. image:: ../../demos/tattler-notification-demo-email-html-light.png
+
+      - .. image:: ../../demos/tattler-notification-demo-email-plaintext-light.png
 
 
 Why demo? Why email?
@@ -101,6 +108,10 @@ Tattler includes a little utility to easily trigger notifications from the comma
 
 .. code-block:: bash
 
+   # load the same virtual environment where you installed tattler server
+   . ~/tattler_quickstart/venv/bin/activate
+
+   # replace ``your@email.com`` with your actual email address
    tattler_notify -s '127.0.0.1:11503' -m production your@email.com demoscope demoevent
 
 Done!
@@ -123,6 +134,7 @@ Tattler includes a little python client library:
 
    from tattler.client.tattler_py import send_notification
 
+   # replace ``your@email.com`` with your actual email address
    send_notification('demoscope', 'demoevent', 'your@email.com', mode='production', srv_addr='127.0.0.1', srv_port=11503)
 
 Again, this code does the same as shown in `Send a notification via HTTP`_: it contacts
@@ -222,15 +234,18 @@ Here's how you setup your configuration using ``envdir``:
    mkdir -p ~/tattler_quickstart/etc
    cd ~/tattler_quickstart/etc
 
-   # create file "TATTLER_MASTER_MODE" to hold content "debug"
-   echo "debug" > TATTLER_MASTER_MODE
+   # create file "TATTLER_MASTER_MODE" to hold content "staging",
+   # to have tattler copy notifications to the actual recipient and to NOTIF_DEBUG_RECIPIENT_EMAIL
+   echo "staging" > TATTLER_MASTER_MODE
 
-   # add more non-private configuration values
+   # add more non-sensitive configuration values
    echo "127.0.0.1:11503" > TATTLER_LISTEN_ADDRESS
    echo ~/tattler_quickstart/templates > TATTLER_TEMPLATE_BASE
    echo "your_own_email@company.com" > NOTIF_DEBUG_RECIPIENT_EMAIL
-
-   # And here is how to add private configuration values:
+   echo "127.0.0.1:25" > TATTLER_SMTP_ADDRESS
+   echo yes > TATTLER_SMTP_TLS
+   
+   # And here is how to add sensitive configuration values:
 
    # 1. create a file and restrict access to it
    touch TATTLER_SMTP_AUTH
@@ -278,7 +293,7 @@ You may fill your plugin file ``myaddressbook_tattler_plugin.py`` starting from 
 `sample addressbook plugin <https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqladdressbook_tattler_plugin.py>`_
 in tattler's repository. Just replace the names of your tables and fields to your own schema:
 
-.. literalinclude:: ../../../../../plugins/sqladdressbook_tattler_plugin.py
+.. literalinclude:: ../../plugins/sqladdressbook_tattler_plugin.py
 
 Now enable tattler to load the plugin:
 
@@ -355,7 +370,7 @@ Feel free to fill your plugin file ``mycontext_tattler_plugin.py`` starting from
 `sample context plugin <https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqlcontext_tattler_plugin.py>`_
 in tattler's repository. Just replace the names of your tables and fields to your own schema:
 
-.. literalinclude:: ../../../../../plugins/sqlcontext_tattler_plugin.py
+.. literalinclude:: ../../plugins/sqlcontext_tattler_plugin.py
 
 How to enable the new plug-in? If you already followed `Write an addressbook plug-in`_ ,
 you have already setup what's needed. If not, go do so 🙂
