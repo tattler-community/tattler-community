@@ -17,7 +17,7 @@ Components
 
 A tattler deployment looks like this:
 
-.. include:: diagrams/deployment.mermaid
+.. include:: ../diagrams/deployment.mermaid
 
 
 .. toctree::
