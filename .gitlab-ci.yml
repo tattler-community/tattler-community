@@ -7,9 +7,6 @@ stages:
 test_py:
   stage: test_py
   coverage: '/^Code coverage:\s\d+$/'
-  except:
-    changes:
-      - "docs/**/*"
   cache:
     key: tattler_cache
     paths:
