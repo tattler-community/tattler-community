@@ -26,37 +26,37 @@ test_py:
     - pip install coverage
     ## server
     - echo "tattler server"
-    - pip install -r ${WD}/package/src/tattler/server/docs/requirements_test.txt
+    - pip install -r ${WD}/src/tattler/server/docs/requirements_test.txt
     - pip freeze
     ## sendable
-    - cd ${WD}/package/src/tattler/server/sendable/tests
-    - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
-    - cd ${WD}/package/src/tattler/server/tests
-    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    - cd ${WD}/src/tattler/server/sendable/tests
+    - PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+    - cd ${WD}/src/tattler/server/tests
+    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
     ## plugins
-    - cd ${WD}/package/src/tattler/server/plugins/tests
-    - PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    - cd ${WD}/src/tattler/server/plugins/tests
+    - PYTHONPATH=.:${WD}/src coverage run -m unittest discover
     ## client
     - echo "tattler client"
-    - cd ${WD}/package/src/tattler/client/tattler_py
+    - cd ${WD}/src/tattler/client/tattler_py
     - pip install -r docs/requirements_test.txt
     - pip freeze
     - cd tests
-    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/package/src coverage run -m unittest discover
+    - LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
     ## print coverage information
     - cd $WD
     - coverage combine $(find . -name .coverage)
     - printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
     ## packaging
     - echo "tattler server packaging"
-    - cd ${WD}/package
+    - cd ${WD}
     - pip install build
     - python -m build
     - pip install dist/tattler-1.3.0-py3-none-any.whl
     ## validate links
     - echo "Validating links"
     - cd $WD/utils
-    - python validate_links.py ../package/src ${WD}/urlcache.csv
+    - python validate_links.py ../src ${WD}/urlcache.csv
 
 pages:
   stage: deploy_docs
@@ -73,7 +73,7 @@ pages:
     - rm -rf .public public
     - mkdir -p .public
     - echo Test that tattler version declared in code matches version declared in docs
-    - cd ${WD}/package
+    - cd ${WD}
     - version_package=$(awk -F= '/^version/ { print $2 }' pyproject.toml | grep -Eo '[0-9.]+')
     - cd ${WD}/docs
     - pip install -r requirements_docs.txt
@@ -88,7 +88,7 @@ pages:
     - . venv_docs/bin/activate
     - test venv_docs -nt ${WD}/docs/requirements_docs.txt || pip install -r ${WD}/docs/requirements_docs.txt
     - cd ${WD}/docs
-    - PYTHONPATH=${WD}/package/src make html
+    - PYTHONPATH=${WD}/src make html
     - cp -R build/html/* ${WD}/.public/
     - cd $WD
     - ls .public
