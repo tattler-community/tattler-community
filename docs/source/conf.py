@@ -72,3 +72,6 @@ html_theme_options = {
     "dark_logo": "tattler-logo-small-dark.png",
 }
 html_extra_path = ['tattler-logo-small-dark.png', 'tattler-logo-small-light.png']
+
+# google analytics
+googleanalytics_id = 'G-TBG7MQ2X2H'
