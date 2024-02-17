@@ -2,6 +2,11 @@
 
 .. image:: https://gitlab.com/tattler/tattler-community/badges/main/coverage.svg
 
+.. image:: https://gitlab.com/tattler/tattler-community/-/badges/release.svg
+
+.. image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20|%203.12-blue
+
+.. image:: https://img.shields.io/badge/license-BSD_3--clause-blue
 
 .. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/docs/source/tattler-logo-large-colorneutral.png
 
