@@ -5,8 +5,6 @@ import os
 from unittest import mock
 from pathlib import Path
 from importlib.abc import Traversable
-from importlib.readers import MultiplexedPath
-
 from tattler.server.tests.testutils import get_template_dir
 
 from tattler.server import tattler_utils
@@ -271,9 +269,8 @@ class TestTattlerUtils(unittest.TestCase):
         with unittest.mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
             with unittest.mock.patch('tattler.server.tattler_utils.files') as mfiles:
                 mgetenv.side_effect = lambda k,v=None: {'TATTLER_TEMPLATE_BASE': None}.get(k, os.getenv(k, v))
-                p1 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates1')
-                p2 = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates2')
-                mfiles.return_value: Traversable = MultiplexedPath(p1, p2)
+                mfiles.return_value = mock.MagicMock(spec=Traversable)
+                mfiles.return_value.joinpath.return_value = Path(__file__).parent.joinpath('fixtures', 'templates_dir_duplicate', 'templates1')
                 have = tattler_utils.check_templates_health()
                 self.assertIsInstance(have, Path)
                 self.assertTrue(mfiles.mock_calls)

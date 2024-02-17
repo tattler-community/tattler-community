@@ -1,12 +1,11 @@
 """The abstract class parent to any message that can be delivered"""
 
-import re
 import os
 import os.path
 import logging
 import uuid
 from pathlib import Path
-from typing import Iterable, Mapping, Optional, Any
+from typing import Iterable, Mapping, Optional, Any, Union
 
 from . import TemplateProcessor
 from . import Blacklist
@@ -139,7 +138,7 @@ class Sendable:
         return t.expand(context)
 
     @classmethod
-    def exists(cls, event: str, template_base: str|Path) -> bool:
+    def exists(cls, event: str, template_base: Union[str, Path]) -> bool:
         """Return whether an event is available for sending over the current vector under a template base."""
         template_base = Path(template_base)
         pth = template_base / event / cls.vector()
@@ -148,7 +147,7 @@ class Sendable:
     def __str__(self) -> str:
         return f"{self.vector()} for '{self.event()}' to '{self.recipients}'"
 
-    def blacklist(self, filename: Optional[str|Path]=None) -> None:
+    def blacklist(self, filename: Optional[Union[str, Path]]=None) -> None:
         """Load a blacklist if filename provided, or disable it if not or empty."""
         if filename:
             self._bl = Blacklist(from_filename=filename)

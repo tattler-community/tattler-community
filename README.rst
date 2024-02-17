@@ -2,11 +2,16 @@
 
 .. image:: https://gitlab.com/tattler/tattler-community/badges/main/coverage.svg
 
+.. image:: https://gitlab.com/tattler/tattler-community/-/badges/release.svg
+
+.. image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20|%203.12-blue
+
+.. image:: https://img.shields.io/badge/license-BSD_3--clause-blue
 
 .. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/docs/source/tattler-logo-large-colorneutral.png
 
-Table of contents
-=================
+🚩 Table of contents
+====================
 
 1. `What is tattler?`_
 2. `Examples`_
@@ -15,8 +20,8 @@ Table of contents
 5. `Enterprise users`_
 6. `Links`_
 
-What is tattler?
-================
+👀 What is tattler?
+===================
 
 Are you building an online service and need to send beautiful, branded notifications via email or SMS to your users?
 
@@ -43,8 +48,8 @@ and a cron job which monitors inventory -- then your simplification gains with t
 .. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-benefit.png
 
 
-Examples
-========
+🤩 Examples
+===========
 
 Here's an example notification with HTML email, and its corresponding plain text version:
 
@@ -58,13 +63,17 @@ Here's an example notification with HTML email, and its corresponding plain text
 
            Fig 2. Its corresponding plain text version.
 
-And here's an example SMS notification:
+    * - .. figure:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-demo-email-html-light.png
 
-.. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-sms.png
+           Fig 3. Tattler's demo notification with reusable code samples.
+
+      - .. figure:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-notification-example-sms.png
+
+           Fig 4. A SMS notification.
 
 
-Quick start
-===========
+🚀 Quick start
+==============
 
 Install tattler:
 
@@ -126,8 +135,8 @@ Want more? Proceed to the `complete quickstart <https://docs.tattler.dev/quickst
 for plug-ins, deployment and more.
 
 
-Help us be better
-=================
+💙 Help us be better
+====================
 
 Here's how you can help:
 
@@ -138,22 +147,22 @@ Here's how you can help:
 - See ways to contribute in our `contributing guidelines <https://gitlab.com/tattler/tattler-community/-/blob/main/CONTRIBUTING.md>`_.
 
 
-License
-=======
+🎖️ License
+==========
 
 Tattler is open-source software (BSD 3-clause license), and includes the features listed above.
 
 
-Enterprise users
-================
+📈 Enterprise users
+===================
 
 Tattler is `enterprise-friendly <https://tattler.dev/#enterprise>`_. Enterprise users avail of a
 subscription which provides a bugfixing warranty, extra features, and patronage for the continuity
 of the project.
 
 
-Links
-=====
+📌 Links
+========
 
 - `Tattler website <https://tattler.dev>`_
 - `Documentation <https://docs.tattler.dev>`_
