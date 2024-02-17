@@ -1,3 +1,7 @@
+# 1.5.0 -- TBD
+
+- extend compatibility to python 3.9
+
 # 1.4.0 -- 2024-02-12
 
 - Include new README with screenshots, better description, quickstart, contributing infos and links.
