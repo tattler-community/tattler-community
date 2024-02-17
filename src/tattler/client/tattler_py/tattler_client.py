@@ -4,7 +4,7 @@ import os
 import logging
 from datetime import datetime
 import uuid
-from typing import Mapping, Iterable
+from typing import Mapping, Iterable, Optional
 from tattler.client.tattler_py.serialization import serialize_json
 
 from tattler.client.tattler_py.tattler_client_utils import get_server_endpoint, getenv
@@ -25,15 +25,15 @@ class TattlerClient:
         self.scope_name = scope_name
         self.mode = mode
 
-    def scopes(self) -> Iterable[str] | None:
+    def scopes(self) -> Optional[Iterable[str]]:
         """Return list of scopes available at this server."""
         return None
 
-    def events(self) -> Iterable[str] | None:
+    def events(self) -> Optional[Iterable[str]]:
         """Return list of available events within this scope."""
         return None
 
-    def vectors(self, event: str) -> Iterable[str] | None:
+    def vectors(self, event: str) -> Optional[Iterable[str]]:
         """Return list of vectors available vectors within this scope."""
         return None
 

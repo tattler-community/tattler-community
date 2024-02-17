@@ -4,6 +4,7 @@ import unittest
 import os
 import re
 import logging
+from typing import Union
 from pwd import getpwuid
 from pathlib import Path
 
@@ -55,7 +56,7 @@ event_contexts = {
     # }
 }
 
-def find_template_base(rootpath: str | os.PathLike) -> os.PathLike:
+def find_template_base(rootpath: Union[str, os.PathLike]) -> os.PathLike:
     seek = '_base'
     for root, dirs, _ in os.walk(rootpath):
         if os.path.islink(root) or any(x in root.split(os.path.sep) for x in {'.git', 'fixtures'}):

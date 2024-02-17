@@ -10,8 +10,6 @@ from datetime import datetime
 import threading
 from urllib.request import Request, urlopen
 from pathlib import Path
-from importlib.abc import Traversable
-from importlib.readers import MultiplexedPath
 
 from testutils import get_template_dir
 

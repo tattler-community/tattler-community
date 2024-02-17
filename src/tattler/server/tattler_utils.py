@@ -1,7 +1,7 @@
 import os
 import logging
 import uuid
-from typing import Mapping, Any, Optional, Iterable
+from typing import Mapping, Any, Optional, Iterable, Union
 from pathlib import Path
 from importlib.resources import files
 
@@ -39,7 +39,7 @@ def getenv(name: str, default: Optional[str]=None) -> Optional[str]:
     """Get variable from environment -- allowing mocking"""
     return os.getenv(name, default)
 
-def init_plugins(search_path: Optional[str|os.PathLike]=None) -> None:
+def init_plugins(search_path: Optional[Union[str, os.PathLike]]=None) -> None:
     """Load plugins, if any path for them is available.
     
     :param search_path:     Path to a directory holding plug-in files, or None to only load native plug-ins."""

@@ -4,7 +4,7 @@ import logging
 import socket
 import getpass
 
-from typing import Mapping, Iterable, Optional, Any
+from typing import Mapping, Iterable, Optional, Any, Tuple, Union
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
 from email.mime.text import MIMEText
@@ -27,7 +27,7 @@ ip6_re = re.compile(r'^\[(?P<srv>[a-fA-F0-9:]+)\]')
 hostname_re = re.compile(r'^(?P<srv>([a-z0-9_-]+\.)+[a-z0-9_-]+)')
 port_re = re.compile(r'(:(?P<port>\d+))?$')
 
-def get_smtp_server(connstr: str) -> [str, int]:
+def get_smtp_server(connstr: str) -> Tuple[str, int]:
     """Acquire usable SMTP (host, port) pair from a connection string"""
     def retres(srv, port):
         return srv, (int(port) if port else 25)
@@ -82,7 +82,7 @@ class EmailSendable(vector_sendable.Sendable):
             raw_content += self._get_template_raw_element(part_fname)
         return raw_content
 
-    def _add_msg_parts(self, msg: MIMEMultipart | MIMENonMultipart, context: Optional[Mapping[str, Any]]=None) -> None:
+    def _add_msg_parts(self, msg: Union[MIMEMultipart, MIMENonMultipart], context: Optional[Mapping[str, Any]]=None) -> None:
         """Add text/html and/or text/plain parts to MIME message by loading and expanding templates and determining their encoding.
         
         :param msg:             Message to add available parts to.
@@ -98,7 +98,7 @@ class EmailSendable(vector_sendable.Sendable):
                 part_content = self._get_content_element(part_fname, context)
                 msg.attach(MIMEText(part_content, part_type))
 
-    def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> MIMEMultipart | MIMENonMultipart:
+    def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> Union[MIMEMultipart, MIMENonMultipart]:
         """Load all parts of the message and return a final email assembly.
         
         :param context:         Optional variables to expand template with.
