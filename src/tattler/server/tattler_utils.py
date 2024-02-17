@@ -122,6 +122,15 @@ def plugin_template_variables(context: ContextType) -> ContextType:
     """Solicit plugins to get variables to be fed into templates."""
     return pluginloader.process_context(context)
 
+def get_demo_template_path() -> Path:
+    """Get the path where demo templates are stored"""
+    try:
+        # return files('tattler.templates').joinpath('.')
+        return files('tattler.templates').joinpath('.')
+    except TypeError:
+        # python 3.9 behavior. Workaround by returning path
+        return Path(__file__).parent.parent.joinpath('templates')
+
 def get_template_mgr(event_scope: Optional[str]=None) -> TemplateMgr:
     """Return the TemplateMgr instance for base path or scope, from configuration or demo fallback.
     
@@ -136,7 +145,7 @@ def get_template_mgr(event_scope: Optional[str]=None) -> TemplateMgr:
         base_path = Path(base_path)
     else:
         # load embedded demo templates
-        base_path = files('tattler.templates').joinpath('.')
+        base_path = get_demo_template_path()
     if not event_scope:
         return TemplateMgr(base_path)
     if base_path.exists() and not base_path.joinpath(event_scope).exists():
