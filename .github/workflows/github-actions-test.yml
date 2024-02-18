@@ -5,11 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
-      # setup: base system
-      - run: WD=$(pwd)
       - name: Setup base system
         run: |
-          echo "Working directory is $WD"
           echo "Creating venv ..."
           test venv -nt .gitlab-ci.yml || python -m venv venv
           . venv/bin/activate
@@ -17,41 +14,41 @@ jobs:
       - name: Test server module
         run: |
           echo "tattler server"
-          pip install -r ${WD}/src/tattler/server/docs/requirements_test.txt
+          pip install -r src/tattler/server/docs/requirements_test.txt
           pip freeze
-          pip install -r ${WD}/src/tattler/enterprise/server/docs/requirements_test.txt
+          pip install -r src/tattler/enterprise/server/docs/requirements_test.txt
       - name: Test sendable module
         run: |
-          cd ${WD}/src/tattler/server/sendable/tests
-          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
-          cd ${WD}/src/tattler/server/tests
-          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          cd src/tattler/server/sendable/tests
+          PYTHONPATH=.:src coverage run -m unittest discover
+          cd -
+          cd src/tattler/server/tests
+          LOG_LEVEL=debug PYTHONPATH=.:src coverage run -m unittest discover
       - name: Test plugins
         run: |
-          cd ${WD}/src/tattler/server/plugins/tests
-          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          cd src/tattler/server/plugins/tests
+          PYTHONPATH=.:src coverage run -m unittest discover
       - name: Test client
         run: |
           echo "tattler client"
-          cd ${WD}/src/tattler/client/tattler_py
+          cd src/tattler/client/tattler_py
           pip install -r docs/requirements_test.txt
           pip freeze
+          cd -
           cd tests
-          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          LOG_LEVEL=debug PYTHONPATH=.:src coverage run -m unittest discover
       - name: print coverage information
         run: |
-          cd $WD
           coverage combine $(find . -name .coverage)
           printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
       - name: packaging
         run: |
           echo "tattler server packaging"
-          cd ${WD}
           pip install build
           python -m build
           pip install dist/tattler-1.4.0-py3-none-any.whl
       - name: validate links
         run: |
           echo "Validating links"
-          cd $WD/utils
-          python validate_links.py ../src ${WD}/urlcache.csv
+          cd utils
+          python validate_links.py ../src urlcache.csv
