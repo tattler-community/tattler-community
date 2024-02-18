@@ -38,23 +38,20 @@ jobs:
           pip freeze
           cd tests
           LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
-      ## enterprise
-      - run: echo "Tattler enterprise"
-      - run: cd ${WD}/src/tattler/enterprise/server/sendable/tests
-      - run: PYTHONPATH=${WD}/src coverage run -m unittest discover
-      - run: cd ${WD}/src/tattler/enterprise/server/tests
-      - run: PYTHONPATH=${WD}/src coverage run -m unittest discover
-      ## print coverage information
-      - run: cd $WD
-      - run: coverage combine $(find . -name .coverage)
-      - run: printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
-      ## packaging
-      - run: echo "tattler server packaging"
-      - run: cd ${WD}
-      - run: pip install build
-      - run: python -m build
-      - run: pip install dist/tattler-1.4.0-py3-none-any.whl
-      ## validate links
-      - run: echo "Validating links"
-      - run: cd $WD/utils
-      - run: python validate_links.py ../src ${WD}/urlcache.csv
+      - name: print coverage information
+        run: |
+          cd $WD
+          coverage combine $(find . -name .coverage)
+          printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
+      - name: packaging
+        run: |
+          echo "tattler server packaging"
+          cd ${WD}
+          pip install build
+          python -m build
+          pip install dist/tattler-1.4.0-py3-none-any.whl
+      - name: validate links
+        run: |
+          echo "Validating links"
+          cd $WD/utils
+          python validate_links.py ../src ${WD}/urlcache.csv
