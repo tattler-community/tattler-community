@@ -26,16 +26,17 @@ jobs:
           cd ${WD}/src/tattler/server/tests
           LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
       - name: Test plugins
-        run:
+        run: |
           cd ${WD}/src/tattler/server/plugins/tests
           PYTHONPATH=.:${WD}/src coverage run -m unittest discover
-      ## client
-      - run: echo "tattler client"
-      - run: cd ${WD}/src/tattler/client/tattler_py
-      - run: pip install -r docs/requirements_test.txt
-      - run: pip freeze
-      - run: cd tests
-      - run: LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: Test client
+        run: |
+          echo "tattler client"
+          cd ${WD}/src/tattler/client/tattler_py
+          pip install -r docs/requirements_test.txt
+          pip freeze
+          cd tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
       ## enterprise
       - run: echo "Tattler enterprise"
       - run: cd ${WD}/src/tattler/enterprise/server/sendable/tests
