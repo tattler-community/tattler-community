@@ -1,0 +1,54 @@
+name: Test tattler codebase
+on: [push]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage
+          if [ -f src/tattler/server/docs/requirements_test.txt ]; then pip install -r src/tattler/server/docs/requirements_test.txt; fi
+          if [ -f src/tattler/client/tattler_py/docs/requirements_test.txt ]; then pip install -r src/tattler/client/tattler_py/docs/requirements_test.txt; fi
+      - name: Test sendable module
+        run: |
+          WD=$(pwd)
+          cd src/tattler/server/sendable/tests
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          cd ${WD}/src/tattler/server/tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: Test plugins
+        run: |
+          WD=$(pwd)
+          cd src/tattler/server/plugins/tests
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: Test client
+        run: |
+          WD=$(pwd)
+          cd src/tattler/client/tattler_py/tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: print coverage information
+        run: |
+          coverage combine $(find . -name .coverage)
+      - name: packaging
+        run: |
+          pip install build
+          python -m build
+          pip install dist/tattler-1.4.0-py3-none-any.whl
+      - name: validate links
+        run: |
+          cd utils
+          python validate_links.py ../src urlcache.csv
