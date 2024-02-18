@@ -1,22 +1,23 @@
 name: Test tattler codebase
 on: [push]
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
-      - name: Setup base system
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
         run: |
-          echo "Creating venv ..."
-          test venv -nt .gitlab-ci.yml || python -m venv venv
-          . venv/bin/activate
+          python -m pip install --upgrade pip
           pip install coverage
-      - name: Test server module
-        run: |
-          echo "tattler server"
-          pip install -r src/tattler/server/docs/requirements_test.txt
-          pip freeze
-          pip install -r src/tattler/enterprise/server/docs/requirements_test.txt
+          if [ -f src/tattler/server/docs/requirements_test.txt ]; then pip install -r src/tattler/server/docs/requirements_test.txt; fi
+          if [ -f src/tattler/client/tattler_py/docs/requirements_test.txt ]; then pip install -r src/tattler/client/tattler_py/docs/requirements_test.txt; fi
       - name: Test sendable module
         run: |
           cd src/tattler/server/sendable/tests
