@@ -1,0 +1,59 @@
+name: Test tattler codebase
+on: [push]
+jobs:
+  test:
+    runs-on: python:3.9
+    steps:
+      # setup: base system
+      - run: WD=$(pwd)
+      - name: Setup base system
+        run: |
+          echo "Working directory is $WD"
+          echo "Creating venv ..."
+          test venv -nt .gitlab-ci.yml || python -m venv venv
+          . venv/bin/activate
+          pip install coverage
+      - name: Test server module
+        run: |
+          echo "tattler server"
+          pip install -r ${WD}/src/tattler/server/docs/requirements_test.txt
+          pip freeze
+          pip install -r ${WD}/src/tattler/enterprise/server/docs/requirements_test.txt
+      - name: Test sendable module
+        run: |
+          cd ${WD}/src/tattler/server/sendable/tests
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          cd ${WD}/src/tattler/server/tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: Test plugins
+        run: |
+          cd ${WD}/src/tattler/server/plugins/tests
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      - name: Test client
+        run: |
+          echo "tattler client"
+          cd ${WD}/src/tattler/client/tattler_py
+          pip install -r docs/requirements_test.txt
+          pip freeze
+          cd tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+      ## enterprise
+      - run: echo "Tattler enterprise"
+      - run: cd ${WD}/src/tattler/enterprise/server/sendable/tests
+      - run: PYTHONPATH=${WD}/src coverage run -m unittest discover
+      - run: cd ${WD}/src/tattler/enterprise/server/tests
+      - run: PYTHONPATH=${WD}/src coverage run -m unittest discover
+      ## print coverage information
+      - run: cd $WD
+      - run: coverage combine $(find . -name .coverage)
+      - run: printf 'Code coverage:\t' ; coverage report --omit='**/tests/**' --format=total --precision=0 ; echo ""
+      ## packaging
+      - run: echo "tattler server packaging"
+      - run: cd ${WD}
+      - run: pip install build
+      - run: python -m build
+      - run: pip install dist/tattler-1.4.0-py3-none-any.whl
+      ## validate links
+      - run: echo "Validating links"
+      - run: cd $WD/utils
+      - run: python validate_links.py ../src ${WD}/urlcache.csv
