@@ -2,7 +2,8 @@ name: Test tattler codebase
 on: [push]
 jobs:
   test:
-    runs-on: python:3.9
+    runs-on: ubuntu-latest
+    container: python:3.9
     steps:
       # setup: base system
       - run: WD=$(pwd)
