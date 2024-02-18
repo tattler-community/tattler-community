@@ -13,12 +13,13 @@
 🚩 Table of contents
 ====================
 
-1. `What is tattler?`_
-2. `Examples`_
-3. `Quick start`_
-4. `License`_
-5. `Enterprise users`_
-6. `Links`_
+1. `👀 What is tattler?`_
+2. `🤩 Examples`_
+3. `🚀 Quick start`_
+4. `💙 Help us be better`_
+5. `🎖️ License`_
+6. `📈 Enterprise users`_
+7. `📌 Links`_
 
 👀 What is tattler?
 ===================
@@ -31,13 +32,14 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
    curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=123'
 
-and tattler does this for you:
+Tattler helps you with these:
 
-1. Load your templates for event ``password_changed``, and see where it should be notified. (Email? SMS? More?)
-2. Load the email address and mobile number for user ``123`` as required -- with trivial-to-write plug-ins.
-3. Load any variable that your templates require -- with trivial-to-write plug-ins. (What plan is the user on? How much of the plan is used up?)
-4. Expand the template and encode the content into an actual notification -- e.g. a multi-part MIME email with HTML and plain text fallback.
-5. Deliver the final content through SMTP and an SMS delivery network.
+1. **Templates**: Load templates for event ``password_changed`` for email, SMS etc.
+2. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
+3. **Template data**: Fetch variables for your templates from your DB (with trivial-to-write plug-ins).
+4. **MIME**: Package a multi-part email with HTML+text fallback.
+5. **Delivery**: Send the content through SMTP and an SMS delivery network.
+6. **Dev mode**: Let your applications trigger notifications to the real user and have tattler only deliver it to your debug address.
 
 Tattler is designed with simplicity in mind. It strives to be easy to adopt and useful among common needs -- so you
 can focus on your communication, brand and customer journey.
@@ -47,11 +49,23 @@ and a cron job which monitors inventory -- then your simplification gains with t
 
 .. image:: https://gitlab.com/tattler/tattler-community/-/raw/main/demos/tattler-benefit.png
 
+😵‍💫 Don't beat around the bush!
+------------------------------
+
+Tattler is:
+
+- a server
+- written in python
+- for UNIX systems
+- that exposes a REST interface
+- which your applications contact
+- to request delivery of notifications to users.
+
 
 🤩 Examples
 ===========
 
-Here's an example notification with HTML email, and its corresponding plain text version:
+Here's a little gallery of notifications sent via tattler to email and SMS:
 
 .. list-table:: 
 
@@ -138,19 +152,20 @@ for plug-ins, deployment and more.
 💙 Help us be better
 ====================
 
-Here's how you can help:
+Here's how you can help, in order of increasing time commitment 🙂
 
 - ⭐️ star our `repository <https://gitlab.com/tattler/tattler-community/>`_ if you like tattler. That's our go-to place whenever we feel sad! 😁
 - `Let us know <mailto:users@tattler.dev>`_ that you are using tattler. How long? For what organization? What is your feedback?
 - Let your friends know about tattler. If you found it useful, chances are they will too.
 - Report any `issue <https://gitlab.com/tattler/tattler-community/-/issues>`_ in our code or docs. We take those seriously.
+- Package tattler for your distribution.
 - See ways to contribute in our `contributing guidelines <https://gitlab.com/tattler/tattler-community/-/blob/main/CONTRIBUTING.md>`_.
 
 
 🎖️ License
 ==========
 
-Tattler is open-source software (BSD 3-clause license), and includes the features listed above.
+Tattler is open-source software (BSD 3-clause license).
 
 
 📈 Enterprise users
