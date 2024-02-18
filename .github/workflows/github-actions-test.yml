@@ -19,24 +19,26 @@ jobs:
           if [ -f src/tattler/client/tattler_py/docs/requirements_test.txt ]; then pip install -r src/tattler/client/tattler_py/docs/requirements_test.txt; fi
       - name: Test sendable module
         run: |
+          WD=$(pwd)
           cd src/tattler/server/sendable/tests
-          PYTHONPATH=.:src coverage run -m unittest discover
-          cd -
-          cd src/tattler/server/tests
-          LOG_LEVEL=debug PYTHONPATH=.:src coverage run -m unittest discover
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
+          cd ${WD}/src/tattler/server/tests
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
       - name: Test plugins
         run: |
+          WD=$(pwd)
           cd src/tattler/server/plugins/tests
-          PYTHONPATH=.:src coverage run -m unittest discover
+          PYTHONPATH=.:${WD}/src coverage run -m unittest discover
       - name: Test client
         run: |
+          WD=$(pwd)
           echo "tattler client"
           cd src/tattler/client/tattler_py
           pip install -r docs/requirements_test.txt
           pip freeze
-          cd -
+          cd $WD
           cd tests
-          LOG_LEVEL=debug PYTHONPATH=.:src coverage run -m unittest discover
+          LOG_LEVEL=debug PYTHONPATH=.:${WD}/src coverage run -m unittest discover
       - name: print coverage information
         run: |
           coverage combine $(find . -name .coverage)
