@@ -2,7 +2,7 @@
 
 .. |badge_coverage| image:: https://gitlab.com/tattler/tattler-community/badges/main/coverage.svg
 
-.. |badge_release| image:: https://gitlab.com/tattler/tattler-community/-/badges/release.svg
+.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-1.5.0-blue
 
 .. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20-blue
 
@@ -11,7 +11,7 @@
 
 |badge_pipeline| |badge_coverage| |badge_release| |badge_pyver| |badge_license|
 
-.. image:: https://github.com/tattler-community/tattler-community/blob/main/docs/source/tattler-logo-large-colorneutral.png
+.. image:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/docs/source/tattler-logo-large-colorneutral.png
 
 🚩 Table of contents
 ====================
@@ -50,10 +50,10 @@ can focus on your communication, brand and customer journey.
 If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
 and a cron job which monitors inventory -- then your simplification gains with tattlers get multipled 🚀
 
-.. image:: https://github.com/tattler-community/tattler-community/blob/main/demos/tattler-benefit.png
+.. image:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-benefit.png
 
 😵‍💫 Don't beat around the bush!
-------------------------------
+---------------------------------
 
 Tattler is:
 
@@ -66,31 +66,31 @@ Tattler is:
 
 
 🤩 Examples
-===========
+==============
 
 Here's a little gallery of notifications sent via tattler to email and SMS:
 
 .. list-table:: 
 
-    * - .. figure:: https://github.com/tattler-community/tattler-community/blob/main/demos/tattler-notification-example-email-html.png
+    * - .. figure:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-notification-example-email-html.png
 
            Fig 1. Example notification as HTML email.
 
-      - .. figure:: https://github.com/tattler-community/tattler-community/blob/main/demos/tattler-notification-example-email-plaintext.png
+      - .. figure:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-notification-example-email-plaintext.png
 
            Fig 2. Its corresponding plain text version.
 
-    * - .. figure:: https://github.com/tattler-community/tattler-community/blob/main/demos/tattler-notification-demo-email-html-light.png
+    * - .. figure:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-notification-demo-email-html-light.png
 
            Fig 3. Tattler's demo notification with reusable code samples.
 
-      - .. figure:: https://github.com/tattler-community/tattler-community/blob/main/demos/tattler-notification-example-sms.png
+      - .. figure:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-notification-example-sms.png
 
            Fig 4. A SMS notification.
 
 
 🚀 Quick start
-==============
+=================
 
 Install tattler:
 
@@ -153,7 +153,7 @@ for plug-ins, deployment and more.
 
 
 💙 Help us be better
-====================
+=======================
 
 Here's how you can help, in order of increasing time commitment 🙂
 
@@ -162,17 +162,17 @@ Here's how you can help, in order of increasing time commitment 🙂
 - Let your friends know about tattler. If you found it useful, chances are they will too.
 - Report any `issue <https://github.com/tattler-community/tattler-community/issues>`_ in our code or docs. We take those seriously.
 - Package tattler for your distribution.
-- See ways to contribute in our `contributing guidelines <https://github.com/tattler-community/tattler-community/blob/main/CONTRIBUTING.md>`_.
+- See ways to contribute in our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_.
 
 
 🎖️ License
-==========
+=============
 
 Tattler is open-source software (BSD 3-clause license).
 
 
 📈 Enterprise users
-===================
+======================
 
 Tattler is `enterprise-friendly <https://tattler.dev/#enterprise>`_. Enterprise users avail of a
 subscription which provides a bugfixing warranty, extra features, and patronage for the continuity
@@ -180,7 +180,7 @@ of the project.
 
 
 📌 Links
-========
+===========
 
 - `Tattler website <https://tattler.dev>`_
 - `Documentation <https://docs.tattler.dev>`_
