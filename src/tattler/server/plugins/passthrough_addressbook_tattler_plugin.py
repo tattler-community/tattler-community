@@ -15,6 +15,8 @@ class PassThroughAddressbookPlugin(AddressbookPlugin):
     
     def mobile(self, recipient_id: str, role: Optional[str]=None) -> Optional[str]:
         """Return recipient_id itself, if it looks like a mobile number."""
-        if re.match(r'^\+[0-9]{5,16}$', recipient_id):
+        if re.match(r'^(\+|00)[0-9]{5,16}$', recipient_id):
+            if recipient_id.startswith('00'):
+                return '+' + recipient_id[2:]
             return recipient_id
         return None
