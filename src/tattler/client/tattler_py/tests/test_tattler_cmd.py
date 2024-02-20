@@ -10,14 +10,27 @@ class CmdLineTest(unittest.TestCase):
     """Tests for command line interface of tattler client"""
 
     def test_main_rejects_unknown_arguments(self):
-        """Main rejects unknown arguments"""
+        """Main rejects unknown positional arguments"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
             with self.assertRaises(SystemExit) as err:
                 msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo']
                 main()
 
     def test_main_rejects_invalid_argument_values(self):
-        """Main rejects unknown arguments"""
+        """Main rejects valid positional or options with invalid content"""
+        invalid_symbols = r'''+*/='"\\&!@#$%^&*()|?'''
+        bad_args = [['tattler_notify', '/1', f'm{s}yscope', 'myevent'] for s in invalid_symbols]
+        bad_args += [['tattler_notify', '+1', f'myscope{s}', 'myevent'] for s in invalid_symbols]
+        bad_args += [['tattler_notify', '^1', 'myscope', f'mye{s}vent'] for s in invalid_symbols]
+        bad_args += [['tattler_notify', '&1', 'myscope', f'myevent{s}'] for s in invalid_symbols]
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            for bargs in bad_args:
+                msys.argv = bargs
+                with self.assertRaises(SystemExit, msg=f"cmdline unexpectedly succeeds with invalid parameters {bargs}"):
+                    main()
+
+    def test_main_rejects_invalid_option_argument(self):
+        """Main rejects unknown option arguments"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
             msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', '-m', 'foo']
             with self.assertRaises(SystemExit) as err:
