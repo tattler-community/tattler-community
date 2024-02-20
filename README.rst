@@ -4,7 +4,7 @@
 
 .. |badge_release| image:: https://gitlab.com/tattler/tattler-community/-/badges/release.svg
 
-.. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20|%203.12-blue
+.. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20-blue
 
 .. |badge_license| image:: https://img.shields.io/badge/license-BSD_3--clause-blue
 
