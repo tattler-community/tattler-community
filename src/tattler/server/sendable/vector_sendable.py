@@ -65,6 +65,21 @@ class Sendable:
             raise ValueError("Required part 'body' is missing.")
 
     @classmethod
+    def sender(cls, recipient: Optional[str]=None) -> Optional[str]:
+        """Return the configured sender ID for a given recipient.
+
+        The sender id is looked up in envvar TATTLER_{vecname}_SENDER. It returns:
+         - its value if one is provided
+         - if multiple values are provided (,-separated), the most suitable value for the recipient.
+
+        The algorithm is vector-dependent, so see vector documentation for more.
+
+        :param recipient:   Recipient for which the sender should be found; or None for default sender.
+        
+        :return:            ID to send the message as for the given recipient, or None if no configuration available."""
+        return getenv(f"TATTLER_{cls.vector().upper()}_SENDER", None)
+
+    @classmethod
     def validate_configuration(cls) -> None:
         """Raise iff a configuration parameter is missing or invalid.
         
