@@ -214,7 +214,7 @@ Then go check your mailbox to confirm that you received the notification with th
    simply copy and paste to write your own templates.
 
    Find the source code of the demo templates in
-   `tattler's repository <https://gitlab.com/tattler/tattler-community/-/tree/main/package/src/tattler/templates/demoscope/demoevent>`_.
+   `tattler's repository <https://github.com/tattler-community/tattler-community/blob/main/src/tattler/templates/demoscope/demoevent>`_.
 
 Organize your configuration
 ---------------------------
@@ -290,7 +290,7 @@ Start by creating a directory to hold your plugin(s):
    vim myaddressbook_tattler_plugin.py
 
 You may fill your plugin file ``myaddressbook_tattler_plugin.py`` starting from the 
-`sample addressbook plugin <https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqladdressbook_tattler_plugin.py>`_
+`sample addressbook plugin <https://github.com/tattler-community/tattler-community/blob/main/plugins/sqladdressbook_tattler_plugin.py>`_
 in tattler's repository. Just replace the names of your tables and fields to your own schema:
 
 .. literalinclude:: ../../plugins/sqladdressbook_tattler_plugin.py
@@ -308,7 +308,7 @@ Now enable tattler to load the plugin:
    pip install sqlalchemy
 
    # use the sample database from our codebase to test this
-   curl -O https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqlplugins.sql
+   curl -O https://raw.githubusercontent.com/tattler-community/tattler-community/main/plugins/sqlplugins.sql
    sqlite3 sqlplugins.db < sqlplugins.sql
    # check out the content of the sample DB. Feel free to replace e.g. your email address
    sqlite3 sqlplugins.db 'select * from auth_user join userprofile on auth_user.id = user_id'
@@ -367,7 +367,7 @@ Create your context plug-in in the same plug-in folder you created previously:
    vim mycontext_tattler_plugin.py
 
 Feel free to fill your plugin file ``mycontext_tattler_plugin.py`` starting from the
-`sample context plugin <https://gitlab.com/tattler/tattler-community/-/tree/main/plugins/sqlcontext_tattler_plugin.py>`_
+`sample context plugin <https://github.com/tattler-community/tattler-community/blob/main/plugins/sqlcontext_tattler_plugin.py>`_
 in tattler's repository. Just replace the names of your tables and fields to your own schema:
 
 .. literalinclude:: ../../plugins/sqlcontext_tattler_plugin.py

@@ -30,7 +30,7 @@ To create an addressbook plug-in, refer to the
 :ref:`respective section in the quickstart <quickstart:Write an addressbook plug-in>`.
 
 Tattler's repository includes
-`sample plug-ins <https://gitlab.com/tattler/tattler-community/-/tree/main/sqladdressbook_tattler_plugin.py>`,
+`sample plug-ins <https://github.com/tattler-community/tattler-community/blob/main/plugins/sqladdressbook_tattler_plugin.py>`,
 so it's a good idea for you to start from there.
 
 You may organize tattler plug-ins in either of two locations:

@@ -1,8 +1,8 @@
-# 1.5.0 -- TBD
+# 1.5.0 -- 2024-02-20
 
-- extend compatibility to python 3.9
-- accept international prefix in '00' form in passthrough addressbook
-- improve validation hints in clients from cmdline and python SDK
+- support running on python 3.9, from good old 2020
+- support multiple SMS sender IDs
+- support mobile numbers with '00' prefix when operating without addressbook plug-ins
 
 # 1.4.0 -- 2024-02-12
 

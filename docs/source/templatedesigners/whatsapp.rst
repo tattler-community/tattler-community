@@ -33,6 +33,17 @@ content into a text file named ``body`` within it::
             └── whatsapp/                 <- WhatsApp vector
                 └── body                  <- content template
 
+If your interaction model requires you to contact the user first, you may find that WhatsApp requires
+you to open new conversations with a template message, instead of free text. Template messages must be
+created in your WhatsApp's business account, and approved by a WhatsApp moderator.
+
+Tattler allows you to send WhatsApp templates. Simply have your event template be::
+
+    :template:whatsapp_template_name
+
+Tattler will then ask WhatsApp to deliver template ``whatsapp_template_name``. Passing template parameters
+to WhatsApp is not currently supported, so make sure your template does not include any.
+
 
 .. caution:: The WhatsApp platform poses some requirements to deliver messages!
 	

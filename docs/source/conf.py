@@ -9,7 +9,7 @@
 project = 'tattler'
 copyright = '2023 - 2024, tattler.dev'
 author = 'Michele Mazzucchi, keencons.com'
-release = '1.4.0'
+release = '1.5.0'
 
 language = 'en'
 

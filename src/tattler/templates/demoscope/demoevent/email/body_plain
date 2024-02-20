@@ -57,4 +57,4 @@ Custom fonts only work on few e-mail clients, so consider them an optimization.
 However, you can portably use the [font](https://developer.mozilla.org/en-US/docs/Web/CSS/font) tag to declare a generic family.
 
 — notification #{{ notification_id }} —
-[Tattler](https://tattler.dev)  [Documentation](https://docs.tattler.dev)  [Source code](https://gitlab.com/tattler/tattler-community)  [Unsubscribe](https://tattler.dev/#unsubscribe)
+[Tattler](https://tattler.dev)  [Documentation](https://docs.tattler.dev)  [Source code](https://github.com/tattler-community/tattler-community)  [Unsubscribe](https://tattler.dev/#unsubscribe)
