@@ -30,6 +30,15 @@ Mobile number to use as sender for notification SMSes, e.g. ``+16315551234``.
 
 If unset, tattler will let the delivery network apply the default source number.
 
+You may provide multiple numbers, separated by a comma. For example: ``+16315551234,+4478456325,+3389453812``.
+This allows you to reach notification recipients in different countries using a local number -- for example
+to allow them to reply locally or to comply with regulations.
+
+If you do provide multiple SMS sender numbers, tattler will use the one sharing the longest
+prefix with the notification recipient's number.
+If none of the numbers has a common prefix with the recipient's number, tattler defaults to
+the first value in the list.
+
 
 TATTLER_EMAIL_SENDER
 --------------------
@@ -149,9 +158,12 @@ TATTLER_WHATSAPP_SENDER
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
-The "Phone number ID" to use as source when sending messages via WhatsApp, e.g ``263465548029294``. Nota bene: this is not a phone number!
-This is the numeric identifier which Meta uses to refer to the actual phone number. Find this within you "Meta for developers" account,
-selecting the App and then its WhatsApp settings.
+The "Phone number ID" to use as source when sending messages via WhatsApp, e.g ``263465548029294``.
+
+.. caution:: This is not a phone number!!
+
+    This is the numeric identifier which Meta uses to refer to the actual phone number. Find this within you "Meta for developers" account,
+    selecting the App and then its WhatsApp settings.
 
 Only required if you actually send messages via WhatsApp.
 

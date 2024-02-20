@@ -25,6 +25,14 @@ class PassThroughAddressbookPluginTest(unittest.TestCase):
         attr = PassThroughAddressbookPlugin().attributes('+4132154399')
         self.assertIn('mobile', attr)
         self.assertEqual('+4132154399', attr['mobile'])
+    
+    def test_mobile_recipient_accepts_nullprefix(self):
+        """mobile() accepts numbers starting with 00 and with '+'"""
+        ptp = PassThroughAddressbookPlugin()
+        for num in ['004132154399', '+4132154399']:
+            attr = ptp.attributes(num)
+            self.assertIn('mobile', attr, msg=f"PassThroughAddressbookPlugin rejects valid mobile number '{num}'")
+            self.assertEqual('+4132154399', attr['mobile'], msg=f"PassThroughAddressbookPlugin mismatches valid mobile number '{num}'")
 
     def test_mobile_recipient_excludes_other_vectors(self):
         """Attributes for mobile recipient has other vectors None"""

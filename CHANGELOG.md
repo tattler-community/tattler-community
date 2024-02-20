@@ -1,6 +1,8 @@
 # 1.5.0 -- TBD
 
 - extend compatibility to python 3.9
+- accept international prefix in '00' form in passthrough addressbook
+- improve validation hints in clients from cmdline and python SDK
 
 # 1.4.0 -- 2024-02-12
 

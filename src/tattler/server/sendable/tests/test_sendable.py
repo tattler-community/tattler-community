@@ -84,6 +84,16 @@ class SendableTest(unittest.TestCase):
                 self.assertTrue(mlog.warning.mock_calls)
                 self.assertTrue(any(['TATTLER_DEBUG_RECIPIENT' in c.args[0] for c in mlog.warning.mock_calls]))
 
+    def test_sender(self):
+        """sender() returns expected envvar name"""
+        with unittest.mock.patch('tattler.server.sendable.vector_sendable.log') as mlog:
+            with unittest.mock.patch('tattler.server.sendable.vector_sendable.getenv') as mgetenv:
+                sndconf = {'TATTLER_SMS_SENDER': 'snd_sms', 'TATTLER_EMAIL_SENDER': 'snd_email', }
+                mgetenv.side_effect = lambda x, y=None: sndconf.get(x, y)
+                for vname, vclass in sendable.vector_sendables.items():
+                    want = sndconf[f'TATTLER_{vname.upper()}_SENDER']
+                    self.assertEqual(vclass.sender(), want, msg=f"Class {vname} returns unexpected sender {vclass.sender()} != {want}")
+
     def test_sendable_exists_valid_event(self):
         self.assertTrue(sendable.SMSSendable.exists('event_with_email_and_sms', self.template_base))
         self.assertFalse(sendable.SMSSendable.exists('event_with_email', self.template_base))
@@ -92,7 +102,7 @@ class SendableTest(unittest.TestCase):
         self.assertFalse(sendable.SMSSendable.exists('event_with_email_plain', self.template_base))
     
     def test_sendable_exists_invalid_event(self):
-        for vname, vclass in sendable.vector_sendables.items():
+        for _, vclass in sendable.vector_sendables.items():
             self.assertFalse(vclass.exists('invalid_event', self.template_base))
 
     def test_sendable_template_base(self):

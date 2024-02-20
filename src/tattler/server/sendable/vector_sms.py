@@ -39,6 +39,35 @@ class SMSSendable(vector_sendable.Sendable):
         'TATTLER_SMS_SENDER': [False, lambda v: re.match(r'\+[0-9]+', v)],
     }
 
+    @classmethod
+    def sender(cls, recipient: Optional[str]=None) -> Optional[str]:
+        """Return the configured sender ID for a given recipient.
+
+        The sender id is looked up in envvar TATTLER_SMS_SENDER. It returns its
+        value if one is provided. If TATTLER_SMS_SENDER contains multiple values
+        separated by a ',' -- then the option sharing the longest prefix with the
+        recipient is returned. If no matches are found, the first value is returned.
+
+        This is not an exact algorithm, but it fits realistic use cases.
+        
+        :param recipient:   Recipient for which the sender should be found; or None for default sender.
+        
+        :return:            ID to send the message as for the given recipient, or None if no configuration available."""
+        confsender = super().sender(recipient)
+        if not confsender:
+            return None
+        senders = confsender.strip().split(',')
+        if not recipient or len(senders) == 1:
+            return senders[0]
+        # got multiple sender numbers. Find matching country code
+        matching_prefixes = []
+        for snd in senders:
+            matching_prefixes += [snd[:i] for i in range(2, max(len(snd), len(recipient))) if snd[:i] == recipient[:i]]
+        if matching_prefixes:
+            mpref = max(matching_prefixes, key=len)
+            return [x for x in senders if x.startswith(mpref)][0]
+        return senders[0]
+
     def get_sms_server(self):
         """Prepare SMS server object."""
         credentials = get_auth_from_environment()
@@ -46,7 +75,6 @@ class SMSSendable(vector_sendable.Sendable):
 
     def validate_recipient(self, recipient: str) -> str:
         if re.match(r'(00|\+)[1-9][0-9]+', recipient):
-            # remove leading 00 and + for BulkSMS format
             if recipient.startswith('00'):
                 recipient = '+' + recipient[2:]
             return recipient
@@ -63,7 +91,11 @@ class SMSSendable(vector_sendable.Sendable):
         smssrv = self.get_sms_server()
         log.info("n%s: Sending SMS to '%s'", self.nid, recipients)
         log.debug("n%s: Body: %s", self.nid, msg_content)
-        sms_senderid = vector_sendable.getenv('TATTLER_SMS_SENDER', None)
-        taskids = smssrv.send(recipients, msg_content, sender=sms_senderid, priority=priority)
+        # split notifications by sender
+        sms_senderids = {}
+        for r in recipients:
+            sms_senderids[self.sender(r)] = sms_senderids.get(self.sender(r), set()) | {r}
+        for senderid, rcpts in sms_senderids.items():
+            taskids = smssrv.send(rcpts, msg_content, sender=senderid, priority=priority)
         report = smssrv.msg_delivery_status(taskids[0])
         log.info("n%s: Delivery report: %s", self.nid, report)

@@ -1,5 +1,6 @@
 """Client class for tattler"""
 
+import re
 import os
 import logging
 from datetime import datetime
@@ -14,6 +15,7 @@ log.setLevel(getenv('LOG_LEVEL', 'info').upper())
 
 _default_deadletter_path = os.path.join(os.sep, 'tmp', 'tattler_deadletter')
 
+valid_modes = {'debug', 'staging', 'production'}
 
 class TattlerClient:
     """Connection controller class to access tattler server functionality."""
@@ -22,7 +24,12 @@ class TattlerClient:
         if not (srv_addr and srv_port):
             srv_addr, srv_port = get_server_endpoint()
         self.endpoint = f'{srv_addr}:{srv_port}'
+        if not re.match(r'^[a-zA-Z0-9-_.]+$', scope_name):
+            raise ValueError(f"Invalid scope name '{scope_name}'. It only accepts alphanumeric sybols and '.', '_' or '-'.")
         self.scope_name = scope_name
+        mode = mode.strip().lower()
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid mode '{mode}'. Valid values are: {valid_modes}")
         self.mode = mode
 
     def scopes(self) -> Optional[Iterable[str]]:

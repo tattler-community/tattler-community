@@ -67,6 +67,14 @@ class NetNotifClientUtilsTest(unittest.TestCase):
                     mos.return_value = f"[{want_addr}]:{want_port}"
                     self.assertEqual(tattler_client_utils.get_server_endpoint(), (want_addr, want_port))
 
+    def test_get_server_endpoint_raises_invalid(self):
+        """get_server_endpoint() raises ValueError upon invalid value"""
+        with unittest.mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mos:
+            for inv in ['127.', 'a::b', '', '_', '---asd__']:
+                mos.return_value = inv
+                with self.assertRaises(RuntimeError, msg=f"get_server_endpoint() unexpectedly accepts invalid endpoint '{inv}'"):
+                    tattler_client_utils.get_server_endpoint()
+
     def test_mk_correlation_id_sane_output(self):
         self.assertIsInstance(tattler_client_utils.mk_correlation_id(), str)
         self.assertTrue(tattler_client_utils.mk_correlation_id())

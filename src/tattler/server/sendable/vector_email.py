@@ -132,16 +132,14 @@ class EmailSendable(vector_sendable.Sendable):
             return recipient
         raise ValueError(f"Invalid recipient {recipient}: Accepted e-mail address format is '{regex}'.")
 
-    def sender(self) -> str:
+    @classmethod
+    def sender(cls, recipient: Optional[str]=None) -> Optional[str]:
         """Return the default address to use as sender for EmailSendable"""
-        sender_email = vector_sendable.getenv("TATTLER_EMAIL_SENDER", None)
-        if sender_email is None:
-            log.debug("Envvar TATTLER_EMAIL_SENDER not set. Using '%s' as Email From.", sender_email)
-            return f"{getpass.getuser()}@{socket.gethostname()}".lower()
-        sender_email = sender_email.strip().lower()
-        if not email_re.match(sender_email):
-            log.error("Envvar TATTLER_EMAIL_SENDER's value '%s' is not a valid email address.", sender_email)
-            raise ValueError(f"Envvar TATTLER_EMAIL_SENDER's value '{sender_email}' is not a valid email address.")
+        sender_email = super().sender(recipient)
+        if sender_email:
+            return sender_email.strip().lower()
+        sender_email = f"{getpass.getuser()}@{socket.gethostname()}".lower()
+        log.debug("Envvar TATTLER_EMAIL_SENDER not set. Using '%s' as Email From.", sender_email)
         return sender_email
 
     @classmethod

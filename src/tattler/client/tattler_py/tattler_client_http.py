@@ -1,7 +1,7 @@
 """Implementation of tattler client using HTTP interface to connect to tattler server"""
 
 import json
-from urllib import request
+from urllib import request, parse
 from typing import Mapping, Iterable
 
 from tattler.client.tattler_py.tattler_client import TattlerClient, log
@@ -12,20 +12,25 @@ class TattlerClientHTTP(TattlerClient):
     """HTTP implementation of TattlerClient"""
 
     def do_send(self, vectors: Iterable[str], event: str, recipient: str, context: Mapping[str, str]=None, priority: bool=False, correlationId: str=None) -> bool:
-        url = f'http://{self.endpoint}/notification/{self.scope_name}/{event}/?user={recipient}'
+        """Perform the actual server request to send the notification"""
+        url_path = f'http://{self.endpoint}/notification/{parse.quote(self.scope_name)}/{parse.quote(event)}/'
+        params = {
+            'user': recipient,
+        }
         if vectors:
-            url += f'&vector={",".join(vectors)}'
+            params['vector'] = ",".join(sorted(vectors))
         if correlationId:
-            url += f'&correlationId={correlationId}'
+            params['correlationId'] = correlationId
         if priority:
-            url += f'&priority={priority}'
+            params['priority'] = priority
         if self.mode:
-            url += f'&mode={self.mode}'
+            params['mode'] = self.mode
         headers = {}
         data = None
         if context:
             headers['Content-Type'] = 'application/json'
             data = serialize_json(context)
+        url = url_path + '?' + parse.urlencode(params)
         req = request.Request(url, data=data, headers=headers, method='POST')
         try:
             log.debug("Sending request URL = '%s'", req.get_full_url())

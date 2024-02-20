@@ -9,14 +9,8 @@ from tattler.client.tattler_py.tattler_client_http import TattlerClientHTTP
 class TestTattlerClientHTTP(unittest.TestCase):
     port = 11503
 
-    def test_notification_construction(self):
-        n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-        self.assertIsNotNone(n)
-
-    def test_send_all_parameter(self):
-        definitions = {'key1': 'val1', 'key2': 'val2'}
-        with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = b"""[{
+    # a potential valid response from the server
+    srv_response = b"""[{
                 "id": "email:d696e498-cc1a-4dc8-b893-2070e1b58187",
                 "vector": "email",
                 "resultCode": 0,
@@ -27,6 +21,30 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 "resultCode": 1,
                 "detail": "Error descr 123"}
                 ]"""
+
+    def test_notification_construction(self):
+        """Constructor succeeds with valid parameters"""
+        n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
+        self.assertIsNotNone(n)
+
+    def test_notification_construction_invalid_scope(self):
+        """Constructor rejects invalid scope parameters"""
+        for inv in ['', 'invalid+', 's/', 'perché']:
+            with self.assertRaises(ValueError, msg=f"TattlerClientHTTP constructor unexpectedly succeeds with invalid scope name '{inv}'"):
+                TattlerClientHTTP(inv, '127.0.0.1', self.port)
+
+    def test_notification_construction_invalid_mode(self):
+        """Constructor rejects invalid mode parameters"""
+        for inv in ['', 'staging_', 'stagin']:
+            with self.assertRaises(ValueError, msg=f"TattlerClientHTTP constructor unexpectedly succeeds with invalid mode name '{inv}'"):
+                TattlerClientHTTP('testscope', '127.0.0.1', self.port, mode=inv)
+        for inv in ['debug', 'staging', 'production', 'debug ', '   debug  ', 'DEBUG']:
+            TattlerClientHTTP('testscope', '127.0.0.1', self.port, mode=inv)
+
+    def test_send_all_parameter(self):
+        definitions = {'key1': 'val1', 'key2': 'val2'}
+        with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
+            mreq.urlopen().__enter__().read.return_value = self.srv_response
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
             res = n.send(['email', 'sms'], 'test_event', 1, context=definitions, priority=True)
             self.assertEqual(res, True)
@@ -41,8 +59,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertIn('method', mreq.Request.call_args.kwargs)
             self.assertEqual(mreq.Request.call_args.kwargs['method'].upper(), 'POST')
             # vectors
-            self.assertIn('vector=', req_url)
-            self.assertTrue('vector=email,sms' in req_url or 'vector=sms,email' in req_url)
+            self.assertIn('vector=email%2Csms', req_url)
             # mode
             self.assertIn('mode=debug', req_url)
             # data
@@ -53,6 +70,19 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertIn('Content-Type', mreq.Request.call_args.kwargs['headers'])
             self.assertEqual('application/json', mreq.Request.call_args.kwargs['headers']['Content-Type'])
     
+    def test_send_parameters_encoded(self):
+        """Parameters are sent to server in URL-encoded form"""
+        with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
+            mreq.urlopen().__enter__().read.return_value = self.srv_response
+            n = TattlerClientHTTP('test_scope', '123.32.21.31', self.port)
+            n.send(vectors=['sms', 'email'], event='test_event', recipient='+,abc123über')
+            mreq.Request.assert_called()
+            print(mreq.Request.call_args)
+            url = mreq.Request.call_args.args[0]
+            self.assertIn(f'//123.32.21.31:{self.port}/notification/test_scope/test_event/?', url)
+            self.assertIn('user=%2B%2Cabc123%C3%BCber', url)
+            self.assertIn('vector=email%2Csms', url)
+
     def test_send_all_vectors_fail_yields_failure(self):
         """If notification to every requested vector fails, then the whole notification returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
@@ -87,7 +117,6 @@ class TestTattlerClientHTTP(unittest.TestCase):
             res = n.send(['email', 'sms'], 'test_event', 1)
             self.assertEqual(res, False)
 
-
     def test_send_failure(self):
         """If HTTP request returns a network-level error, send() returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
@@ -118,7 +147,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertEqual(set(have_context['set']), want_context['set'])
 
     def test_scopes(self):
-        n = TattlerClientHTTP('', '127.0.0.1', self.port)
+        n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for scopes in [[], ['a'], ['one', 'two']]:
                 mreq.urlopen().__enter__().read.return_value = json.dumps(scopes).encode()
@@ -128,7 +157,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 self.assertIn(want_url, mreq.urlopen.call_args.args)
     
     def test_scopes_failure(self):
-        n = TattlerClientHTTP('', '127.0.0.1', self.port)
+        n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen.side_effect = urllib.error.URLError("Cannot connect")
             with self.assertRaises(urllib.error.URLError):
@@ -149,7 +178,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 self.assertIn(want_url, mreq.urlopen.call_args.args)
 
     def test_events_failure(self):
-        n = TattlerClientHTTP('', '127.0.0.1', self.port)
+        n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen.side_effect = urllib.error.URLError("Cannot connect")
             with self.assertRaises(urllib.error.URLError):
