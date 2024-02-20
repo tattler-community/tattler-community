@@ -14,7 +14,7 @@ Here's some practical guidelines to maximize the chance that your contribution c
 
 ## Report an issue
 
-Do so on [tattler's issue tracker](https://gitlab.com/tattler/tattler-community/-/issues).
+Do so on [tattler's issue tracker](https://github.com/tattler-community/tattler-community/issues).
 
 Cover the following when describing an issue:
 
@@ -27,7 +27,7 @@ Cover the following when describing an issue:
 
 ## Suggest enhancements
 
-Do so on [tattler's issue tracker](https://gitlab.com/tattler/tattler-community/-/issues).
+Do so on [tattler's issue tracker](https://github.com/tattler-community/tattler-community/issues).
 
 Cover the following when describing your proposal:
 
@@ -38,8 +38,8 @@ Cover the following when describing your proposal:
 
 ## Contribute code
 
-We welcome code contributions for [reported issues](https://gitlab.com/tattler/tattler-community/-/issues) and
-are selectively open to code contributions for [suggested enhancements](https://gitlab.com/tattler/tattler-community/-/issues).
+We welcome code contributions for [reported issues](https://github.com/tattler-community/tattler-community/issues) and
+are selectively open to code contributions for [suggested enhancements](https://github.com/tattler-community/tattler-community/issues).
 
 We may decline contributions in a number of scenarios:
 

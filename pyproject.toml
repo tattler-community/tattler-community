@@ -32,8 +32,8 @@ tattler_notify = "tattler.client.tattler_py.tattler_cmd:main"
 [project.urls]
 Home = "https://tattler.dev"
 Documentation = "https://docs.tattler.dev/"
-Repository = "https://gitlab.com/tattler/tattler-community"
-Issues = "https://gitlab.com/tattler/tattler-community/-/issues"
+Repository = "https://github.com/tattler-community/tattler-community"
+Issues = "https://github.com/tattler-community/tattler-community/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
