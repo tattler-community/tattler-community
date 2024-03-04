@@ -20,7 +20,13 @@ valid_modes = {'debug', 'staging', 'production'}
 class TattlerClient:
     """Connection controller class to access tattler server functionality."""
 
-    def __init__(self, scope_name: str, srv_addr: str=None, srv_port: int=11503, mode: str='debug') -> None:
+    def __init__(self, scope_name: str, srv_addr: str='127.0.0.1', srv_port: int=11503, mode: str='debug') -> None:
+        """Construct TattlerClient.
+        
+        :param scope_name:      Name of the scope to use when sending requests to server.
+        :param srv_addr:        IP address to connect to for tattler_server.
+        :param srv_port:        Port number to connect to for tattler_server.
+        :param mode:            Operating mode to request when sending requests to server."""
         if not (srv_addr and srv_port):
             srv_addr, srv_port = get_server_endpoint()
         self.endpoint = f'{srv_addr}:{srv_port}'
@@ -37,15 +43,31 @@ class TattlerClient:
         return None
 
     def events(self) -> Optional[Iterable[str]]:
-        """Return list of available events within this scope."""
-        return None
+        """Return list of available events within this scope.
+
+        :return:        List of events available within my scope, or None if unknown."""
+        raise NotImplementedError("Not implemented")
 
     def vectors(self, event: str) -> Optional[Iterable[str]]:
-        """Return list of vectors available vectors within this scope."""
-        return None
+        """Return list of vectors available vectors within this scope.
+        
+        :param event:   Name of event to check available vectors for.
+        
+        :return:        List of vectors available for the event within my scope, or None if unknown."""
+        raise NotImplementedError("Not implemented")
 
-    def send(self, vectors: Iterable[str], event: str, recipient: str, context: Mapping[str, str]=None, priority: bool=False, correlationId: str=None) -> bool:
-        """Send a notification to a recipient list."""
+    def send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: str=None) -> bool:
+        """Send a notification to a recipient list.
+        
+        :param vectors:         List of vector names to deliver the notification to, or None for 'all available'.
+        :param event:           Name of the event to notify.
+        :param recipient:       ID of the recipient to notify.
+        :param context:         Dictionary of variable names and values to pass to server for template rendering, or None if empty.
+        :param priority:        Whether the server should mark the notification as high-priority (e.g. in email); This may be controlled in the notification template itself too.
+        :param correlationId:   Arbitrary string to identify this transaction with; the server will log this to allow tracing requests across different systems.
+
+        :return:                Whether the request could be sent successfully to the server.
+        """
         correlationId = correlationId or f"tattler_client_py:{uuid.uuid4()}"
         log.info("Sending e=%s to r=%s over v=%s with c=%s", event, recipient, vectors, context)
         try:
@@ -55,12 +77,18 @@ class TattlerClient:
             self.deadletter_store({'vectors':vectors, 'event':event, 'recipient':recipient, 'context':context, 'priority':priority, 'correlationId':correlationId})
             return False
 
-    def do_send(self, vectors: Iterable[str], event: str, recipient: str, context: Mapping[str, str]=None, priority: bool=False, correlationId: str=None) -> bool:
-        """Implement this to concretely deliver over the custom channel"""
-        return False
+    def do_send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: str=None) -> bool:
+        """Implement this to concretely deliver over the custom channel.
+        
+        See :meth:`tattler.client.tattler_py.tattler_client.TattlerClient.send` .
+        """
+        raise NotImplementedError("Not implemented")
 
-    def deadletter_store(self, params: Mapping[str, str]) -> None:
-        """Store an error into a deadletter file, if envvar TATTLER_DEADLETTER_PATH is configured."""
+    def deadletter_store(self, params: Optional[Mapping[str, str]]=None) -> None:
+        """Store an error into a deadletter file, if envvar TATTLER_DEADLETTER_PATH is configured.
+        
+        :param params:      Optional parameters to store (JSON-formmated) as part of the dead letter.
+        """
         dldir_path = getenv("TATTLER_DEADLETTER_PATH", _default_deadletter_path)
         try:
             os.makedirs(dldir_path, exist_ok=True)
@@ -70,6 +98,7 @@ class TattlerClient:
 
         dlname = f"{self.scope_name}_{params['recipient']}_{params['event']}_{os.getpid()}_{datetime.now().strftime('%s')}.txt"
         dlpath = os.path.join(dldir_path, dlname)
+        params = params or {}
         try:
             with open(dlpath, 'w+', encoding='utf-8') as f:
                 serdata = serialize_json(params)

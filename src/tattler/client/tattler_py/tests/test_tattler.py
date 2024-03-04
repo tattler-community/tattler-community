@@ -20,12 +20,14 @@ class TattlerClientTest(unittest.TestCase):
     def test_default_events_empty(self):
         """events() for the abstract base class is empty"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
-        self.assertIsNone(n.events())
+        with self.assertRaises(NotImplementedError):
+            n.events()
 
     def test_default_vectors_empty(self):
         """vectors() for the abstract base class is empty"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
-        self.assertIsNone(n.vectors('asd'))
+        with self.assertRaises(NotImplementedError):
+            n.vectors('asd')
 
     def test_dead_letter_store_triggered_upon_notification_failure(self):
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
