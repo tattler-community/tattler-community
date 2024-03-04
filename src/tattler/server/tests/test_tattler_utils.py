@@ -34,6 +34,20 @@ data_contacts = {
 class TestTattlerUtils(unittest.TestCase):
     blacklist_path = Path(__file__).parent / 'fixtures' / 'blacklist.txt'
 
+    def test_mk_correlation_id(self):
+        """mk_correlation_id() produces a minimum length and entropy"""
+        for i in range(100):
+            cid = tattler_utils.mk_correlation_id(None)
+            self.assertIsInstance(cid, str, msg=f"{i}th call to mk_correlation_id() returned non-string")
+            self.assertGreaterEqual(len(cid), 10, msg=f"{i}th call to mk_correlation_id() returned ID shorter than 10 = '{cid}'")
+            self.assertGreaterEqual(len(set(cid)), 6, msg=f"{i}th call to mk_correlation_id() returned insufficient entropy {len(set(cid))} for '{cid}'")
+    
+    def test_mk_correlation_id_with_prefix(self):
+        """mk_correlation_id() produces IDs prefixed by requested or default prefix"""
+        cid = tattler_utils.mk_correlation_id('x')
+        self.assertIsInstance(cid, str)
+        self.assertTrue(cid.startswith('x:'))
+
     def test_send_notification_missing_scope(self):
         """Notify missing scope raises ValueError, mentions scope"""
         with mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
