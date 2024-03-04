@@ -4,8 +4,6 @@ from unittest import mock
 import os
 from urllib.error import URLError
 
-os.environ['TATTLER_SERVER'] = '127.0.0.1:123'
-
 from tattler.client import tattler_py
 
 class TattlerModuleTest(unittest.TestCase):
