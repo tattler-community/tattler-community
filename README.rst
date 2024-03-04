@@ -160,10 +160,12 @@ Here's how you can help, in order of increasing time commitment 🙂
 
 - ⭐️ star our `repository <https://github.com/tattler-community/tattler-community/>`_ if you like tattler. That's our go-to place whenever we feel sad! 😁
 - `Let us know <mailto:users@tattler.dev>`_ that you are using tattler. How long? For what organization? What is your feedback?
-- Let your friends know about tattler. If you found it useful, chances are they will too.
+- Blog about tattler. If you found tattler useful, chances are your post will be useful to others too.
 - Report any `issue <https://github.com/tattler-community/tattler-community/issues>`_ in our code or docs. We take those seriously.
-- Package tattler for your distribution.
-- See ways to contribute in our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_.
+- Package tattler for your distribution. Doing so for any of Ubuntu, Debian, CentOS and FreeBSD will help most people.
+- Implement a client for tattler in another language.
+
+See our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_ for details.
 
 
 🎖️ License
