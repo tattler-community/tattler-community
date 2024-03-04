@@ -26,13 +26,6 @@ Here's a brief reference of the function:
 
 Additionally, the python client is controlled by the following **environment variables**:
 
-``TATTLER_SERVER``
-    Values: ``ip4:port`` or ``[ip6]:port``.
-
-    Default: ``127.0.0.1:11503``.
-    
-    Address to connect to for tattler server.
-
 ``LOG_LEVEL``
     Values: ``debug``, ``info``, ``warning``, ``error``.
 

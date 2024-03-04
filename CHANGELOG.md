@@ -1,6 +1,6 @@
 # 1.5.1 -- 2024-03-04
 
-- support client library operating without environment variables
+- configure client endpoint programmatically, default to `127.0.0.1:11503`
 
 # 1.5.0 -- 2024-02-20
 
