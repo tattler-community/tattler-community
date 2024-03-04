@@ -1,3 +1,7 @@
+# 1.5.1 -- 2024-03-04
+
+- support client library operating without environment variables
+
 # 1.5.0 -- 2024-02-20
 
 - support running on python 3.9, from good old 2020
