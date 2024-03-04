@@ -162,7 +162,7 @@ Here's how you can help, in order of increasing time commitment 🙂
 - `Let us know <mailto:users@tattler.dev>`_ that you are using tattler. How long? For what organization? What is your feedback?
 - Blog about tattler. If you found tattler useful, chances are your post will be useful to others too.
 - Report any `issue <https://github.com/tattler-community/tattler-community/issues>`_ in our code or docs. We take those seriously.
-- Package tattler for your distribution. Doing so for any of Ubuntu, Debian, CentOS and FreeBSD will help most people.
+- Package tattler for your distribution. Else Ubuntu, Debian, CentOS and FreeBSD will serve the most people.
 - Implement a client for tattler in another language.
 
 See our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_ for details.
