@@ -19,9 +19,7 @@ ENVVAR_NAME = 'TATTLER_BULKSMS_TOKEN'
 def get_auth_from_environment():
     """Get authentication data configured."""
     authstr = vector_sendable.getenv(ENVVAR_NAME, None)
-    if authstr is None:
-        log.info("Envvar '%s' missing. Disabling SMS delivery as a vector.", ENVVAR_NAME)
-        return None, None
+    assert authstr, f"Presence of auth config '{ENVVAR_NAME}' must be pre-validated before get_auth_from_environment()"
     tid, tsecr = None, None
     try:
         tid, tsecr = authstr.strip().split(':', 1)

@@ -181,9 +181,8 @@ class EmailSendable(vector_sendable.Sendable):
     def content(self, context: Mapping[str, Any]) -> str:
         return self._build_msg(context).as_string()
 
-    def do_send(self, recipients: Iterable[str], priority: Optional[int]=None, context: Optional[Mapping[str, Any]]=None) -> None:
-        if context is None:
-            context = {}
+    def do_send(self, recipients: Iterable[str], context: Mapping[str, Any], priority: Optional[int]=None) -> None:
+        assert isinstance(context, dict), f"context must be a dictionary in do_send(); not {type(context)}"
         if priority is not None:
             self.set_priority(priority)
         msg = self.content(context)

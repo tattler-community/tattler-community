@@ -85,7 +85,11 @@ def get_template_processor() -> TemplateProcessor:
     return template_processors_available[getenv("TATTLER_TEMPLATE_TYPE", default_template_processor_name).lower()]
 
 def mk_correlation_id(prefix: Optional[str]='tattler') -> str:
-    """Generate a random correlation ID, for sessions where none has been pre-provided."""
+    """Generate a random correlation ID, for sessions where none has been pre-provided.
+    
+    :param prefix:      Optional string to prepend to the returned random ID ('prefix:id'); set to None for no string ('prefix').
+
+    :return:            Random ID suitable for correlation logging, potentially prefixed with given prefix."""
     if prefix:
         return f'{prefix}:{uuid.uuid4()}'
     return str(uuid.uuid4())

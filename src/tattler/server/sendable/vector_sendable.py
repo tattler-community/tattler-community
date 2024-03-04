@@ -220,7 +220,7 @@ class Sendable:
         # production
         return set(self.recipients)
 
-    def do_send(self, recipients: Iterable[str], priority: Optional[int]=None, context: Optional[Mapping[str, Any]]=None) -> None:
+    def do_send(self, recipients: Iterable[str], context: Mapping[str, Any], priority: Optional[int]=None) -> None:
         """Concretely send the message, regardless of what mode we're in."""
         raise NotImplementedError("Cannot send untyped Sendable object.")   # pragma: no cover
 
@@ -229,8 +229,7 @@ class Sendable:
         self.setup()
 
         mode = mode.lower()
-        context = context or {}
-        self.context = context
+        self.context = context or {}
 
         # clean up invalid recipients
         valid_rcpts = set()
@@ -248,4 +247,4 @@ class Sendable:
             log.warning("n%s: Skipping send for lack of recipients.", self.nid)
             return False
         log.info("n%s: Sending '%s'@'%s' to: %s", self.nid, self.event(), self.vector(), valid_rcpts)
-        return self.do_send(valid_rcpts, priority=priority, context=context)
+        return self.do_send(valid_rcpts, priority=priority, context=self.context)
