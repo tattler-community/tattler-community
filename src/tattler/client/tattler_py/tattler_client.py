@@ -5,10 +5,11 @@ import os
 import logging
 from datetime import datetime
 import uuid
+from abc import ABC
 from typing import Mapping, Iterable, Optional
 from tattler.client.tattler_py.serialization import serialize_json
 
-from tattler.client.tattler_py.tattler_client_utils import get_server_endpoint, getenv
+from tattler.client.tattler_py.tattler_client_utils import getenv
 
 log = logging.getLogger(__name__)
 log.setLevel(getenv('LOG_LEVEL', 'info').upper())
@@ -17,7 +18,7 @@ _default_deadletter_path = os.path.join(os.sep, 'tmp', 'tattler_deadletter')
 
 valid_modes = {'debug', 'staging', 'production'}
 
-class TattlerClient:
+class TattlerClient(ABC):
     """Connection controller class to access tattler server functionality."""
 
     def __init__(self, scope_name: str, srv_addr: str='127.0.0.1', srv_port: int=11503, mode: str='debug') -> None:
@@ -28,7 +29,7 @@ class TattlerClient:
         :param srv_port:        Port number to connect to for tattler_server.
         :param mode:            Operating mode to request when sending requests to server."""
         if not (srv_addr and srv_port):
-            srv_addr, srv_port = get_server_endpoint()
+            raise ValueError(f"Endpoint of server must be set. Values {srv_addr}:{srv_port}")
         self.endpoint = f'{srv_addr}:{srv_port}'
         if not re.match(r'^[a-zA-Z0-9-_.]+$', scope_name):
             raise ValueError(f"Invalid scope name '{scope_name}'. It only accepts alphanumeric sybols and '.', '_' or '-'.")
