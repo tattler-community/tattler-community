@@ -51,7 +51,7 @@ jobs:
         run: |
           pip install build
           python -m build
-          pip install dist/tattler-1.5.0-py3-none-any.whl
+          pip install dist/tattler-1.5.1-py3-none-any.whl
       - name: validate links
         run: |
           cd utils

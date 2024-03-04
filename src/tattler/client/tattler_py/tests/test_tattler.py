@@ -17,15 +17,39 @@ class TattlerClientTest(unittest.TestCase):
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
         self.assertIsNone(n.scopes())
     
-    def test_default_events_empty(self):
-        """events() for the abstract base class is empty"""
+    def test_default_events_raises(self):
+        """events() for the abstract base class raises"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
-        self.assertIsNone(n.events())
+        with self.assertRaises(NotImplementedError):
+            n.events()
 
-    def test_default_vectors_empty(self):
-        """vectors() for the abstract base class is empty"""
+    def test_default_vectors_raises(self):
+        """vectors() for the abstract base class raises"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
-        self.assertIsNone(n.vectors('asd'))
+        with self.assertRaises(NotImplementedError):
+            n.vectors('asd')
+
+    def test_default_do_send_raises(self):
+        """do_send() for the abstract base class raises"""
+        n = TattlerClient('test_scope', '127.0.0.1', self.port)
+        with self.assertRaises(NotImplementedError):
+            n.do_send(None, 'myevent', 'r123')
+
+    def test_server_endpoint_default(self):
+        """Constructor supports default server endpoint if none is provided"""
+        with mock.patch('tattler.client.tattler_py.tattler_client.TattlerClient.do_send') as mdosend:
+            n = TattlerClient('test_scope')
+            self.assertEqual(n.endpoint, '127.0.0.1:11503')
+
+    def test_server_endpoint_missing_endpoint_conf_raises(self):
+        """Constructor raises exception if server address or port overridden empty"""
+        with mock.patch('tattler.client.tattler_py.tattler_client.TattlerClient.do_send') as mdosend:
+            with self.assertRaises(ValueError) as err:
+                TattlerClient('test_scope', srv_addr=None)
+            self.assertIn('ndpoint', str(err.exception))
+            with self.assertRaises(ValueError) as err:
+                TattlerClient('test_scope', srv_port=None)
+            self.assertIn('ndpoint', str(err.exception))
 
     def test_dead_letter_store_triggered_upon_notification_failure(self):
         n = TattlerClient('test_scope', '127.0.0.1', self.port)

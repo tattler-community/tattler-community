@@ -4,14 +4,23 @@ from unittest import mock
 import os
 from urllib.error import URLError
 
-os.environ['TATTLER_SERVER'] = '127.0.0.1:123'
-
 from tattler.client import tattler_py
 
 class TattlerModuleTest(unittest.TestCase):
     def test_mk_correlation_id(self):
-        self.assertIsInstance(tattler_py.mk_correlation_id(), str)
+        """mk_correlation_id() produces a minimum length and entropy"""
+        for i in range(100):
+            cid = tattler_py.mk_correlation_id(None)
+            self.assertIsInstance(cid, str, msg=f"{i}th call to mk_correlation_id() returned non-string")
+            self.assertGreaterEqual(len(cid), 10, msg=f"{i}th call to mk_correlation_id() returned ID shorter than 10 = '{cid}'")
+            self.assertGreaterEqual(len(set(cid)), 6, msg=f"{i}th call to mk_correlation_id() returned insufficient entropy {len(set(cid))} for '{cid}'")
     
+    def test_mk_correlation_id_with_prefix(self):
+        """mk_correlation_id() produces IDs prefixed by requested or default prefix"""
+        cid = tattler_py.mk_correlation_id('x')
+        self.assertIsInstance(cid, str)
+        self.assertTrue(cid.startswith('x:'))
+
     def test_send_notification_fails_silently(self):
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.side_effect = URLError("Artificial test error")

@@ -14,6 +14,7 @@ This guides you to:
 4. Write your first :ref:`notification template <quickstart:Write your own notification templates>`.
 5. :ref:`Organize your configuration <quickstart:Organize your configuration>`.
 6. `Write an addressbook plug-in`_ to load contact data of your users.
+7. `Write a context plug-in`_ to load common variables for your templates.
 
 Install
 -------
@@ -239,6 +240,7 @@ Here's how you setup your configuration using ``envdir``:
    echo "staging" > TATTLER_MASTER_MODE
 
    # add more non-sensitive configuration values
+   echo support@myorganization.org > TATTLER_EMAIL_SENDER
    echo "127.0.0.1:11503" > TATTLER_LISTEN_ADDRESS
    echo ~/tattler_quickstart/templates > TATTLER_TEMPLATE_BASE
    echo "your_own_email@company.com" > NOTIF_DEBUG_RECIPIENT_EMAIL
@@ -314,12 +316,21 @@ Now enable tattler to load the plugin:
    sqlite3 sqlplugins.db 'select * from auth_user join userprofile on auth_user.id = user_id'
 
    # configure tattler to load your new plug-in
-   echo ~/tattler_quickstart/plugins/myaddressbook_tattler_plugin.py > ~/tattler_quickstart/etc/TATTLER_PLUGIN_PATH
+   echo ~/tattler_quickstart/plugins/ > ~/tattler_quickstart/etc/TATTLER_PLUGIN_PATH
    echo sqlite:////$HOME/tattler_quickstart/sqlplugins.db > ~/tattler_quickstart/etc/DATABASE
 
    # you may want to enable debug-level logging when testing new logic
    echo debug > ~/tattler_quickstart/etc/LOG_LEVEL
 
+   # set email address to have tattler use as sender
+   echo support@myorganization.org > TATTLER_EMAIL_SENDER
+
+   # set tattler in 'staging' mode, i.e. copy every notification to a 'supervisor' address
+   echo staging > TATTLER_MASTER_MODE
+   
+   # set email address to have tattler copy every notification to ()
+   echo notification@myorganization.org > TATTLER_SUPERVISOR_RECIPIENT_EMAIL
+   
    # restart tattler_server with the new configuration
    envdir ~/tattler_quickstart/etc tattler_server
 
@@ -348,9 +359,9 @@ More details on this in :ref:`addressbook plug-in documentation <plugins/address
 Write a context plug-in
 -----------------------
 
-A context plug-in enables tattler to automatically retrieve data required by your templates.
+A context plug-in enables tattler to automatically retrieve data to make available to all your templates.
 
-Once you have this, your applications no longer need to collect and supply any data to expand templates.
+Once you have this, your applications no longer need to collect and supply data to expand templates.
 Instead, tattler autonomously pre-loads the necessary data through your context plug-in.
 
 They are called "context" because they provide additional context to expand templates with,

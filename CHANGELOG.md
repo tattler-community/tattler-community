@@ -1,3 +1,7 @@
+# 1.5.1 -- 2024-03-04
+
+- configure client endpoint programmatically, default to `127.0.0.1:11503`
+
 # 1.5.0 -- 2024-02-20
 
 - support running on python 3.9, from good old 2020

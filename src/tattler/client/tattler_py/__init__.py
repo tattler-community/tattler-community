@@ -12,7 +12,7 @@ from tattler.client.tattler_py.tattler_client_utils import mk_correlation_id
 log = logging.getLogger(__name__)
 log.setLevel(os.getenv('LOG_LEVEL', 'info').upper())
 
-def send_notification(scope: str, event: str, recipient: str, context: Optional[Mapping[str, str]]=None, correlationId: Optional[str]=None, mode: str='debug', vectors: Optional[Iterable[str]]=None, priority: Optional[bool]=None, srv_addr: Optional[str]=None, srv_port: Optional[int]=None) -> Tuple[bool, Optional[Mapping[str, str]]]:
+def send_notification(scope: str, event: str, recipient: str, context: Optional[Mapping[str, str]]=None, correlationId: Optional[str]=None, mode: str='debug', vectors: Optional[Iterable[str]]=None, priority: Optional[bool]=None, srv_addr: Optional[str]='127.0.0.1', srv_port: Optional[int]=11503) -> Tuple[bool, Optional[Mapping[str, str]]]:
     """All-in-one utility to connect to tattler server and send a notification.
     
     :param scope:           The scope name to search the event in.

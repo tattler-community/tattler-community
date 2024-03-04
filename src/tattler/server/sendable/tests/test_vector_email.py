@@ -179,6 +179,21 @@ class TestVectorEmail(unittest.TestCase):
         self.assertEqual(('a.b.c.d', 25), get_smtp_server('a.b.c.d'))
         self.assertEqual(('a.b.c.d', 30), get_smtp_server('a.b.c.d:30'))
 
+    def test_send_raises_if_smtp_connectionreset(self):
+        """send() raises ConnectionRefusedError if smtp fails to connect to"""
+        with mock.patch('tattler.server.sendable.vector_email.smtplib') as msmtp:
+            with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+                with mock.patch('tattler.server.sendable.vector_email.log') as mlog:
+                    mgetenv.side_effect = lambda x, y=None: {'TATTLER_SMTP_ADDRESS': '4.3.2.1:98'}.get(x, os.getenv(x, y))
+                    msmtp.SMTP.side_effect = ConnectionRefusedError
+                    e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
+                    with self.assertRaises(ConnectionRefusedError) as err:
+                        e.send()
+                    msmtp.SMTP.assert_called()
+                    mlog.error.assert_called()
+                    self.assertIn('4.3.2.1', mlog.error.call_args.args)
+                    self.assertIn(98, mlog.error.call_args.args)
+
     def test_validate_configuration(self):
         """validate_configuration() raises iff any setting is invalid"""
         with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:

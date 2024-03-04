@@ -3,7 +3,7 @@
 .. |badge_coverage| image:: https://codecov.io/gh/tattler-community/tattler-community/graph/badge.svg?token=Q5KGRSR0WT 
    :target: https://codecov.io/gh/tattler-community/tattler-community
 
-.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-1.5.0-blue
+.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-1.5.1-blue
 
 .. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20-blue
 
@@ -160,10 +160,12 @@ Here's how you can help, in order of increasing time commitment 🙂
 
 - ⭐️ star our `repository <https://github.com/tattler-community/tattler-community/>`_ if you like tattler. That's our go-to place whenever we feel sad! 😁
 - `Let us know <mailto:users@tattler.dev>`_ that you are using tattler. How long? For what organization? What is your feedback?
-- Let your friends know about tattler. If you found it useful, chances are they will too.
+- Blog about tattler. If you found tattler useful, chances are your post will be useful to others too.
 - Report any `issue <https://github.com/tattler-community/tattler-community/issues>`_ in our code or docs. We take those seriously.
-- Package tattler for your distribution.
-- See ways to contribute in our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_.
+- Package tattler for your distribution. Else Ubuntu, Debian, CentOS and FreeBSD will serve the most people.
+- Implement a client for tattler in another language.
+
+See our `contributing guidelines <https://raw.githubusercontent.com/tattler-community/tattler-community/main/CONTRIBUTING.md>`_ for details.
 
 
 🎖️ License
