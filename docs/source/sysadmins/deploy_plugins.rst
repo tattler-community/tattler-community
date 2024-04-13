@@ -9,9 +9,25 @@ To enable plug-ins, simply:
 
 2. point tattler to it with configuration variable :ref:`TATTLER_PLUGIN_PATH <configuration:TATTLER_PLUGIN_PATH>`.
 
-Then comes the question of access.
+Plug-in deployment folder
+-------------------------
 
-To what systems these plug-ins need access to, and what type of access, is obviously determined by the plug-in itself. Your developers will tell you.
+Where to place the plug-in folder?
+
+Consider two locations:
+
+- a ``/usr/libexec/tattler`` directory, if you installed tattler into your main filesystem hierarchy. This is the option recommended to package builders.
+- a ``tattler/plugins`` directory, if you installed tattler into a standalone directory.
+
+Providing access
+----------------
+
+Then comes the question of access:
+
+- To what systems these plug-ins need access to? Database? Filesystem?
+- What type of access? Read? Read-Write? Delete?
+
+This is obviously plug-in dependent -- so discuss with your developers.
 
 Plug-ins run into tattler's own execution environment, so whatever access they need, tattler needs.
 
