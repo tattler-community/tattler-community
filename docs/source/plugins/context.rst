@@ -32,17 +32,12 @@ Context plug-ins are python files that
 - are placed in the :ref:`plug-in directory <configuration:TATTLER_PLUGIN_PATH>`,
 - implement the ``ContextPlugin`` interface of class :class:`tattler.server.pluginloader.ContextPlugin`.
 
-Keep in mind that plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
+Plug-in filenames **must** end with ``_tattler_plugin.py``; other filenames are ignored.
 
-To create a context plug-in, refer to the
-:ref:`respective section in the quickstart <quickstart:Write a context plug-in>`.
+To create a context plug-in:
 
-Tattler's repository includes
-`sample plug-ins <https://github.com/tattler-community/tattler-community/blob/main/plugins/sqlcontext_tattler_plugin.py>`,
-so it's a good idea for you to start from there.
+1. Familiarize yourself using the :ref:`quickstart example <quickstart:Write a context plug-in>`.
 
-You may organize tattler plug-ins in either of two locations:
+2. Start coding your own starting with the `sample plug-ins <https://github.com/tattler-community/tattler-community/blob/main/plugins/>`_ in Tattler's repository.
 
-- a ``/usr/libexec/tattler`` directory, if you opted to place tattler data into your main filesystem hierarchy.
-- a ``tattler/plugins`` directory, if you opted to place tattler data into an own directory.
-
+See :ref:`Deploying plug-ins <sysadmins/deploy_plugins:Deploy custom plug-ins>` for tips on deployment.
