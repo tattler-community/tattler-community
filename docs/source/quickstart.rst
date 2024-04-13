@@ -401,3 +401,14 @@ and now trigger a notification again:
    INFO:tattler.server.pluginloader:Context after plugin SQLContextTattlerPlugin (in 0:00:00.002836): {'user_id': '2', 'user_email': 'your@email.net', 'user_sms': '+1789456321', 'user_firstname': 'Your', 'user_account_type': 'unknown', 'user_language': None, 'correlation_id': 'tattler:af4054ab-fac7-4b3a-ad80-0a9fa4326d36', 'notification_id': '0a9fa4326d36', 'notification_mode': 'debug', 'notification_vector': 'email', 'notification_scope': 'mywebapp', 'event_name': 'password_changed', 'traffic': 1224994602, 'invoice': [['2023123001', True]]}
 
 More details on this in :ref:`context plug-in documentation <plugins/context:Context plug-ins>`.
+
+
+Done!
+-----
+
+You have gotten to know most of Tattler's capabilities already 👏🏻
+
+If this journey scratched your itch, consider giving a `star to our repo <https://github.com/tattler-community/tattler-community>`_.
+And if you run a tech blog -- would Tattler possibly be a suitable next topic?
+
+If you found friction at any step of the way, do `let us know <mailto:docs@tattler.dev>`_. We take documentation seriously and look forward for feedback!
