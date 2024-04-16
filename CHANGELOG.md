@@ -1,4 +1,4 @@
-# 1.5.2 -- TBD
+# 1.5.2 -- 2024-04-16
 
 - Support sending complex context data using JSON files in `tattler_notify`.
 - Support TATTLER_SMTP_TIMEOUT envvar to control SMTP timeout (default 30s).
