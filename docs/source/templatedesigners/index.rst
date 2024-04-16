@@ -21,6 +21,7 @@ You are supposed to have received (or made yourself?) a
     structure
     sms
     email
+    testing
     base_templates
     autotext
     multilingualism
