@@ -5,7 +5,6 @@ Configuration
 
 ``tattler_server`` is configured via environment variables.
 
-
 .. _configuration_template_base:
 
 TATTLER_TEMPLATE_BASE
@@ -38,6 +37,11 @@ If you do provide multiple SMS sender numbers, tattler will use the one sharing 
 prefix with the notification recipient's number.
 If none of the numbers has a common prefix with the recipient's number, tattler defaults to
 the first value in the list.
+
+.. note:: Message-IDs
+
+    Tattler automatically tags each notified email with a `Message-IDs <https://www.rfc-editor.org/rfc/rfc2822>`_,
+    whose domain name is taken from this setting.
 
 
 TATTLER_EMAIL_SENDER
