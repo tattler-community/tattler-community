@@ -5,7 +5,6 @@ Configuration
 
 ``tattler_server`` is configured via environment variables.
 
-
 .. _configuration_template_base:
 
 TATTLER_TEMPLATE_BASE
@@ -46,6 +45,11 @@ TATTLER_EMAIL_SENDER
 Email address to use as sender for notification emails.
 
 If unset, tattler lets the SMTP library determine the default address, which usually looks like ``running_username@hostname``.
+
+.. note:: Message-IDs
+
+    Tattler automatically tags each notified email with a `Message-IDs <https://www.rfc-editor.org/rfc/rfc2822>`_,
+    whose domain name is taken from this setting.
 
 
 TATTLER_MASTER_MODE
@@ -113,6 +117,18 @@ The address and port number of the host to use for SMTP delivery, formatted as:
 - For IPv4: ``ip_address:port_number`` or simply ``ip_address`` to default on port 25. E.g. ``192.168.0.1:26``
 - For IPv6: ``[ip6_address]:port_number`` or simply ``[ip6_address]`` to default on port 25. E.g. ``[2a00:1450:400a:802::2005]:25``
 - For hostname: ``hostname:port_number`` or simply ``hostname`` to default on port 25. E.g. ``smtp.gmail.com:465``
+
+**Nota bene**: Tattler will use the port number to decide whether to connect in plain TCP or TLS. Well-known SMTP-TLS ports
+are: 465, 587.
+
+Default: ``127.0.0.1:25``
+
+TATTLER_SMTP_TIMEOUT
+--------------------
+
+Wait on SMTP server for up to this many seconds before failing. It must be a positive integer.
+
+Default: ``30``
 
 
 TATTLER_SMTP_TLS
