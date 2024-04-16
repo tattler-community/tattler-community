@@ -16,6 +16,7 @@ from tattler.server.sendable import vector_sendable
 # SMTP X-Priority header
 _valid_priorities = [1, 2, 3, 4, 5]
 _default_priority = 3
+_smtp_timeout_s = 30
 
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
@@ -187,8 +188,20 @@ class EmailSendable(vector_sendable.Sendable):
             self.set_priority(priority)
         msg = self.content(context)
         smtp_server, smtp_server_port = get_smtp_server(vector_sendable.getenv("TATTLER_SMTP_ADDRESS", '127.0.0.1'))
+        tls_connect = smtp_server_port in (465, 587)
         try:
-            server = smtplib.SMTP(smtp_server, smtp_server_port)
+            smtp_conn_timeout = int(vector_sendable.getenv("TATTLER_SMTP_TIMEOUT", _smtp_timeout_s))
+            if smtp_conn_timeout <= 0:
+                raise ValueError
+        except ValueError:
+            smtp_conn_timeout = int(_smtp_timeout_s)
+            log.warning("Invalid value given for TATTLER_SMTP_TIMEOUT='%s'. Set to number of seconds as a positive integer (e.g. 1, 5, 99). Falling back to default %s", vector_sendable.getenv("TATTLER_SMTP_TIMEOUT"), smtp_conn_timeout)
+        try:
+            log.info("Attempting email delivery of '%s' via SMTP%s %s:%s (timeout=%ss)...", self.event(), '_TLS' if tls_connect else '', smtp_server, smtp_server_port, smtp_conn_timeout)
+            if tls_connect:
+                server = smtplib.SMTP_SSL(smtp_server, smtp_server_port, timeout=smtp_conn_timeout)
+            else:
+                server = smtplib.SMTP(smtp_server, smtp_server_port, timeout=smtp_conn_timeout)
         except ConnectionRefusedError:
             log.error("Failed to connect to SMTP server (%s:%s) to deliver email. Giving up.", smtp_server, smtp_server_port)
             raise

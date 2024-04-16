@@ -135,6 +135,59 @@ class TestVectorEmail(unittest.TestCase):
             self.assertIn('Subject: Subject', msmtp.return_value.sendmail.call_args.args[2])
             msmtp.return_value.starttls.assert_not_called()
     
+    def test_email_delivery_tls_connection_if_tls_port(self):
+        """If TATTLER_SMTP_ADDRESS includes a well-known port of SMTP TLS service, connect with SMTP_SSL"""
+        tls_ports = [465, 587]
+        non_tls_ports = [25, 2525]
+        addresses = ['12.34.56.78', '[a::b]', 'foo.bar.com']
+        with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP') as msmtp:
+            with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP_SSL') as msmtps:
+                e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
+                with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+                    for addr in addresses:
+                        for port in tls_ports+non_tls_ports:
+                            mgetenv.side_effect = lambda k,v=None: { 'TATTLER_SMTP_ADDRESS': f"{addr}:{port}" }.get(k, os.getenv(k, v))
+                            e.send()
+                            if port in tls_ports:
+                                msmtp.assert_not_called()
+                                msmtps.assert_called_once()
+                                self.assertIn('timeout', msmtps.call_args.kwargs)
+                                self.assertIsNotNone(msmtps.call_args.kwargs['timeout'])
+                            else:
+                                msmtps.assert_not_called()
+                                msmtp.assert_called_once()
+                                self.assertIn('timeout', msmtp.call_args.kwargs)
+                                self.assertIsNotNone(msmtp.call_args.kwargs['timeout'])
+                            msmtp.reset_mock()
+                            msmtps.reset_mock()
+
+    def test_email_delivery_timeout(self):
+        """Setting TATTLER_SMTP_TIMEOUT envvar controls timeout param to SMTP connection"""
+        with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP') as msmtp:
+            e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
+            with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+                # use random number to avoid inadvertently matching default value
+                rndval = random.randint(1, 100)
+                mgetenv.side_effect = lambda k,v=None: { 'TATTLER_SMTP_TIMEOUT': rndval }.get(k, os.getenv(k, v))
+                e.send()
+                msmtp.assert_called_once()
+                self.assertIn('timeout', msmtp.call_args.kwargs)
+                self.assertEqual(msmtp.call_args.kwargs['timeout'], rndval)
+
+    def test_email_delivery_rejects_invalid_timeout(self):
+        """Invalid timeouts are replaced with default"""
+        with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP') as msmtp:
+            e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
+            with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+                # use random number to avoid inadvertently matching default value
+                for tval in ['-1', '', 'asd']:
+                    mgetenv.side_effect = lambda k,v=None: { 'TATTLER_SMTP_TIMEOUT': tval }.get(k, os.getenv(k, v))
+                    e.send()
+                    msmtp.assert_called_once()
+                    self.assertIn('timeout', msmtp.call_args.kwargs)
+                    self.assertEqual(msmtp.call_args.kwargs['timeout'], 30)
+                    msmtp.reset_mock()
+
     def test_email_delivery_tls(self):
         """When TATTLER_SMTP_TLS envvar is given, smtp().starttls() is called upon send()"""
         with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP') as msmtp:
@@ -142,7 +195,7 @@ class TestVectorEmail(unittest.TestCase):
             with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
                 mgetenv.side_effect = lambda k,v=None: { 'TATTLER_SMTP_TLS': 'yes' }.get(k, os.getenv(k, v))
                 e.send()
-                msmtp().starttls.assert_called()
+                msmtp.return_value.starttls.assert_called()
 
     def test_email_delivery_smtpauth(self):
         """When TATTLER_SMTP_AUTH envvar is given, smtp().login() is called with the credentials it indicates."""
@@ -214,4 +267,4 @@ class TestVectorEmail(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()             # pragma: no cover
