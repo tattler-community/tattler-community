@@ -1,3 +1,5 @@
+"""Tests for email vector sendable"""
+
 import unittest
 from unittest import mock
 import os
@@ -108,6 +110,7 @@ class TestVectorEmail(unittest.TestCase):
         e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
         self.assertNotIn('HTML', e.content(context={}))
         self.assertNotIn('html', e.content(context={}))
+        self.assertIn('Message-ID:', e.content(context={}))
 
     def test_email_html(self):
         """HTML email contains text/html part"""
@@ -124,6 +127,20 @@ class TestVectorEmail(unittest.TestCase):
             msgtext = msmtp.return_value.sendmail.call_args.args[2]
             regex_html_after_plain = re.compile('^Content-Type: text/plain; .*Content-Type: text/html;', re.MULTILINE | re.DOTALL)
             self.assertIsNotNone(regex_html_after_plain.search(msgtext))
+
+    def test_message_id_uses_sender_domain(self):
+        """Message-Id uses domain of sender"""
+        with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+            mgetenv.side_effect = lambda k,v=None: { 'TATTLER_EMAIL_SENDER': 'foo@aksjdfhksadf.com' }.get(k, os.getenv(k, v))
+            e = EmailSendable('event_with_email_plain', data_recipients['email'], template_base=tbase_standard_path)
+            self.assertIn('Message-ID:', e.content(context={}))
+            msgidline = [line for line in e.content(context={}).splitlines() if line.startswith('Message-ID:')][0]
+            msgid = msgidline.split(' ', 1)[1]
+            self.assertEqual(msgid[0], '<')
+            self.assertEqual(msgid[-1], '>')
+            self.assertIn('@', msgid)
+            domain = msgid.split('@', 1)[1]
+            self.assertEqual(domain, 'aksjdfhksadf.com>')
 
     def test_email_send_triggers_delivery(self):
         """send() calls smtp().sendmail()"""

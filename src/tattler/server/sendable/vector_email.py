@@ -117,6 +117,9 @@ class EmailSendable(vector_sendable.Sendable):
         msg['To'] = ", ".join(self.recipients)
         msg['Date'] = formatdate()
         msg['Subject'] = self.subject(context)
+        # gmail requires a Message-ID to be present. E.g. <A5A1B9EB-DBD6-4DE4-902D-F32E2D7D6B86@email.com>
+        sender_domain = self.sender().split('@')[1].lower()
+        msg['Message-ID'] = f'<{self.nid}@{sender_domain}>'
 
         self._add_msg_parts(msg, context)
 
