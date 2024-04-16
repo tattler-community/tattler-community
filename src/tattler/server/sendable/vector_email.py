@@ -194,10 +194,14 @@ class EmailSendable(vector_sendable.Sendable):
             raise
         smtp_tls = vector_sendable.getenv("TATTLER_SMTP_TLS", None)
         if smtp_tls:
+            log.debug("Changing SMTP connection to TLS (STARTTLS).")
             server.starttls()
         smtp_auth = vector_sendable.getenv("TATTLER_SMTP_AUTH", None)
         if smtp_auth:
+            log.debug("Attempting SMTP auth ...")
             u, p = smtp_auth.split(':', 1)
             server.login(u, p)
+        log.debug("Delivering SMTP content ...")
         server.sendmail(self.sender(), recipients, msg)
         server.quit()
+        log.info("SMTP delivery to %s:%s completed successfully.", smtp_server, smtp_server_port)
