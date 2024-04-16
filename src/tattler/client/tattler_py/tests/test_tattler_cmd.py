@@ -3,12 +3,21 @@
 import unittest
 from unittest import mock
 import sys
+from pathlib import Path
 
 from tattler.client.tattler_py.tattler_cmd import main
 
 class CmdLineTest(unittest.TestCase):
     """Tests for command line interface of tattler client"""
 
+    def setUp(self) -> None:
+        self.mypath = Path(__file__).parent
+        self.jsonctx = {
+            typename: str(self.mypath / 'fixtures' / f'jsonctx_{typename}.json')
+                        for typename in ['malformatted', 'invalid', 'valid', 'empty']
+        }
+        return super().setUp()
+    
     def test_main_rejects_unknown_arguments(self):
         """Main rejects unknown positional arguments"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
@@ -49,7 +58,7 @@ class CmdLineTest(unittest.TestCase):
         """Cmdline short params are passed through to send_notification"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
             with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
-                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2']
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', self.jsonctx['empty']]
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
@@ -59,12 +68,62 @@ class CmdLineTest(unittest.TestCase):
         """Cmdline short params are passed through to send_notification"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
             with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
-                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '--vectors', 'email,sms', '--server', '3.4.5.6:321', '--mode', 'staging', '--priority', '2']
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '--vectors', 'email,sms', '--server', '3.4.5.6:321', '--mode', 'staging', '--priority', '2', '--json-context', self.jsonctx['empty']]
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
                 msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
     
+    def test_json_context_missing_file(self):
+        """If a JSON context file is provided that does not exist, run fails"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                args = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', 'not_existing_path']
+                msys.argv = args
+                msnot.return_value = True, 'asd'
+                with self.assertRaises(SystemExit):
+                    main()
+
+    def test_json_context_unacceptable_content(self):
+        """If a JSON context file is provided that includes parsable content with invalid format, run fails"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                args = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', self.jsonctx['invalid']]
+                msys.argv = args
+                msnot.return_value = True, 'asd'
+                with self.assertRaises(ValueError):
+                    main()
+
+    def test_json_context_malformatted_content(self):
+        """If a JSON context file is provided that includes unparsable content, run fails"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                args = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', self.jsonctx['malformatted']]
+                msys.argv = args
+                msnot.return_value = True, 'asd'
+                with self.assertRaises(ValueError):
+                    main()
+
+    def test_json_context_pure(self):
+        """If a JSON context file is provided, it is acquired"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', self.jsonctx['valid']]
+                msnot.return_value = True, 'asd'
+                main()
+                msnot.assert_called_once()
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 1}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+
+    def test_json_context_merged_cmdline(self):
+        """If both a JSON context file is provided and command-line context, the latter is merged onto the former"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', 'foo=bar', 'x=var', 'overrideme=x', '-v', 'email,sms', '-s', '3.4.5.6:321', '-m', 'staging', '-p', '2', '-j', self.jsonctx['valid']]
+                msnot.return_value = True, 'asd'
+                main()
+                msnot.assert_called_once()
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 'x'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+
     def test_nonzero_exit_code_if_delivery_fails(self):
         """Cmd exists non-zero if notification request fails to send"""
         with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
@@ -78,3 +137,6 @@ class CmdLineTest(unittest.TestCase):
                 with self.assertRaises(SystemExit) as err:
                     main()
                 self.assertEqual(err.exception.code, 1)
+
+if __name__ == '__main__':
+    unittest.main()
