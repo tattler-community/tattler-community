@@ -38,11 +38,6 @@ prefix with the notification recipient's number.
 If none of the numbers has a common prefix with the recipient's number, tattler defaults to
 the first value in the list.
 
-.. note:: Message-IDs
-
-    Tattler automatically tags each notified email with a `Message-IDs <https://www.rfc-editor.org/rfc/rfc2822>`_,
-    whose domain name is taken from this setting.
-
 
 TATTLER_EMAIL_SENDER
 --------------------
@@ -50,6 +45,11 @@ TATTLER_EMAIL_SENDER
 Email address to use as sender for notification emails.
 
 If unset, tattler lets the SMTP library determine the default address, which usually looks like ``running_username@hostname``.
+
+.. note:: Message-IDs
+
+    Tattler automatically tags each notified email with a `Message-IDs <https://www.rfc-editor.org/rfc/rfc2822>`_,
+    whose domain name is taken from this setting.
 
 
 TATTLER_MASTER_MODE
