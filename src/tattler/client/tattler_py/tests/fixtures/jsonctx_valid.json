@@ -1,0 +1,7 @@
+{
+    "jsonvar1": [ 1, 2, 3 ],
+    "jsonvar2": {
+        "object": {}
+    },
+    "overrideme": 1
+}

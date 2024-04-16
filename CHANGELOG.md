@@ -1,12 +1,16 @@
+# 1.5.2 -- TBD
+
+- Support sending complex context data using JSON files in `tattler_notify`.
+
 # 1.5.1 -- 2024-03-04
 
-- configure client endpoint programmatically, default to `127.0.0.1:11503`
+- Configure client endpoint programmatically, default to `127.0.0.1:11503`.
 
 # 1.5.0 -- 2024-02-20
 
-- support running on python 3.9, from good old 2020
-- support multiple SMS sender IDs
-- support mobile numbers with '00' prefix when operating without addressbook plug-ins
+- Support running on python 3.9, from good old 2020.
+- Support multiple SMS sender IDs.
+- Support mobile numbers with '00' prefix when operating without addressbook plug-ins.
 
 # 1.4.0 -- 2024-02-12
 
@@ -23,22 +27,22 @@
 
 # 1.2.0 -- 2024-01-20
 
-- ship with Jinja as default template engine to simplify installation and docs
-- Context plug-ins now inherit ContextPlugin class
-- Renamed demo notification to `demoscope`/`demoevent` (from `sample`)
-- Improved documentation, now broken down into sections
-- Added ready-to-use examples for plug-ins that query SQL database
+- Ship with Jinja as default template engine to simplify installation and docs.
+- Context plug-ins now inherit ContextPlugin class.
+- Renamed demo notification to `demoscope`/`demoevent` (from `sample`).
+- Improved documentation, now broken down into sections.
+- Added ready-to-use examples for plug-ins that query SQL database.
 
 # 1.1.1 -- 2024-01-14
 
-- fix built-in demo failing to build the sample SMS template
-- some rearrangement of the codebase to keep as much of tattler-enterprise as possible in tattler-community too
+- Fix built-in demo failing to build the sample SMS template.
+- Some rearrangement of the codebase to keep as much of tattler-enterprise as possible in tattler-community too.
 
 # 1.1.0 -- 2023-12-31
 
-- move SMS templates from event/sms to own subfolder event/sms/body
-- clearly annotate features specific to enterprise edition in docs
+- Move SMS templates from event/sms to own subfolder event/sms/body.
+- Clearly annotate features specific to enterprise edition in docs.
 
 # 1.0.0 -- 2021-10-31
 
-- initial release
+- Initial release

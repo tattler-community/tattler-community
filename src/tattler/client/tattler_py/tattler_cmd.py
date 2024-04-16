@@ -5,6 +5,7 @@ import argparse
 import logging
 import os
 import sys
+import json
 from typing import Tuple
 
 from tattler.client.tattler_py import send_notification
@@ -46,11 +47,17 @@ def parse_cmdline(args):
     parser.add_argument('-s', '--server', type=server_endpoint_spec, default="127.0.0.1:11503", help="Optional address:port of tattler server to request notification to. Default: 127.0.0.1:11503.")
     parser.add_argument('-m', '--mode', choices={'debug', 'staging', 'production'}, default="debug", help="Optional mode for sending the notification (debug, staging, production). Default: debug.")
     parser.add_argument('-p', '--priority', type=int, choices={1, 2, 3, 4, 5}, help="Optional priority for the notification. Default: None.")
+    parser.add_argument('-j', '--json-context', type=argparse.FileType('r', encoding='utf-8'), help='Optional path to a JSON file holding context data. Any command-line context vars gets merged on top of it.')
     return parser.parse_args(args=args)
 
 def main():
     """Main function run on command line call."""
     args = parse_cmdline(sys.argv[1:])
+    if args.json_context:
+        jctx = json.load(args.json_context)
+        if not isinstance(jctx, dict):
+            raise ValueError(f"Context file must be a dictionary (JSON object), not {type(jctx)}")
+        args.context = {**jctx, **dict(args.context)}
     success, details = send_notification(args.scope, args.event_name, args.recipient, dict(args.context), vectors=args.vectors, mode=args.mode, priority=args.priority, srv_addr=args.server[0], srv_port=args.server[1])
     if success:
         log.info("Notification succeeded. Details: %s", details)
