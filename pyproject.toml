@@ -19,6 +19,7 @@ classifiers = [
     ]
 description = "A client-server notification system for HTML emails, sms and more."
 readme = "README.rst"
+requires-python = ">= 3.9"
 dependencies = [
     "Jinja2 >= 3.1.2",
     "humanize >= 4.7.0",
