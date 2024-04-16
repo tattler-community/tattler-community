@@ -114,6 +114,18 @@ The address and port number of the host to use for SMTP delivery, formatted as:
 - For IPv6: ``[ip6_address]:port_number`` or simply ``[ip6_address]`` to default on port 25. E.g. ``[2a00:1450:400a:802::2005]:25``
 - For hostname: ``hostname:port_number`` or simply ``hostname`` to default on port 25. E.g. ``smtp.gmail.com:465``
 
+**Nota bene**: Tattler will use the port number to decide whether to connect in plain TCP or TLS. Well-known SMTP-TLS ports
+are: 465, 587.
+
+Default: ``127.0.0.1:25``
+
+TATTLER_SMTP_TIMEOUT
+--------------------
+
+Wait on SMTP server for up to this many seconds before failing. It must be a positive integer.
+
+Default: ``30``
+
 
 TATTLER_SMTP_TLS
 ----------------
