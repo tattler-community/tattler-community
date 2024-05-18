@@ -37,11 +37,11 @@ Your template designer defines which events are available for each event, by pla
     └── mywebapp/
         └── password_changed/
             ├── email/
-            │   ├── body_html
-            │   ├── body_plain
-            │   └── subject
+            │   ├── body.html
+            │   ├── body.txt
+            │   └── subject.txt
             └── sms/
-                └── body
+                └── body.txt
 
 See docs for :ref:`template designers <templatedesigners/index:Template designers>`.
 

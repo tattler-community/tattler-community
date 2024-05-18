@@ -1,5 +1,5 @@
 Telegram templates
-------------------
+==================
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
@@ -32,7 +32,7 @@ content into a text file named ``body`` within it::
     └── mywebapp/
         └── password_changed/
             └── telegram/                 <- Telegram vector
-                └── body                  <- content template
+                └── body.txt              <- content template
 
 .. caution:: The Telegram platform poses some requirements to deliver messages!
 

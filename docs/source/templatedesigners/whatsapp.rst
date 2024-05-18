@@ -1,5 +1,5 @@
 WhatsApp templates
-------------------
+==================
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
@@ -25,13 +25,13 @@ WhatsApp templates are similar to SMS templates.
 .. hint:: WhatsApp requires you to have the user's mobile phone number as the address of the recipient.
 
 If you want to notify an event via WhatsApp, add the ``whatsapp`` folder within the event folder, and its
-content into a text file named ``body`` within it::
+content into a text file named ``body.txt`` within it::
 
     templates_base/
     └── mywebapp/
         └── password_changed/
             └── whatsapp/                 <- WhatsApp vector
-                └── body                  <- content template
+                └── body.txt              <- content template
 
 If your interaction model requires you to contact the user first, you may find that WhatsApp requires
 you to open new conversations with a template message, instead of free text. Template messages must be
@@ -61,4 +61,3 @@ to WhatsApp is not currently supported, so make sure your template does not incl
     
     See `WhatsApp Cloud API's documentation <https://developers.facebook.com/docs/whatsapp/cloud-api/>`_
     for more details.
-
