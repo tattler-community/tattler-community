@@ -52,6 +52,21 @@ you are going to find out during development rather than after deployment.
 This is particularly relevant for players like Gmail, that got dominant enough to
 careless with false positives.
 
+
+Context files as specification
+------------------------------
+
+Always provide a ``context.json`` file as part of your templates.
+
+Their utility goes beyond being able to live-preview them.
+
+Sample context files serve as a quick reference of a specification for the event template:
+
+- Which variables does the template take?
+- What is their concrete data type?
+- If a variable is an object, what are its expected members?
+
+
 A/B comparisons
 ---------------
 
