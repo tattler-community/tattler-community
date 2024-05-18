@@ -29,6 +29,7 @@ dependencies = [
 [project.scripts]
 tattler_server = "tattler.server.tattlersrv_http:main"
 tattler_notify = "tattler.client.tattler_py.tattler_cmd:main"
+tattler_livepreview = "tattler.server.tattler_livepreview:main"
 
 [project.urls]
 Home = "https://tattler.dev"

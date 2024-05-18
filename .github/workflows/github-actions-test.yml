@@ -52,8 +52,12 @@ jobs:
           pip install build
           python -m build
           pip install dist/tattler-2.0.0-py3-none-any.whl
+          echo Testing entrypoints:
+          echo which tattler_server
           which tattler_server
+          echo which tattler_notify
           which tattler_notify
+          echo which tattler_livepreview
           which tattler_livepreview
       - name: validate links
         run: |
