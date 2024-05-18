@@ -1,6 +1,8 @@
+import base64
 import os
 import logging
 import uuid
+import binascii
 from datetime import date, datetime
 from typing import Mapping, Any, Optional, Iterable, Union
 from pathlib import Path
@@ -277,3 +279,41 @@ def replace_time_values(obj):
             except ValueError:
                 pass
     return obj
+
+def obfuscate(data: str, key: Optional[str]=None) -> bytes:
+    """Return a representation of data obfuscated in a reversable way.
+    
+    :param data:        Raw data to obfuscate.
+    :param key:         Optional key to use for decryption. If omitted, a key valid for one day will be used.
+    :return:            The obfuscated form of the string.
+    """
+    key = key or datetime.today().strftime('%Y%m%d')
+    outvals = []
+    for i, c in enumerate(key + data):
+        ordval = ord(c)
+        ordkey = ord(key[i % len(key)])
+        outvals.append(ordval + ordkey)
+    outstr = ','.join([str(i) for i in outvals])
+    return base64.b64encode(outstr.encode())
+
+def unobfuscate(data: bytes, key: Optional[str]=None) -> str:
+    """Return a data reversed from obfuscation.
+    
+    :param data:        Raw data to decrypt.
+    :param key:         Optional key to use for decryption. If omitted, a key valid for one day will be used.
+    :return:            The value of the string decrypted.
+    :raises ValueError: If the key could not successfully decrypt the original data.
+    """
+    key = key or datetime.today().strftime('%Y%m%d')
+    outstr = ''
+    try:
+        indata = base64.b64decode(data).decode().split(',')
+        invals  = [int(i) for i in indata]
+    except (UnicodeDecodeError, binascii.Error, ValueError) as err:
+        raise ValueError("Cannot decode data") from err
+    for i, num in enumerate(invals):
+        lookup_key = num - ord(key[i % len(key)])
+        outstr += chr(lookup_key)
+    if not outstr.startswith(key):
+        raise ValueError("Key could not successfully unobfuscate string with given key.")
+    return outstr[len(key):]

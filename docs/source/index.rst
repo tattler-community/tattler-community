@@ -99,6 +99,7 @@ Proceed to the following contents to learn about deploying and using Tattler for
    keyconcepts/index
    productmanagers
    templatedesigners/index
+   testing/index
    developers/index
    plugins/index
    sysadmins/index
