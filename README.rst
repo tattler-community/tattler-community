@@ -184,6 +184,11 @@ Tattler uses the powerful `Jinja <https://jinja.palletsprojects.com/en/3.1.x/tem
 
 Used to a different template engine already? Tattler also supports customizing this, too.
 
+Tattler also allows you to share common style among all your notifications with
+`base templates <https://docs.tattler.dev/templatedesigners/base_templates.html>`_.
+Put your style, header, footer and any common text into the base template -- so your event
+templates only need to define the content specific to them.
+
 
 📸 Live previews
 ===================
