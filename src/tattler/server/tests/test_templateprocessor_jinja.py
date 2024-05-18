@@ -3,26 +3,24 @@ import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from testutils import get_template_dir
-
 from tattler.server.sendable import EmailSendable
 from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
 class JinjaTemplateProcessorTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.template_scopes_path = get_template_dir()
-        self.good_templates_path = os.path.join(self.template_scopes_path, 'jinja')
+        self.template_scopes_path = Path(__file__).parent / 'fixtures' / 'templates_dir'
+        self.good_templates_path = self.template_scopes_path / 'jinja'
 
     def test_expansion_with_base(self):
         # Plain
         es = EmailSendable('jinja_event', [], template_processor=JinjaTemplateProcessor, template_base=self.good_templates_path)
         # plain text
-        txtcontent = es._get_content_element('body_plain', {})
+        txtcontent = es._get_content_element('body.txt', {})
         self.assertIn("Text base", txtcontent)
         self.assertIn("new text", txtcontent)
         self.assertNotIn("replace text", txtcontent)
         # HTML
-        htmlcontent = es._get_content_element('body_html', {})
+        htmlcontent = es._get_content_element('body.html', {})
         self.assertIn("HTML base", htmlcontent)
         self.assertIn("new HTML", htmlcontent)
         self.assertNotIn("replace HTML", htmlcontent)
@@ -38,7 +36,7 @@ class JinjaTemplateProcessorTest(unittest.TestCase):
             'sval1': 'one',
             'sval2': 'two',
         }
-        fname = Path(self.good_templates_path) / 'jinja_variable_expressions' / 'sms' / 'body'
+        fname = Path(self.good_templates_path) / 'jinja_variable_expressions' / 'sms' / 'body.txt'
         txtcontent = fname.read_text(encoding='utf-8')
         tpj = JinjaTemplateProcessor(content=txtcontent)
         string_context = {k:str(v) for k, v in context.items()}
@@ -52,7 +50,7 @@ class JinjaTemplateProcessorTest(unittest.TestCase):
             'vdate': now.date(),
             'vint': 12345591313,
         }
-        fname = Path(self.good_templates_path) / 'jinja_humanize' / 'sms' / 'body'
+        fname = Path(self.good_templates_path) / 'jinja_humanize' / 'sms' / 'body.txt'
         content = fname.read_text(encoding='utf-8')
         tpj = JinjaTemplateProcessor(content=content)
         result = tpj.expand(context)

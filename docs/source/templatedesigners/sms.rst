@@ -1,5 +1,5 @@
 SMS templates
--------------
+=============
 
 +------------------------+---------------------------------------------------------------------------------+
 | Address type           | Mobile number, in `E.164 <https://www.bulksms.com/developer/json/v1/>`_ format. |
@@ -37,7 +37,7 @@ SMS templates are organized as follows inside the event's folder::
     └── mywebapp/
         └── password_changed/
             └── sms/                <- sms vector
-                └── body            <- content template
+                └── body.txt        <- content template
 
 This SMS template file may contain some content like this::
 

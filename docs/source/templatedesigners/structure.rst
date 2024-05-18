@@ -1,12 +1,12 @@
 Overall template structure
---------------------------
+==========================
 
 Templates are collected under a single folder, called :ref:`TATTLER_TEMPLATE_BASE <configuration:TATTLER_TEMPLATE_BASE>`.
 
 Get used to where it is, because you'll spend the bulk of your time inside it over the next few weeks 😉
 
 Scopes
-^^^^^^
+------
 
 The :ref:`TATTLER_TEMPLATE_BASE <configuration:TATTLER_TEMPLATE_BASE>` folder contains one sub-folder for each
 :ref:`scope <keyconcepts/scopes:notification scopes>`.
@@ -24,7 +24,7 @@ You can start by wrapping all events into one single scope -- say "myWebApp" -- 
     └── my_booking_sys/                 <-- another scope
 
 Events
-^^^^^^
+------
 
 Events are folders within a scope. So once you create folders -- under your scope "myWebApp" --
 for the events your fantasy :ref:`product manager <productmanagers:the table>`, your ``TATTLER_TEMPLATE_BASE``
@@ -38,7 +38,7 @@ would look like this:
         └── password_changed/           <- another event
 
 Vectors
-^^^^^^^
+-------
 
 Each event may require being sent over email and SMS.
 

@@ -1,5 +1,5 @@
 Template variables
-------------------
+==================
 
 Variables can come into templates from 3 places:
 
@@ -15,7 +15,7 @@ speak with your :ref:`application developer <roles:application developers>`.
 
 
 user_id
-^^^^^^^^^^
+-------
 
 Type: str
 
@@ -23,7 +23,7 @@ Recipient id as passed to tattler in the client request.
 
 
 user_email
-^^^^^^^^^^
+----------
 
 Type: str | None
 
@@ -31,7 +31,7 @@ E-mail address of the user being notified.
 
 
 user_sms
-^^^^^^^^
+--------
 
 Type: str | None
 
@@ -39,7 +39,7 @@ Mobile number of the user being notified.
 
 
 user_firstname
-^^^^^^^^^^^^^^
+--------------
 
 Type: str
 
@@ -57,7 +57,7 @@ Speak to your :ref:`application developer <roles:application developers>`.
 
 
 user_account_type
-^^^^^^^^^^^^^^^^^
+-----------------
 
 type: str | None
 
@@ -68,7 +68,7 @@ This is useful e.g. to build conditional text and address paying and free users 
 
 
 correlation_id
-^^^^^^^^^^^^^^
+--------------
 
 Type: str
 
@@ -86,7 +86,7 @@ Variable `notification_id`_ is usually a better choice.
 
 
 notification_id
-^^^^^^^^^^^^^^^
+---------------
 
 Type: str
 
@@ -101,7 +101,7 @@ This provides a clear separation of user-facing information vs internal informat
 
 
 notification_mode
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Type: str
 
@@ -109,7 +109,7 @@ Which :ref:`notification mode <keyconcepts/mode:notification mode>` the notifica
 
 
 notification_vector
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 Type: str
 
@@ -118,7 +118,7 @@ in some advanced template scenarios.
 
 
 notification_scope
-^^^^^^^^^^^^^^^^^^
+------------------
 
 Type: str
 
@@ -126,7 +126,7 @@ Name of the scope of the event.
 
 
 event_name
-^^^^^^^^^^
+----------
 
 Type: str
 

@@ -1,5 +1,5 @@
 Multilingual notifications
----------------------------
+==========================
 
 .. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
 
@@ -15,13 +15,13 @@ Each language is a sub-folder placed inside of the event vector (e.g. ``email``)
         └── password_changed/
             └── email/                  <- E-mail vector
                 ├── de/                 <- Event template for "de" language
-                │   ├── body_plain
-                │   ├── body_html
-                │   └── subject
+                │   ├── body.txt
+                │   ├── body.html
+                │   └── subject.txt
                 └── en/                 <- Event template for "en" language
-                    ├── body_plain
-                    ├── body_html
-                    └── subject
+                    ├── body.txt
+                    ├── body.html
+                    └── subject.txt
 
 Simply put each translation into its own language subfolder like it were its own event.
 
@@ -35,7 +35,7 @@ when they extend the :ref:`addressbook plugin <plugins/addressbook:addressbook p
 multilingual notifications.
 
 Default language
-^^^^^^^^^^^^^^^^
+----------------
 
 Do you want to define a "default language" to use when a user has not indicated a language preference?
 
@@ -65,17 +65,17 @@ directly into the event template folder -- like you learned to do for the mono-l
     └── mywebapp/
         └── password_changed/
             └── email/                  <- E-mail vector
-                ├── body_plain          <-\
-                ├── body_html           <--| event template for default language, i.e. unknown language preference
-                ├── subject             <-/
+                ├── body.txt          <-\
+                ├── body.html           <--| event template for default language, i.e. unknown language preference
+                ├── subject.txt             <-/
                 ├── de/                 <- Event template for "de" language
-                │   ├── body_plain
-                │   ├── body_html
-                │   └── subject
+                │   ├── body.txt
+                │   ├── body.html
+                │   └── subject.txt
                 └── en/                 <- Event template for "en" language
-                    ├── body_plain
-                    ├── body_html
-                    └── subject
+                    ├── body.txt
+                    ├── body.html
+                    └── subject.txt
 
 How to avoid duplicate definitions for a language -- one for the language code and one for the default language?
 Use symbolic links. Define the event templates for the default language in the event folder, and then create a language
@@ -92,8 +92,8 @@ This makes your templates structure look like this::
     └── mywebapp/
         └── password_changed/
             └── email/                  <- E-mail vector
-                ├── body_plain          <- Default language
-                ├── body_html
-                ├── subject
+                ├── body.txt          <- Default language
+                ├── body.html
+                ├── subject.txt
                 └── en/ -> ./           <- symlink "en" to .. default language
 

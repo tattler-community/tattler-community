@@ -55,19 +55,26 @@ class EmailSendable(vector_sendable.Sendable):
         'TATTLER_SMTP_ADDRESS': [False, lambda x: (ip4_re.match(x) or ip6_re.match(x) or hostname_re.match(x))],
     }
 
+    filename_aliases = {
+        'subject.txt': ['subject'],
+        'body.txt': ['body_plain'],
+        'body.html': ['body_html'],
+        'priority.txt': ['priority'],
+    }
+
     def _get_available_parts(self) -> Mapping[str, str]:
         """Return the list of parts composing the template."""
-        parts = self._get_template_elements()
+        parts = self._get_template_elements_standardized()
         part_types = {
-            'body_plain': 'plain',
-            'body_html': 'html',        # place HTML last (RFC 1341)
+            'body.txt': 'plain',
+            'body.html': 'html',        # place HTML last (RFC 1341)
         }
         return {ptype: pname for pname, ptype in part_types.items() if pname in parts}
 
     def validate_template(self):
         """Raise iff any required part is missing or a part is not well-formed."""
-        parts = set(self._get_template_elements())
-        required = {'body_plain', 'subject'}
+        parts = self._get_template_elements_standardized()
+        required = {'body.txt', 'subject.txt'}
         if required - parts:
             raise ValueError(f"Required parts are missing: {required - parts}")
 
@@ -89,8 +96,8 @@ class EmailSendable(vector_sendable.Sendable):
         :param msg:             Message to add available parts to.
         :param context:         Optional variables to expand template with.
         """
-        if 'body_html' not in self._get_available_parts().values():
-            part_content = self._get_content_element('body_plain', context)
+        if 'body.html' not in self._get_available_parts().values():
+            part_content = self._get_content_element('body.txt', context)
             msg.set_payload(part_content)
         else:
             msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
@@ -107,7 +114,7 @@ class EmailSendable(vector_sendable.Sendable):
         :return:                Email object with all required parts filled out.
         """
         # Create message container - the correct MIME type is multipart/alternative.
-        if 'body_html' in self._get_available_parts().values():
+        if 'body.html' in self._get_available_parts().values():
             msg = MIMEMultipart('alternative')
         else:
             msg = MIMENonMultipart('text', 'plain')
@@ -155,7 +162,7 @@ class EmailSendable(vector_sendable.Sendable):
         if self.priority is None:
             # try to load it from template
             try:
-                self.set_priority(self._get_template_raw_element('priority').strip())
+                self.set_priority(self._get_template_raw_element('priority.txt').strip())
             except FileNotFoundError:
                 return msg
         msg.add_header('X-Priority', str(self.priority))
@@ -180,7 +187,7 @@ class EmailSendable(vector_sendable.Sendable):
 
     def subject(self, context: Mapping[str, Any]) -> str:
         """Return the e-mail subject."""
-        return self._get_content_element('subject', context).strip()
+        return self._get_content_element('subject.txt', context).strip()
 
     def content(self, context: Mapping[str, Any]) -> str:
         return self._build_msg(context).as_string()

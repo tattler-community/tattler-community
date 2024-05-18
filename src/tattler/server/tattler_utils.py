@@ -1,6 +1,7 @@
 import os
 import logging
 import uuid
+from datetime import date, datetime
 from typing import Mapping, Any, Optional, Iterable, Union
 from pathlib import Path
 from importlib.resources import files
@@ -37,7 +38,11 @@ ContextType = Mapping[str, Any]
 
 def getenv(name: str, default: Optional[str]=None) -> Optional[str]:
     """Get variable from environment -- allowing mocking"""
-    return os.getenv(name, default)
+    return os.getenv(name, default)     # pragma: no cover
+
+def setenv(name: str, value: Optional[str]=None) -> None:
+    """Set variable into environment -- allowing mocking"""
+    os.environ[name] = value        # pragma: no cover
 
 def init_plugins(search_path: Optional[Union[str, os.PathLike]]=None) -> None:
     """Load plugins, if any path for them is available.
@@ -257,3 +262,18 @@ def get_operating_mode(requested_mode, default_master_mode=None):
     if mode_severity.index(requested_mode) > mode_severity.index(master_mode):
         return master_mode
     return requested_mode
+
+def replace_time_values(obj):
+    """Transform any time value in an object into a serializable form"""
+    if isinstance(obj, dict):
+        return {k:replace_time_values(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [replace_time_values(v) for v in obj]
+    elif isinstance(obj, str):
+        # date?
+        for t in [date, datetime]:
+            try:
+                return t.fromisoformat(obj)
+            except ValueError:
+                pass
+    return obj

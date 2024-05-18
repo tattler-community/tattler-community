@@ -1,5 +1,5 @@
 Email templates
----------------
+===============
 
 +------------------------+---------------------------------------------------------------------------------+
 | Address type           | Regular e-mail address.                                                         |
@@ -34,30 +34,30 @@ such files are enclosed into an ``email`` folder::
     └── mywebapp/                       <-- a scope
         └── password_changed/           <- an event
             └── email/                  <- email vector
-                ├── subject             <- mandatory
-                ├── body_plain          <- mandatory
-                ├── body_html
-                └── priority
+                ├── subject.txt         <- mandatory
+                ├── body.txt            <- mandatory
+                ├── body.html
+                └── priority.txt
 
-.. hint:: The ``body_plain`` definition is not required in `Tattler's enterprise edition <https://tattler.dev/#enterprise>`_.
+.. hint:: The ``body.txt`` definition is not required in `Tattler's enterprise edition <https://tattler.dev/#enterprise>`_.
 
     Tattler enterprise edition includes the :ref:`auto-text <templatedesigners/autotext:auto-text>` feature, which allows
-    you to only provide ``body_html``.
+    you to only provide ``body.html``.
     
 The files have the following purpose:
 
-``subject``
+``subject.txt``
     Mandatory. Contains template text which will be expanded with template variables to generate the subject of the email to send.
 
-``body_plain``
+``body.txt``
     Mandatory (in Tattler community edition). Contains template text which will be expanded with template variables to generate the body of the email to send.
-    This is the plain-text body standard in every email. If a ``body_html`` file is also provided, this content only serves as a "fallback" for recipients who lack support for HTML emails.
+    This is the plain-text body standard in every email. If a ``body.html`` file is also provided, this content only serves as a "fallback" for recipients who lack support for HTML emails.
 
-``body_html``
+``body.html``
     Optional. Contains template text which will be expanded with template variables to generate the HTML version of the email to send. If the recipient's e-mail application supports HTML emails, they will
     view this content first.
 
-``priority``
+``priority.txt``
     Optional. Contains an integer ∈ { 1, 2, 3, 4, 5 }, where ``1`` is "highest" and ``3`` is "normal" priority.
     Priority is implemented by setting the ``X-Priotity`` header in the final email to the user,
     so its potency depends on whether the user's email application supports that attribute -- which many do.
@@ -65,19 +65,16 @@ The files have the following purpose:
 HTML Emails
 -----------
 
-HTML emails are plain-text emails with an HTML file attached.
+HTML emails are plain-text emails with an HTML file attached, packaged in a special way dictated by the `MIME standard <https://de.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions>`_.
 
-Your job is to write the template for that HTML file.
+Tattler takes care of this special packaging, so your job is to write the template for that HTML file.
 
-Tattler's job is to expand the template and assemble the email with subject,
-plain-text part and HTML part.
-
-Write the HTML template into file ``body_html``. Make it valid HTML enclosed in
+Write the HTML template into file ``body.html``. Make it valid HTML enclosed in
 a ``<html></html>`` element:
 
 .. code-block:: html
 
-    <!-- this is the content of file body_html -->
+    <!-- this is the content of file body.html -->
     <html>
         <body>
             <h1>Password changed!</h1>
@@ -94,7 +91,7 @@ Hold your HTML
 Tattler supports all the HTML you want, but email clients don't.
 
 Some email clients don't support HTML at all -- in which case your recipient will only see
-the content you prepared in ``body_plain``.
+the content you prepared in ``body.txt``.
 
 Clients that do support HTML emails do so limitedly and inconsistently.
 
@@ -109,13 +106,13 @@ Many email clients support setting and viewing an email *priority*.
 
 These include Thunderbird, Gmail, Outlook and Apple mail.
 
-tattler allows you to set an email's priority by placing the ``priority`` file
+tattler allows you to set an email's priority by placing the ``priority.txt`` file
 into the email template folder:
 
 .. code-block:: bash
 
     cd templates_base/password_changed/email/
-    echo "1" > priority
+    echo "1" > priority.txt
 
 This will make the message "high-priority" when the user's email application supports
 the feature.

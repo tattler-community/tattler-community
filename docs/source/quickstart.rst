@@ -160,8 +160,8 @@ What actual content should tattler send, for the event we requested? :ref:`Event
    mkdir password_changed/email
    cd password_changed/email
    # so we need a subject and body
-   echo 'You successfully changed your password!' > subject
-   echo 'Hey!\n\nAccount password changed!' > body_plain
+    echo 'You successfully changed your password!' > subject.txt
+    echo 'Hey!\n\nAccount password changed!' > body.txt
 
 Done. Our notification templates directory now looks like this:
 
@@ -172,8 +172,8 @@ Done. Our notification templates directory now looks like this:
        └── mywebapp/                 # scope  = mywebapp
            └── password_changed/     # event  = password_changed
                └── email/            # vector = email
-                   ├── body_plain
-                   └── subject
+                   ├── body.txt
+                   └── subject.txt
 
 Find more information about designing templates in the
 :doc:`documentation for template designers <templatedesigners/index>`.
