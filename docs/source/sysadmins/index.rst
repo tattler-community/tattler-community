@@ -20,12 +20,6 @@ A tattler deployment looks like this:
 .. include:: ../diagrams/deployment.mermaid
 
 
-.. toctree::
-    install_venv
-    base_config
-    update_templates
-    deploy_plugins
-
 Deployment path
 ---------------
 
@@ -38,3 +32,11 @@ We proceed as follows:
 3. Provide access to template designers.
 
 4. Deploy custom plug-ins.
+
+
+.. toctree::
+    install_venv
+    base_config
+    update_templates
+    deploy_plugins
+    additional_considerations

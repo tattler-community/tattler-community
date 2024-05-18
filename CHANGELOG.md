@@ -1,3 +1,9 @@
+# 2.0.0 -- ?
+
+- Add tattler_livepreview to assist template editors with automatic expansion and delivery upon save.
+- Rename template files to simplify editing: body and body_plain -> body.txt, body_html -> body.html, subject -> subject.txt, priority -> priority.txt . The old naming is still supported until v3.0, but will log deprecation messages.
+- Automatically detect if a common ``_base`` is shared among all scopes, help directly in the template base directory.
+
 # 1.5.2 -- 2024-04-16
 
 - Support sending complex context data using JSON files in `tattler_notify`.
