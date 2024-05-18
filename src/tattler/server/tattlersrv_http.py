@@ -5,7 +5,6 @@ import logging
 import re
 import http.server
 
-from datetime import datetime, date
 from urllib.parse import urlparse, parse_qsl
 
 from tattler.server import sendable
@@ -13,28 +12,13 @@ from tattler.server import pluginloader   # import in this exact way to ensure t
 
 from tattler.server.templatemgr import get_scopes
 from tattler.server import tattler_utils
-from tattler.server.tattler_utils import getenv
+from tattler.server.tattler_utils import getenv, replace_time_values
 
 
 logging.basicConfig(level=getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
 
 default_master_mode = 'debug'
-
-def replace_time_values(obj):
-    """Transform any time value in an object into a serializable form"""
-    if isinstance(obj, dict):
-        return {k:replace_time_values(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [replace_time_values(v) for v in obj]
-    elif isinstance(obj, str):
-        # date?
-        for t in [date, datetime]:
-            try:
-                return t.fromisoformat(obj)
-            except ValueError:
-                pass
-    return obj
 
 notification_req_re = re.compile(r'/notification/(?P<scope>[a-zA-Z0-9:._-]+)/((?P<event>[a-zA-Z0-9:._-]+)(?P<evprop>/vectors/)?)?')
 
@@ -62,7 +46,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
             log.debug("Received payload '%s'", raw_body)
             definitions = json.loads(raw_body)
             definitions = replace_time_values(definitions)
-        except Exception as exc:
+        except (UnicodeError, json.decoder.JSONDecodeError) as exc:
             log.exception("Could not deserialize definitions:")
             raise ValueError("Invalid definitions in body. Want JSON dictionary.") from exc
         return definitions
@@ -152,7 +136,8 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
 
 def serve(address='', port=20000):
     """Start server instance listening on given TCP address and port"""
-    log.warning("serving at %s:%s", address, port)
+    log.info("==> Meet tattler @ https://tattler.dev . If you like tattler, consider posting about it! ;-)")
+    log.warning("Now serving at %s:%s", address, port)
     try:
         return http.server.HTTPServer((address, port), TattlerServer)
     except OSError as err:

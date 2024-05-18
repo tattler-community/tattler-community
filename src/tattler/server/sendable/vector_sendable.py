@@ -30,6 +30,12 @@ class Sendable:
         # name:     [required: bool, validator: Optional[callable]]
     }
 
+    # backwards compatibility: look for additional filename aliases when one filename is required.
+    # Override this in children that need to customize it
+    filename_aliases = {
+        'body.txt': ['body']
+    }
+
     def __init__(self, event: str, recipients: Iterable[str], template_processor: type[TemplateProcessor]=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
         """Build an object which can be expanded into content and delivered through a vector.
         
@@ -61,8 +67,8 @@ class Sendable:
         """Raise iff any required part is missing or a part is not well-formed.
         
         :raise ValueError:     when any part of the template is invalid; exception message describes what."""
-        if 'body' not in self._get_template_elements():
-            raise ValueError("Required part 'body' is missing.")
+        if 'body.txt' not in self._get_template_elements_standardized():
+            raise ValueError("Required part 'body.txt' is missing.")
 
     @classmethod
     def sender(cls, recipient: Optional[str]=None) -> Optional[str]:
@@ -116,10 +122,15 @@ class Sendable:
         :param base:    Whether to look up the template as a base template (under _base).
         
         :return:        The path where the template for the vector can be found."""
-        comp_name = '_base' if base else self.event()
-        template_pathname = self.template_base / comp_name / self.vector()
+        if base:
+            loc_candidates = [loc / '_base' / self.vector() for loc in [self.template_base, self.template_base.parent ]]
+            for loc in loc_candidates:
+                if loc.exists():
+                    return loc
+            raise ValueError(f"No 'base ' template exists for '{self.vector()}:{self.event()}:{self.language_code}' (tried candidates {loc_candidates}).")
+        template_pathname = self.template_base / self.event() / self.vector()
         if not template_pathname.exists():
-            raise ValueError(f"No {'base ' if base else ''}template exists for '{self.vector()}:{self.event()}:{self.language_code}' (missing file: {template_pathname}).")
+            raise ValueError(f"No template exists for '{self.vector()}:{self.event()}:{self.language_code}' (missing file: {template_pathname}).")
         return template_pathname
 
     def _get_template_raw_element(self, name: str, base: bool=False) -> str:
@@ -130,9 +141,15 @@ class Sendable:
 
         :return:            Content of the requested element.
         """
-        fname = self._get_template_pathname(base) / name
-        log.debug("n%s: Looking up '%s' %stemplate part -> %s", self.nid, name, ('base ' if base else ''), fname)
-        return fname.read_text(encoding='utf-8')
+        aliases = self.filename_aliases.get(name, [])
+        for alias in [name] + aliases:
+            fname = self._get_template_pathname(base) / alias
+            log.debug("n%s: Looking up '%s' %stemplate part -> %s", self.nid, name, ('base ' if base else ''), fname)
+            if fname.exists() and alias in aliases:
+                log.warning("Deprecation warning: Found template file named '%s'. Rename it to '%s' (since v2.0). The old naming scheme will no longer be recognized in v3.0.", alias, name)
+                return fname.read_text(encoding='utf-8')
+        # File not found. Have Path object itself raise exection
+        return (self._get_template_pathname(base) / name).read_text('utf-8')
 
     def _get_template_elements(self, base: bool=False) -> Iterable[str]:
         """Return a list of available elements within the event template for the vector.
@@ -140,6 +157,20 @@ class Sendable:
         :return:    List of element names available within the event template or base template."""
         dirname = self._get_template_pathname(base)
         return {fname for fname in os.listdir(dirname) if not fname.startswith('.') and os.path.isfile(dirname / fname)}
+
+    def _get_template_elements_standardized(self) -> Iterable[str]:
+        """Return a list of available elements, with their standard names replaced in case of aliases, e.g. body_plain -> body.txt.
+        
+        See :py:meth:`_get_template_elements`.
+
+        :return:    List of element names available within the event template or base template, with aliased names replaced with the standard name."""
+        names = self._get_template_elements()
+        # replace aliases with standard names
+        stdnames = []
+        for name in names:
+            found_alias_stdname = [stdname for stdname, aliases in self.filename_aliases.items() if name in aliases]
+            stdnames.append(found_alias_stdname[0] if found_alias_stdname else name)
+        return set(stdnames)
 
     def _get_content_element(self, element: str, context: Mapping[str, Any]) -> str:
         """Return the final display content by expanding the requested element with the given context."""
@@ -187,7 +218,7 @@ class Sendable:
 
     def raw_content(self) -> str:
         """Return the raw content of the unexpanded template."""
-        return self._get_template_raw_element("body")
+        return self._get_template_raw_element("body.txt")
 
     def content(self, context: Mapping[str, Any]) -> str:
         """Return the content of the sendable."""

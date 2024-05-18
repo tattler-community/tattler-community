@@ -16,9 +16,10 @@ data_recipients = {
 }
 
 # template fixtures generic to multiple vectors
-tbase_standard_path = Path(__file__).parent.joinpath('fixtures', 'templates')
+tbase_standard_path = Path(__file__).parent / 'fixtures' / 'templates'
+tbase_originalnaming_path = Path(__file__).parent / 'fixtures' / 'templates_originalnaming'
 # template fixtures specific to this vector
-tbase_path = Path(__file__).parent.joinpath('fixtures', 'templates_with_base')
+tbase_path = Path(__file__).parent / 'fixtures' / 'templates_with_base'
 
 class TestVectorEmail(unittest.TestCase):
 
@@ -115,6 +116,11 @@ class TestVectorEmail(unittest.TestCase):
     def test_email_html(self):
         """HTML email contains text/html part"""
         e = EmailSendable('event_with_email_and_sms', data_recipients['email'], template_base=tbase_standard_path)
+        self.assertIn('''Content-Type: text/html; charset=''', e.content(context={'one': '#1234#'}))
+
+    def test_email_html_old_filename_format(self):
+        """HTML email contains text/html part, when specified with old filename format body_html"""
+        e = EmailSendable('event_with_email_and_sms', data_recipients['email'], template_base=tbase_originalnaming_path)
         self.assertIn('''Content-Type: text/html; charset=''', e.content(context={'one': '#1234#'}))
 
     def test_html_and_plain_place_html_last(self):
