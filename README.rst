@@ -3,7 +3,7 @@
 .. |badge_coverage| image:: https://codecov.io/gh/tattler-community/tattler-community/graph/badge.svg?token=Q5KGRSR0WT 
    :target: https://codecov.io/gh/tattler-community/tattler-community
 
-.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-1.5.1-blue
+.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-2.0.0-blue
 
 .. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20-blue
 
@@ -20,10 +20,12 @@
 1. `👀 What is tattler?`_
 2. `🤩 Examples`_
 3. `🚀 Quick start`_
-4. `💙 Help us be better`_
-5. `🎖️ License`_
-6. `📈 Enterprise users`_
-7. `📌 Links`_
+4. `📋 Templates`_
+5. `📸 Live previews`_
+6. `💙 Help us be better`_
+7. `🎖️ License`_
+8. `📈 Enterprise users`_
+9. `📌 Links`_
 
 👀 What is tattler?
 ===================
@@ -36,16 +38,20 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
    curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=123'
 
-Tattler helps you with these:
+Tattler helps you with these basics:
 
 1. **Templates**: Load templates for event ``password_changed`` for email, SMS etc.
-2. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
-3. **Template data**: Fetch variables for your templates from your DB (with trivial-to-write plug-ins).
-4. **MIME**: Package a multi-part email with HTML+text fallback.
-5. **Delivery**: Send the content through SMTP and an SMS delivery network.
-6. **Dev mode**: Let your applications trigger notifications to the real user and have tattler only deliver it to your debug address.
+2. **MIME**: Package a multi-part email with HTML, text fallback and all necessary headers.
+3. **Delivery**: Send the content through SMTP and an SMS delivery network.
+4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
 
-Tattler is designed with simplicity in mind. It strives to be easy to adopt and useful among common needs -- so you
+and here's some more advanced features:
+
+5. **Dev mode**: Let your applications trigger notifications to the real user, while tattler only delivers to your debug address.
+6. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
+7. **Template data**: Fetch variables for your templates from your DB (with trivial-to-write plug-ins).
+
+Tattler is designed with simplicity in mind. It strives to be trivial to deploy in the common needs -- so you
 can focus on your communication, brand and customer journey.
 
 If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
@@ -151,6 +157,46 @@ Done!
 
 Want more? Proceed to the `complete quickstart <https://docs.tattler.dev/quickstart.html>`_ in tattler's documentation
 for plug-ins, deployment and more.
+
+
+📋 Templates
+===============
+
+Tattler uses the powerful `Jinja <https://jinja.palletsprojects.com/en/3.1.x/templates/>`_ as default template engine:
+
+.. code-block:: jinja
+
+   Dear {{ user_firstname }}!
+
+   Thank you for your order #{{ order.number }} with {{ order.products|length }} products:
+
+   {% for product in order.products %}
+   - {{ product.name }}
+   {% endfor %}
+
+   {% if user_account_type == 'premium' %}
+   As a premium customer, your order will be at your doorstep tomorrow!
+   {% else %}
+   Delivery is expected by {{ delivery_date }}.
+   {% endif %}
+
+   {# a comment #}
+
+Used to a different template engine already? Tattler also supports customizing this, too.
+
+
+📸 Live previews
+===================
+
+Perfect your communication in no time by getting high-fidelity, real-time previews while you edit your templates.
+
+Tattler includes ``tattler_livepreview``, which monitors your template files, and fires a preview notification as soon as they change.
+
+What's cool about this:
+
+- You get the real output directly in your email program, where your users will. No misleading shortcuts with browsers!
+- You get variables expanded too, giving you faithful previews of your filters, loops, conditionals etc.
+- You do continual testing of template expansion before go-live, because ``tattler_livepreview`` runs through the very logic used by ``tattler_server``.
 
 
 💙 Help us be better
