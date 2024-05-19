@@ -210,7 +210,7 @@ What's cool about this:
 Here's how you can help:
 
 - ⭐️ star our `repository <https://github.com/tattler-community/tattler-community/>`_ if you like tattler. That's our go-to place whenever we feel sad! 😁
-- Post about tattler. The more people know about tattler and use it, the more motivate we are in putting time into its development.
+- Post about tattler online.
 
 And if you're a developer:
 
