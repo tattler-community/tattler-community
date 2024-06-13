@@ -91,7 +91,7 @@ Simply provide a file named ``context.json`` into the event template directory:
                ├── context.json         # <-- custom context 
                └── email/
                    ├── body.txt
-                   └── subject
+                   └── subject.txt
 
 This file must contain a JSON object, with zero or more keys:
 
