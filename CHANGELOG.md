@@ -1,4 +1,4 @@
-# 2.0.0 -- ?
+# 2.0.0 -- 2024-06-13
 
 - Add tattler_livepreview to assist template editors with automatic expansion and delivery upon save.
 - Rename template files to simplify editing: body and body_plain -> body.txt, body_html -> body.html, subject -> subject.txt, priority -> priority.txt . The old naming is still supported until v3.0, but will log deprecation messages.
