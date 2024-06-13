@@ -6,11 +6,9 @@ Signing with S/MIME
 Tattler supports cryptographically signing outgoing notifications,
 so users receive them with a beautiful badge ensuring they are genuine.
 
-The security benefits of your users being usually appeal services in
-specific sectors, such as finance and healthcare.
+The security benefits usually appeal services in specific sectors, such as finance and healthcare.
 
-However, the additional benefit of projecting trustworthiness can
-benefit most brands.
+However, projecting trustworthiness can benefit most brands.
 
 Requirements
 ------------
@@ -69,10 +67,8 @@ vendor offering **free S/MIME certificates**.
 Their certificate has the same quality as paid certificates, and is indistinguishable
 by the user. A paid certificate gives you:
 
-- The ability to generate the private key yourself. The Actalis free offering generates the
-private key for you, which is a deal-breaker in security-critical scenarios.
-- Some extra peace of mind of knowing that your vendor is more likely to still be an option when
-the certificate expires.
+- The ability to generate the private key yourself. The Actalis free offering generates the private key for you, which is a deal-breaker in security-critical scenarios.
+- Some extra peace of mind of knowing that your vendor is more likely to still be an option when the certificate expires.
 
 You might wonder if LetsEncrypt offers you S/MIME certificates. They deliberately
 chose not to, mostly because they found it difficult to securely validate mailboxes.
