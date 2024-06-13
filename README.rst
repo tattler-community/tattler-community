@@ -40,8 +40,8 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
 Tattler helps you with these basics:
 
-1. **Templates**: Load templates for event ``password_changed`` for email, SMS etc.
-2. **MIME**: Package a multi-part email with HTML, text fallback and all necessary headers.
+1. **Templates**: Load & expand powerful templates for event ``password_changed`` for email, SMS etc.
+2. **MIME**: Assemble a multi-part email with HTML, text fallback and advanced headers that satisfy spam filters.
 3. **Delivery**: Send the content through SMTP and an SMS delivery network.
 4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
 
@@ -51,11 +51,11 @@ and here's some more advanced features:
 6. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
 7. **Template data**: Fetch variables for your templates from your DB (with trivial-to-write plug-ins).
 
-Tattler is designed with simplicity in mind. It strives to be trivial to deploy in the common needs -- so you
-can focus on your communication, brand and customer journey.
+Tattler is designed with simplicity in mind. It strives for trivial deployment so you can focus on your
+communication, brand and customer journey.
 
 If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
-and a cron job which monitors inventory -- then your simplification gains with tattlers get multipled 🚀
+and a cron job which monitors inventory -- then tattler multiples your simplification gains 🚀
 
 .. image:: https://raw.githubusercontent.com/tattler-community/tattler-community/main/demos/tattler-benefit.png
 
