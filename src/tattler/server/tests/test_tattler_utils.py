@@ -368,6 +368,16 @@ class TestTattlerUtils(unittest.TestCase):
                     self.assertEqual(err.exception, mtemp.side_effect)
                     self.assertIn('Issues found in configuration', mtman.error.call_args.args[0])
 
+    def test_multilingual_warning(self):
+        """Warn if addressbook returns custom language but tattler isn't multilingual"""
+        with mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
+            mgetenv.side_effect = lambda x, y=None: { 'TATTLER_TEMPLATE_BASE': get_template_dir() }.get(x, os.getenv(x, y))
+            with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
+                maddrb.return_value = data_contacts['999']
+                with mock.patch('tattler.server.tattler_utils.log') as mlog:
+                    tattler_utils.send_notification_user_vectors('999', ['email'], 'jinja', 'jinja_event')
+                    mlog.warning.assert_called()
+                    self.assertIn('multilingual', mlog.warning.call_args.args[0])
 
 
 if __name__ == '__main__':
