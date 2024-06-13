@@ -40,7 +40,7 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
 Tattler helps you with these basics:
 
-1. **Templates**: Load & expand powerful templates for event ``password_changed`` for email, SMS etc.
+1. **Templates**: Load and expand powerful templates for event ``password_changed`` for email, SMS etc.
 2. **MIME**: Assemble a multi-part email with HTML, text fallback and advanced headers that satisfy spam filters.
 3. **Delivery**: Send the content through SMTP and an SMS delivery network.
 4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
