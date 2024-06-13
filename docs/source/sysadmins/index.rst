@@ -35,8 +35,11 @@ We proceed as follows:
 
 
 .. toctree::
+    :hidden:
+
     install_venv
     base_config
     update_templates
     deploy_plugins
+    smime
     additional_considerations
