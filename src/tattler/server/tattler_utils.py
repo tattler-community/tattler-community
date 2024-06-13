@@ -224,10 +224,12 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         raise ValueError(f"Recipient unknown '{recipient_user}'. Aborting notification.")
     log.debug("Contacts for recipient %s are: %s", recipient_user, user_contacts)
     user_available_vectors = {vname for vname in vectors if user_contacts.get(vname, None) is not None}
-    usrlang = None
+    usrlang = user_contacts.get('language', None)
     log.info("Recipient %s is reachable over %d vectors of the %d requested: %s", recipient_user, len(user_available_vectors), len(vectors), user_available_vectors)
     retval = []
     for vname in user_available_vectors:
+        if usrlang is not None:
+            log.warning("User language set to non-default '%s', but tattler community edition doesn't do multilingual, so I'll send the default language", usrlang)
         recipient = user_contacts[vname]
         template_context = core_template_variables(recipient_user, correlationId, mode, vname, event_scope, event_name)
         if context:
