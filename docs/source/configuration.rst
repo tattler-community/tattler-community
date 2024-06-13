@@ -214,3 +214,21 @@ Token for the Bot used to send messages via Telegram.
 Only required if you actually send messages via Telegram.
 
 Refer to Telegram's documentation on how to `obtain a Bot token <https://core.telegram.org/bots/tutorial#obtain-your-bot-token>`_.
+
+
+TATTLER_EMAIL_SMIME_CERT
+------------------------
+
+.. note:: This feature is only available in Tattler's `enterprise edition <https://tattler.dev#enterprise>`_.
+
+Path to the file hosting the certificate which was issued for email signatures.
+
+The file pointed to by this configuration key file must in turn:
+
+- Be readable by ``tattler_server`` (including its directory ancestors).
+- Be in PEM format.
+- Contain both certificate and private key, i.e. contain sections ``-----BEGIN CERTIFICATE-----`` and ``-----BEGIN PRIVATE KEY-----``.
+- Have the private key unencrypted.
+- For security reasons, unreadable by other users.
+
+See :ref:`S/MIME <sysadmins/smime:Configuration>` for further details.

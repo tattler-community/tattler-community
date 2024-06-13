@@ -52,6 +52,38 @@ you are going to find out during development rather than after deployment.
 This is particularly relevant for players like Gmail, that got dominant enough to
 careless with false positives.
 
+
+Context files as specification
+------------------------------
+
+Always provide a ``context.json`` file as part of your templates.
+
+Their utility goes beyond being able to live-preview them.
+
+Sample context files serve as a quick reference of a specification for the event template:
+
+- Which variables does the template take?
+- What is their concrete data type?
+- If a variable is an object, what are its expected members?
+
+
+Which email client to test against
+----------------------------------
+
+Check rendering with **several** email applications.
+
+You can statistically cover 90% of your users with only 3, since here's an estimation of
+their market share as of March 2024 (Source: `oberlo.com <https://www.oberlo.com/statistics/most-used-email-clients>`_):
+
+- 56% Apple Mail
+- 30% Gmail
+- 4% Outlook
+
+Gmail is an especially good test candidate, because it has some of the
+`poorest support for HTML emails <https://www.caniemail.com/scoreboard/>`_,
+and coarse in tagging emails as spam.
+
+
 A/B comparisons
 ---------------
 
