@@ -1,3 +1,7 @@
+# 2.0.1 -- 
+
+- Fix tattler prioritizing old-style template format to new-style if both co-existed
+
 # 2.0.0 -- 2024-06-13
 
 - Add tattler_livepreview to assist template editors with automatic expansion and delivery upon save.
