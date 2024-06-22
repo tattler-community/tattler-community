@@ -6,6 +6,7 @@ import os
 from typing import Iterable, Optional, Mapping, Any
 
 from tattler.server.sendable import vector_sendable
+from tattler.server.sendable.vector_sendable import getenv
 
 from .bulksms import BulkSMS
 
@@ -18,7 +19,7 @@ ENVVAR_NAME = 'TATTLER_BULKSMS_TOKEN'
 
 def get_auth_from_environment():
     """Get authentication data configured."""
-    authstr = vector_sendable.getenv(ENVVAR_NAME, None)
+    authstr = getenv(ENVVAR_NAME, None)
     assert authstr, f"Presence of auth config '{ENVVAR_NAME}' must be pre-validated before get_auth_from_environment()"
     tid, tsecr = None, None
     try:
