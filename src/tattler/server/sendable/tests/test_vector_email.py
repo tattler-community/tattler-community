@@ -123,6 +123,14 @@ class TestVectorEmail(unittest.TestCase):
         e = EmailSendable('event_with_email_and_sms', data_recipients['email'], template_base=tbase_originalnaming_path)
         self.assertIn('''Content-Type: text/html; charset=''', e.content(context={'one': '#1234#'}))
 
+    def test_new_filename_scheme_prevails(self):
+        """If both files body.html and body_plain exist, the former (newer) is picked"""
+        e = EmailSendable('event_with_old_and_new_filename_schemes', data_recipients['email'], template_base=tbase_originalnaming_path)
+        self.assertIn('new filename scheme', e.subject(context={'one': '#1234#'}))
+        self.assertNotIn('old filename scheme', e.subject(context={'one': '#1234#'}))
+        self.assertIn('new filename scheme', e.content(context={'one': '#1234#'}))
+        self.assertNotIn('old filename scheme', e.content(context={'one': '#1234#'}))
+
     def test_html_and_plain_place_html_last(self):
         """If a HTML part is present, it is marked as preferred by being placed last, as per RFC 1341"""
         with mock.patch('tattler.server.sendable.vector_email.smtplib.SMTP') as msmtp:

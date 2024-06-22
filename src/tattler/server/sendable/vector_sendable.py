@@ -145,8 +145,9 @@ class Sendable:
         for alias in [name] + aliases:
             fname = self._get_template_pathname(base) / alias
             log.debug("n%s: Looking up '%s' %stemplate part -> %s", self.nid, name, ('base ' if base else ''), fname)
-            if fname.exists() and alias in aliases:
-                log.warning("Deprecation warning: Found template file named '%s'. Rename it to '%s' (since v2.0). The old naming scheme will no longer be recognized in v3.0.", alias, name)
+            if fname.exists():
+                if alias in aliases:
+                    log.warning("Deprecation warning: Found template file named '%s'. Rename it to '%s' (since v2.0). The old naming scheme will no longer be recognized in v3.0.", alias, name)
                 return fname.read_text(encoding='utf-8')
         # File not found. Have Path object itself raise exection
         return (self._get_template_pathname(base) / name).read_text('utf-8')
