@@ -1,5 +1,6 @@
 # 2.0.1 -- 
 
+- Fix failure to deliver email notification if it's plain-only and contains special characters
 - Fix tattler prioritizing old-style template format to new-style if both co-existed
 
 # 2.0.0 -- 2024-06-13
