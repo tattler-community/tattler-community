@@ -90,16 +90,21 @@ class EmailSendable(vector_sendable.Sendable):
             raw_content += self._get_template_raw_element(part_fname)
         return raw_content
 
+    def is_ascii(self, context: Optional[Mapping[str, str]]=None) -> bool:
+        """Return whether the content is ASCII, once expanded for a given context.
+        
+        :param context:         Optional variables to expand template with.
+        :return:                Whether the content resulting from expansion, including subject, is ascii.
+        """
+        return all(ord(x) < 128 for x in self.content(context or {}))
+
     def _add_msg_parts(self, msg: Union[MIMEMultipart, MIMENonMultipart], context: Optional[Mapping[str, Any]]=None) -> None:
-        """Add text/html and/or text/plain parts to MIME message by loading and expanding templates and determining their encoding.
+        """Add text/html parts to MIME message by loading and expanding templates and determining their encoding.
         
         :param msg:             Message to add available parts to.
         :param context:         Optional variables to expand template with.
         """
-        if 'body.html' not in self._get_available_parts().values():
-            part_content = self._get_content_element('body.txt', context)
-            msg.set_payload(part_content)
-        else:
+        if 'body.html' in self._get_available_parts().values():
             msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
             # Record the MIME types of both parts - text/plain and text/html.
             for part_type, part_fname in self._get_available_parts().items():
@@ -116,8 +121,12 @@ class EmailSendable(vector_sendable.Sendable):
         # Create message container - the correct MIME type is multipart/alternative.
         if 'body.html' in self._get_available_parts().values():
             msg = MIMEMultipart('alternative')
+            self._add_msg_parts(msg, context)
         else:
-            msg = MIMENonMultipart('text', 'plain')
+            # must provide payload here because MIMEText sets encoding
+            # based on payload at construction. It won't update it if
+            # set_payload() is called later with a different encoding!
+            msg = MIMEText(self._get_content_element('body.txt', context))
 
         # fill out header
         msg['From'] = self.sender()
@@ -127,8 +136,6 @@ class EmailSendable(vector_sendable.Sendable):
         # gmail requires a Message-ID to be present. E.g. <A5A1B9EB-DBD6-4DE4-902D-F32E2D7D6B86@email.com>
         sender_domain = self.sender().split('@')[1].lower()
         msg['Message-ID'] = f'<{self.nid}@{sender_domain}>'
-
-        self._add_msg_parts(msg, context)
 
         # add priority information, if required
         msg = self._add_priority_info(msg)
