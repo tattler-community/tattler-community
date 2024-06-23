@@ -297,6 +297,16 @@ class TestVectorEmail(unittest.TestCase):
             with self.assertRaises(ValueError, msg="validate_configuration() does not raise upon invalid setting 'TATTLER_SMTP_ADDRESS'"):
                 EmailSendable.validate_configuration()
 
+    def test_plain_email_with_non_ascii_characters(self):
+        """support sending plaintext emails which contain non-ascii characters"""
+        with mock.patch('tattler.server.sendable.vector_email.vector_sendable.getenv') as mgetenv:
+            with mock.patch('tattler.server.sendable.vector_email.smtplib') as msmtp:
+                mgetenv.side_effect = lambda x, y=None: {}.get(x, os.getenv(x, y))
+                e = EmailSendable('event3_non_ascii', data_recipients['email'], template_base=tbase_path)
+                e.send({})
+                msmtp.SMTP.return_value.sendmail.assert_called()
+                smtp_content = msmtp.SMTP.return_value.sendmail.call_args.args[2]
+                self.assertTrue(all(ord(x) < 128 for x in smtp_content), msg="Attempts to send non-ascii content to SMTP, which requires ASCII")
 
 if __name__ == '__main__':
     unittest.main()             # pragma: no cover
