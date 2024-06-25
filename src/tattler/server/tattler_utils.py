@@ -264,6 +264,7 @@ def get_operating_mode(requested_mode, default_master_mode=None):
     if requested_mode not in mode_severity:
         raise RuntimeError(f"Requested mode is set to unsupported value '{requested_mode}' not in {mode_severity}.")
     if mode_severity.index(requested_mode) > mode_severity.index(master_mode):
+        log.info("Client requests mode='%s' while master mode='%s' => capping at '%s'.", requested_mode, master_mode, master_mode)
         return master_mode
     return requested_mode
 

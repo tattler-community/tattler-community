@@ -231,7 +231,7 @@ class EmailSendable(vector_sendable.Sendable):
             log.debug("Attempting SMTP auth ...")
             u, p = smtp_auth.split(':', 1)
             server.login(u, p)
-        log.debug("Delivering SMTP content ...")
+        log.debug("Delivering SMTP content to actual recipients %s ...", recipients)
         server.sendmail(self.sender(), recipients, msg)
         server.quit()
         log.info("SMTP delivery to %s:%s completed successfully.", smtp_server, smtp_server_port)
