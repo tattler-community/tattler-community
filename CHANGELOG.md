@@ -1,5 +1,6 @@
 # 2.1.0 -- 2024-11-25
 
+- When an addressbook plug-in provides a first name, pass that to `user_firstname` template variable of guessing it from email
 - Improve `send()` interface to deliver details of notification failures such as SMTP AUTH errors
 - Better document Python client SDK for looking up scopes and events onto tattler server.
 
