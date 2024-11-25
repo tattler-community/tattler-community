@@ -36,7 +36,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         """Collect user-defined variables to expand into template from user's request."""
         blen = int(self.headers.get('Content-Length', 0))
         if blen == 0:
-            return dict()
+            return {}
         if self.headers.get_content_type() != 'application/json':
             log.warning("Client %s sent content with unknown type %s. Rejecting", self.client_address, self.headers.get_content_type())
             raise ValueError(f"Invalid content type {self.headers.get_content_type()}")
@@ -92,7 +92,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         if reqparts is None:
             log.warning("Error with invalid request %s. Expected RE '%s'.", self.path, notification_req_re.pattern)
             return self.send_error(404, "Unknown path requested")
-        qr_params = {x:y for x, y in parse_qsl(urlp.query, strict_parsing=True)} if urlp.query else dict()
+        qr_params = parse_qsl(urlp.query, strict_parsing=True) if urlp.query else dict()
         log.debug("Got qr params: %s", qr_params)
         correlation_id = qr_params.get('correlationId', tattler_utils.mk_correlation_id())
         scope = reqparts.group('scope')

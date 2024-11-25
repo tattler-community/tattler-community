@@ -276,6 +276,44 @@ class TattlerHttpServerTest(unittest.TestCase):
                                 vec_name = mcall.args[0]
                                 self.assertEqual(set(mcall.args[2]), {data_contacts['123'][vec_name]})
 
+    def test_operating_mode_invalid_rejected(self):
+        """Request is rejected if client sends unrecognized operating mode"""
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123&mode=bad_mode_name', method='POST')
+        with unittest.mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
+            with unittest.mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
+                with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+                    with unittest.mock.patch('tattler.server.tattler_utils.getenv') as mgetenv2:
+                        mcontacts.return_value = data_contacts['123']
+                        newenv = {**self.base_env, **{ 'TATTLER_MASTER_MODE': 'debug' }}
+                        mgetenv.side_effect = lambda k, v=None: newenv.get(k, os.getenv(k, v))
+                        mgetenv2.side_effect = mgetenv.side_effect
+                        with self.assertRaises(urllib.error.HTTPError) as err:
+                            with urlopen(req):
+                                pass
+                        self.assertEqual(400, err.exception.code)
+                        self.assertEqual("""Invalid operating mode 'bad_mode_name'. Valid modes are ['debug', 'staging', 'production']""", err.exception.reason)
+
+    def test_operating_mode_misconfiguration_rejected(self):
+        """Request is rejected if client sends valid operating mode but TATTLER_MASTER_MODE invalid"""
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123&mode=debug', method='POST')
+        with unittest.mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
+            with unittest.mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
+                with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:
+                    with unittest.mock.patch('tattler.server.tattler_utils.getenv') as mgetenv2:
+                        with unittest.mock.patch('tattler.server.tattlersrv_http.log') as mlog:
+                            mcontacts.return_value = data_contacts['123']
+                            newenv = {**self.base_env, **{ 'TATTLER_MASTER_MODE': 'invalid_mode_setting' }}
+                            mgetenv.side_effect = lambda k, v=None: newenv.get(k, os.getenv(k, v))
+                            mgetenv2.side_effect = mgetenv.side_effect
+                            with self.assertRaises(urllib.error.HTTPError) as err:
+                                with urlopen(req):
+                                    pass
+                            self.assertEqual(400, err.exception.code)
+                            self.assertEqual("""Invalid operating mode 'debug'. Valid modes are ['debug', 'staging', 'production']""", err.exception.reason)
+                            mlog.error.assert_called()
+                            self.assertIn("""Error validating operating mode """, mlog.error.call_args.args[0])
+                            self.assertIn("""'TATTLER_MASTER_MODE' envvar is set to unsupported value""", str(mlog.error.call_args.args[2]))
+
     def test_operating_mode_capped_by_master_mode_setting(self):
         req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST')
         with unittest.mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as mcontacts:
@@ -287,7 +325,6 @@ class TattlerHttpServerTest(unittest.TestCase):
                         mgetenv.side_effect = lambda k, v=None: newenv.get(k, os.getenv(k, v))
                         mgetenv2.side_effect = mgetenv.side_effect
                         with urlopen(req):
-                            print(msend.mock_calls)
                             msend.assert_called()
                             for c in msend.mock_calls:
                                 if 'mode' in c.kwargs:
