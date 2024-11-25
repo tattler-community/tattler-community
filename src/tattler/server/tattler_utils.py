@@ -136,8 +136,8 @@ def plugin_template_variables(context: ContextType) -> ContextType:
 def get_demo_template_path() -> Path:
     """Get the path where demo templates are stored"""
     try:
-        # return files('tattler.templates').joinpath('.')
-        return files('tattler.templates').joinpath('.')
+        # workaround to extract Path() from MultiplexedPath()
+        return files('tattler.templates').joinpath('x').parent
     except TypeError:
         # python 3.9 behavior. Workaround by returning path
         return Path(__file__).parent.parent.joinpath('templates')
@@ -253,7 +253,7 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         })
     return retval
 
-def get_operating_mode(requested_mode, default_master_mode=None):
+def get_operating_mode(requested_mode: str, default_master_mode: Optional[str]=None) -> str:
     """Return the operating mode based on requested and allowed (master) mode."""
     master_mode = getenv('TATTLER_MASTER_MODE') or default_master_mode
     master_mode.strip().lower()
@@ -262,13 +262,13 @@ def get_operating_mode(requested_mode, default_master_mode=None):
     if not requested_mode:
         return master_mode
     if requested_mode not in mode_severity:
-        raise RuntimeError(f"Requested mode is set to unsupported value '{requested_mode}' not in {mode_severity}.")
+        raise ValueError(f"Requested mode is set to unsupported value '{requested_mode}' not in {mode_severity}.")
     if mode_severity.index(requested_mode) > mode_severity.index(master_mode):
         log.info("Client requests mode='%s' while master mode='%s' => capping at '%s'.", requested_mode, master_mode, master_mode)
         return master_mode
     return requested_mode
 
-def replace_time_values(obj):
+def replace_time_values(obj: Any) -> Any:
     """Transform any time value in an object into a serializable form"""
     if isinstance(obj, dict):
         return {k:replace_time_values(v) for k, v in obj.items()}

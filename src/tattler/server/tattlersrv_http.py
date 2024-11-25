@@ -36,7 +36,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         """Collect user-defined variables to expand into template from user's request."""
         blen = int(self.headers.get('Content-Length', 0))
         if blen == 0:
-            return dict()
+            return {}
         if self.headers.get_content_type() != 'application/json':
             log.warning("Client %s sent content with unknown type %s. Rejecting", self.client_address, self.headers.get_content_type())
             raise ValueError(f"Invalid content type {self.headers.get_content_type()}")
@@ -92,7 +92,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         if reqparts is None:
             log.warning("Error with invalid request %s. Expected RE '%s'.", self.path, notification_req_re.pattern)
             return self.send_error(404, "Unknown path requested")
-        qr_params = {x:y for x, y in parse_qsl(urlp.query, strict_parsing=True)} if urlp.query else dict()
+        qr_params = dict(parse_qsl(urlp.query, strict_parsing=True)) if urlp.query else {}
         log.debug("Got qr params: %s", qr_params)
         correlation_id = qr_params.get('correlationId', tattler_utils.mk_correlation_id())
         scope = reqparts.group('scope')
@@ -111,7 +111,12 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         except AssertionError:
             log.info("Rejecting req as client provided unknown vector '%s'", unknown_vectors)
             return self.send_error(400, f"Invalid vectors provided '{unknown_vectors}'")
-        mode = tattler_utils.get_operating_mode(qr_params.get('mode', None), default_master_mode)
+        mode = qr_params.get('mode', None)
+        try:
+            mode = tattler_utils.get_operating_mode(mode, default_master_mode)
+        except (ValueError, RuntimeError) as err:
+            log.error("Error validating operating mode '%s': %s", mode, err)
+            return self.send_error(400, f"Invalid operating mode '{mode}'. Valid modes are {tattler_utils.mode_severity}")
         # get definitions
         try:
             definitions = self.get_definitions()
@@ -137,7 +142,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
 def serve(address='', port=20000):
     """Start server instance listening on given TCP address and port"""
     log.info("==> Meet tattler @ https://tattler.dev . If you like tattler, consider posting about it! ;-)")
-    log.warning("Now serving at %s:%s", address, port)
+    log.warning("Tattler now serving at %s:%s", address, port)
     try:
         return http.server.HTTPServer((address, port), TattlerServer)
     except OSError as err:

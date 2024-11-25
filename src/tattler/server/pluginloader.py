@@ -259,7 +259,7 @@ def check_sanity(classname: str, modname: str, pluginclass: type) -> bool:
     :return:                Whether the class may be loaded as a plug-in."""
     if issubclass(pluginclass, ContextTattlerPlugin):
         log.warning("""Deprecation warning: plug-in candidate '%s' (%s) in module '%s' implements class 'ContextTattlerPlugin' instead of 'ContextPlugin' (renamed in 1.2.0)""", classname, pluginclass, modname)
-    return True
+    return issubclass(pluginclass, TattlerPlugin)
 
 def load_plugins(candidate_modules: Mapping[str, Any]) -> Mapping[str, Mapping[str, TattlerPlugin]]:
     """Locate and setup the classes - within the candidate modules - that are usable as context processors.
@@ -270,7 +270,12 @@ def load_plugins(candidate_modules: Mapping[str, Any]) -> Mapping[str, Mapping[s
     """
     enabled_processor_classes = {}
     # sort classes by name, so the order of initialization and execution are deterministic and externally-controllable
-    candidate_classes = [(classname, [modname, classcand]) for modname, modobj in candidate_modules.items() for classname, classcand in inspect.getmembers(modobj, inspect.isclass)]
+    candidate_classes = []
+    for modname, modobj in candidate_modules.items():
+        members = inspect.getmembers(modobj, inspect.isclass)
+        log.warning("Members of %s: %s", modname, members)
+        for classname, classcand in members:
+            candidate_classes.append((classname, [modname, classcand]))
     candidate_classes.sort(key=lambda x: x[0])
     for classname, classitems in candidate_classes:
         modname, processor_candidate = classitems
@@ -289,7 +294,7 @@ def load_plugins(candidate_modules: Mapping[str, Any]) -> Mapping[str, Mapping[s
                     enabled_processor_classes[pclass] = {}
                 enabled_processor_classes[pclass][classname] = cand
             except Exception as err:
-                log.exception("Plugin %s (in %s) failed to setup. Skipping to enable it. %s", classname, modname, err)
+                log.error("Plugin %s (in %s) failed to setup. Skipping to enable it. Error %s: %s", classname, modname, type(err), err)
     return enabled_processor_classes
 
 def load_plugins_from_modules(paths: Iterable[str]) -> Mapping[str, Mapping[str, TattlerPlugin]]:

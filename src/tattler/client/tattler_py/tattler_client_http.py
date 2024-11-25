@@ -2,7 +2,7 @@
 
 import json
 from urllib import request, parse
-from typing import Mapping, Iterable
+from typing import Mapping, Iterable, Optional
 
 from tattler.client.tattler_py.tattler_client import TattlerClient, log
 
@@ -11,7 +11,7 @@ from tattler.client.tattler_py.serialization import serialize_json
 class TattlerClientHTTP(TattlerClient):
     """HTTP implementation of TattlerClient"""
 
-    def do_send(self, vectors: Iterable[str], event: str, recipient: str, context: Mapping[str, str]=None, priority: bool=False, correlationId: str=None) -> bool:
+    def do_send(self, vectors: Iterable[str], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: Optional[str]=None) -> bool:
         """Perform the actual server request to send the notification"""
         url_path = f'http://{self.endpoint}/notification/{parse.quote(self.scope_name)}/{parse.quote(event)}/'
         params = {
@@ -37,23 +37,23 @@ class TattlerClientHTTP(TattlerClient):
             with request.urlopen(req) as f:
                 res: bytes = f.read()
         except Exception as err:
-            log.exception("Error {%s} sending notif %s: %s", type(err), correlationId, err)
-            return False
+            log.error("Error communicating with tattler server %s: {%s} sending notif %s: %s", url, type(err), correlationId, err)
+            raise
         if not res:
             log.warning("Notification delivery to failed -- no data provided.")
-            return False
+            raise ValueError(f"Error communicating with tattler server {url}: empty response.")
         try:
-            res = json.loads(res.decode())
-        except ValueError:
-            log.exception("Unable to JSON-decode server response:")
-            return False
+            rdec = res.decode()
+            res = json.loads(rdec)
+        except ValueError as err:
+            log.error("Unable to JSON-decode server response: %s. Response was %d bytes, first 100B of which=%s...", err, len(rdec), rdec[:100])
+            raise ValueError(f"Error communicating with tattler server: unparsable response: {err}. Response was {len(rdec)} bytes, first 100B of which={rdec[:100]}...") from err
         failed = [r for r in res if r.get('resultCode', 0) != 0]
         succeeded = [r for r in res if r.get('resultCode', None) == 0]
         if not succeeded:
             log.warning("Notification delivery to one or more vectors failed: %s", failed)
-            return False
+            raise ValueError(f"All requested delivery targets failed: {failed}")
         log.info("Notif #%s successfully sent: %s", correlationId, res)
-        return True
 
     def scopes(self):
         """Return list of vectors available events within this scope."""

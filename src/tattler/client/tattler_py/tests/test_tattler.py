@@ -3,6 +3,7 @@ from unittest import mock
 
 import os
 import urllib
+import urllib.error
 import tempfile
 from datetime import datetime
 
@@ -52,6 +53,7 @@ class TattlerClientTest(unittest.TestCase):
             self.assertIn('ndpoint', str(err.exception))
 
     def test_dead_letter_store_triggered_upon_notification_failure(self):
+        """deadletters get stored after send() fails"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client.TattlerClient.do_send') as mdosend:
             with mock.patch('tattler.client.tattler_py.tattler_client.getenv') as mgetenv:
@@ -65,8 +67,8 @@ class TattlerClientTest(unittest.TestCase):
                 # cleanup any existing deadletter path, to ensure it's created
                 with tempfile.TemporaryDirectory() as tmpd:
                     mgetenv.side_effect = lambda k,v=None: {'TATTLER_DEADLETTER_PATH': tmpd}.get(k, os.getenv(k, v))
-                    res = n.send(['email'], 'test_event', 1, context=want_context)
-                    self.assertFalse(res)
+                    with self.assertRaises(urllib.error.URLError):
+                        n.send(['email'], 'test_event', 1, context=want_context)
                     # deadletter folder exists
                     self.assertTrue(os.path.exists(tmpd))
                     # there's one file in it
@@ -81,7 +83,7 @@ class TattlerClientTest(unittest.TestCase):
                     self.assertTrue(all(['_1' in x for x in deadletters]))
         
     def test_dead_letter_survives_permission_errors_creating_path(self):
-        """If deadletter is triggered but fails permissions, no exception is raised"""
+        """If deadletter is triggered but fails permissions to create the path, no exception is raised"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client.TattlerClient.do_send') as mdosend:
             with mock.patch('tattler.client.tattler_py.tattler_client.getenv') as mgetenv:
@@ -93,10 +95,11 @@ class TattlerClientTest(unittest.TestCase):
                     'date': want_time.date(),
                     'set': {3, 2, 1}
                     }
-                n.send(['email'], 'test_event', 1, context=want_context)
+                with self.assertRaises(urllib.error.URLError):
+                    n.send(['email'], 'test_event', 1, context=want_context)
 
     def test_dead_letter_survives_permission_errors(self):
-        """If deadletter is triggered but fails permissions, no exception is raised"""
+        """If deadletter is triggered but fails permissions on files, only the original server exception is raised"""
         n = TattlerClient('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client.TattlerClient.do_send') as mdosend:
             with mock.patch('tattler.client.tattler_py.tattler_client.getenv') as mgetenv:
@@ -108,4 +111,5 @@ class TattlerClientTest(unittest.TestCase):
                     'date': want_time.date(),
                     'set': {3, 2, 1}
                     }
-                n.send(['email'], 'test_event', 1, context=want_context)
+                with self.assertRaises(urllib.error.URLError):
+                    n.send(['email'], 'test_event', 1, context=want_context)

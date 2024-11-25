@@ -24,5 +24,27 @@ send a large number of notifications in one go and want to reuse the HTTP connec
     print(mk_correlation_id())
     # NkvgXrYI
 
+TattlerClient
++++++++++++++
 
+:class:`tattler.client.tattler_py.TattlerClientHTTP` is the concrete HTTP-based implementation of the interface
+:class:`tattler.client.tattler_py.TattlerClient`, and leverages the REST endpoint of tattler server.
+
+.. autoclass:: tattler.client.tattler_py.TattlerClientHTTP
+
+.. autoclass:: tattler.client.tattler_py.TattlerClient
+    :members: __init__, scopes, events, vectors
+
+Correlation IDs
++++++++++++++++
+
+If you pass a `correlationId` to notification calls, tattler will include that string in all log messages relevant to that call.
+This is purely optional, and enables you to trace a user or session across multiple subsystems of your overall service.
+
+A `correlationId` is any string -- but preferably a unique one. You may choose to prefix this string with the name of the subsystem
+where the session you want to track has originated.
+
+Tattler offers the :func:`mk_correlation_id` symbol for that:
+
+.. autofunction:: tattler.client.tattler_py.mk_correlation_id
 

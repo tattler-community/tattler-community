@@ -1,3 +1,8 @@
+# 2.1.0 -- 2024-11-25
+
+- Improve `send()` interface to deliver details of notification failures such as SMTP AUTH errors
+- Better document Python client SDK for looking up scopes and events onto tattler server.
+
 # 2.0.1 -- 2024-06-25
 
 - Fix failure to deliver email notification if it's plain-only and contains special characters
