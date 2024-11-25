@@ -1,3 +1,5 @@
+"""Test client utilities"""
+
 import unittest
 import unittest.mock
 import random
@@ -5,9 +7,11 @@ import random
 from tattler.client.tattler_py import tattler_client_utils
 
 def get_random_ip4():
+    """Generate a random IPv4 address for testing"""
     return '.'.join([str(random.randint(0, 255)) for i in range(4)])
 
 def get_random_ip6():
+    """Generate a random IPv6 address for testing"""
     def ip6_part(n_fields=8):
         return ':'.join([f"{random.randint(0, 255):x}" for i in range(n_fields)])
     # full or shortened?
@@ -20,7 +24,10 @@ def get_random_ip6():
 
 
 class TattlerClientUtilsTest(unittest.TestCase):
+    """Tests for client utils"""
+
     def test_mk_correlation_id_sane_output(self):
+        """mk_correlation_id() returns strings with requested properties"""
         self.assertIsInstance(tattler_client_utils.mk_correlation_id(), str)
         self.assertTrue(tattler_client_utils.mk_correlation_id())
         self.assertGreaterEqual(len(tattler_client_utils.mk_correlation_id()), 6)
