@@ -14,7 +14,7 @@ class JSONComplEncoder(json.JSONEncoder):
         if isinstance(obj, Mapping):    # e.g. SQLAlchemy Row._mapping
             return dict(obj)
         if isinstance(obj, Set):
-            return sorted(obj)        
+            return sorted(obj)
 
 def serialize_json(dictionary):
     """Serialize data into JSON supporting objects otherwise not json-serializable"""
