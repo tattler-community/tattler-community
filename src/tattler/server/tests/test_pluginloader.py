@@ -62,8 +62,8 @@ class PluginLoaderTest(unittest.TestCase):
 
     def test_plugins_initialized_in_alphanumeric_order(self):
         """Plug-in classes are initialized in alphanumeric order of their class name"""
-        path = str(Path(__file__).parent / 'fixtures/plugin_loading_order')
-        loaded_plugins = pluginloader.load_plugins_from_modules([path])
+        fpath = Path(__file__).parent / 'fixtures/plugin_loading_order'
+        loaded_plugins = pluginloader.load_plugins_from_modules([str(fpath)])
         self.assertIn('context', loaded_plugins)
         self.assertEqual(['OneTattlerPlugin', 'ThreeTattlerPlugin', 'TwoTattlerPlugin'], list(loaded_plugins['context'].keys()))
 
@@ -90,7 +90,7 @@ class PluginLoaderTest(unittest.TestCase):
     def test_plugins_failing_sanity_check_are_not_loaded(self):
         """Plug-in classes that fail check_sanity() are not loaded"""
         plugpath = Path(__file__).parent / 'fixtures' / 'plugins_with_bad_inheritance'
-        plugcand = pluginloader.load_candidate_modules([plugpath])
+        plugcand = pluginloader.load_candidate_modules([str(plugpath)])
         plugmap = pluginloader.load_plugins(plugcand)
         # if there is a context, there should be no 'GoodTattlerPlugin' in it
         self.assertNotIn('context', plugmap)
