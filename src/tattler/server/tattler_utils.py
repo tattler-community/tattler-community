@@ -101,8 +101,15 @@ def mk_correlation_id(prefix: Optional[str]='tattler') -> str:
         return f'{prefix}:{uuid.uuid4()}'
     return str(uuid.uuid4())
 
-def prettify_name(name: str):
-    """Return a pretty version of name, e.g. michael -> Michael"""
+def prettify_name(name: str) -> str:
+    """Return a pretty version of name, e.g. michael -> Michael.
+    
+    Prettification removes duplicate whitespaces, and capitalizes individual words
+    if the original name is all lower-caps or all upper-caps.
+
+    :param name:    Original name to prettify.
+    
+    :return:        Prettified name."""
     if name != name.lower() and name != name.upper():
         return name     # user has already capitalized it
     return ' '.join(part.capitalize() for part in name.split(' ') if part)
