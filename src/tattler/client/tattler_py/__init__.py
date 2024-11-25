@@ -5,7 +5,7 @@ import logging
 from typing import Mapping, Iterable, Tuple, Optional
 
 # from tattler_py.tattler_client_grpc import tattlerClientGRPC
-from tattler.client.tattler_py.tattler_client_http import TattlerClientHTTP
+from tattler.client.tattler_py.tattler_client_http import TattlerClientHTTP, TattlerClient
 
 from tattler.client.tattler_py.tattler_client_utils import mk_correlation_id
 
