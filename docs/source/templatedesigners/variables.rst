@@ -43,7 +43,7 @@ user_firstname
 
 Type: str
 
-First name, guessed from email addressed.
+First name, guessed from the recipient's email address.
 
 The guessing is surprisingly reliable:
 
@@ -54,6 +54,11 @@ The guessing is surprisingly reliable:
 
 This logic may still be overridden by an address book plug-in to produce a reliable first name.
 Speak to your :ref:`application developer <roles:application developers>`.
+
+Whether guessed or provided, the first name is 'prettified' as follows:
+
+- If provided as all-lower or all-uppercase, then it's capitalized. E.g. 'michael j' becomes 'Michael J'.
+- If provided as mixed case, then it's left as is, under the assumption that the person already took care of casing it correctly. E.g. 'Maria de la Paz' stays such.
 
 
 user_account_type

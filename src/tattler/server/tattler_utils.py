@@ -101,24 +101,34 @@ def mk_correlation_id(prefix: Optional[str]='tattler') -> str:
         return f'{prefix}:{uuid.uuid4()}'
     return str(uuid.uuid4())
 
-def core_template_variables(recipient_user: str, correlationId: Optional[str], mode: str, vector: str, event_scope: str, event_name: str) -> ContextType:
+def prettify_name(name: str):
+    """Return a pretty version of name, e.g. michael -> Michael"""
+    if name != name.lower() and name != name.upper():
+        return name     # user has already capitalized it
+    return ' '.join(part.capitalize() for part in name.split(' ') if part)
+
+def core_template_variables(recipient: str, firstname: Optional[str], correlationId: Optional[str], mode: str, vector: str, event_scope: str, event_name: str) -> ContextType:
     """Return a set of variables to be fed to every template."""
     # contacts
-    recipient_contacts = pluginloader.lookup_contacts(recipient_user)
-    userfirstname = None
-    try:
-        userfirstname = guess_first_name(recipient_contacts['email'])
-    except Exception:
-        log.info("Can't get first name for #%s (email: %s) -- using 'user'.", recipient_user, recipient_contacts.get('email', None))
+    recipient_contacts = pluginloader.lookup_contacts(recipient)
+    if not firstname:
+        try:
+            firstname = guess_first_name(recipient_contacts['email'])
+        except Exception:
+            log.info("Can't get first name for #%s (email: %s) -- using 'user'.", recipient, recipient_contacts.get('email', None))
+    if firstname:
+        firstname = prettify_name(firstname)
+    else:
+        firstname = 'user'
     user_accounttype = recipient_contacts.get('account_type', 'unknown')
     corrId = correlationId or mk_correlation_id()
     notId = corrId.rsplit(':', 1)[1] if ':' in corrId else corrId
     notId = notId[-max_notification_id_len:]
     return {
-        'user_id': recipient_user,
+        'user_id': recipient,
         'user_email': recipient_contacts.get('email', None),
         'user_sms': recipient_contacts.get('sms', None),
-        'user_firstname': userfirstname or 'user',
+        'user_firstname': firstname,
         'user_account_type': user_accounttype,
         'user_language': recipient_contacts.get('language', None),
         'correlation_id': corrId,
@@ -231,7 +241,7 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         if usrlang is not None:
             log.warning("User language set to non-default '%s', but tattler community edition doesn't do multilingual, so I'll send the default language", usrlang)
         recipient = user_contacts[vname]
-        template_context = core_template_variables(recipient_user, correlationId, mode, vname, event_scope, event_name)
+        template_context = core_template_variables(recipient_user, user_contacts.get('first_name', None), correlationId, mode, vname, event_scope, event_name)
         if context:
             template_context.update(context)
         template_context = plugin_template_variables(template_context)

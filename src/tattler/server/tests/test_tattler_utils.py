@@ -29,6 +29,12 @@ data_contacts = {
         'telegram': '1235456',
         'language': 'de_CH',
         },
+    '543': {
+        'email': 'archie@sun.com',
+        'sms': '667788',
+        'account_type': 'free',
+        'first_name': "archie-john"
+    },
     }
 
 
@@ -130,6 +136,28 @@ class TestTattlerUtils(unittest.TestCase):
                         self.assertIn('context', msend.call_args.kwargs)
                         self.assertIn('user_firstname', msend.call_args.kwargs['context'])
                         self.assertEqual('user', msend.call_args.kwargs['context']['user_firstname'], msg=f"Guessed first name is not None by invalid email '{email}'")
+
+    def test_given_firstname_wins(self):
+        """First name is only guessed if not supplied, and it's prettified"""
+        with mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
+            mgetenv.side_effect = lambda x, y=None: { 'TATTLER_TEMPLATE_BASE': get_template_dir() }.get(x, os.getenv(x, y))
+            with mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as maddrb:
+                maddrb.return_value = data_contacts['543'].copy()
+                with mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
+                    wanted_formats = {
+                        'archie-john': 'Archie-john',
+                        'Archie-johN': 'Archie-johN',
+                        'Maria de la Paz': 'Maria de la Paz',
+                        'maria-ana de la paz': 'Maria-ana De La Paz',
+                        'MARIA DE LA PAZ': 'Maria De La Paz'
+                    }
+                    for fname, wname in wanted_formats.items():
+                        maddrb.return_value['first_name'] = fname
+                        tattler_utils.send_notification_user_vectors('543', ['email'], 'jinja', 'jinja_event')
+                        self.assertTrue(msend.mock_calls)
+                        self.assertIn('context', msend.call_args.kwargs)
+                        self.assertIn('user_firstname', msend.call_args.kwargs['context'])
+                        self.assertEqual(wname, msend.call_args.kwargs['context']['user_firstname'], msg=f"Provided first name is not passed on to context '{fname}'")
 
     def test_send_only_to_available_vectors(self):
         with mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
@@ -418,7 +446,6 @@ class ConversionTest(unittest.TestCase):
         cnt = tattler_utils.obfuscate('some content', key='mykey')
         with self.assertRaises(ValueError):
             tattler_utils.unobfuscate(cnt, key='mykey2')
-
 
 
 if __name__ == '__main__':
