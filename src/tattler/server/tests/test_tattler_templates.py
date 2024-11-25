@@ -1,12 +1,15 @@
+"""Tests for template utils"""
+
+from pathlib import Path
+
 import testutils_templates
-import os
 
 contacts = {
     'email': 'xyz@test321.com',
     'sms': '+19876543210'
 }
 
-testutils_templates.templates_base = os.path.join('..', 'templates')
+testutils_templates.templates_base = Path(__file__).parent.parent / 'templates'
 
 testutils_templates.event_contexts = {
     '_base': {
@@ -18,4 +21,4 @@ testutils_templates.event_contexts = {
 testutils_templates.target_base_path = None
 
 class TattlerTemplateTest(testutils_templates.TemplateTest):
-    pass
+    """Wrapper to execute template tests"""

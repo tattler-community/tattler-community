@@ -3,6 +3,7 @@ from unittest import mock
 import urllib
 import json
 from datetime import datetime
+import urllib.error
 
 from tattler.client.tattler_py.tattler_client_http import TattlerClientHTTP
 
@@ -42,12 +43,13 @@ class TestTattlerClientHTTP(unittest.TestCase):
             TattlerClientHTTP('testscope', '127.0.0.1', self.port, mode=inv)
 
     def test_send_all_parameter(self):
+        """Request to server includes all client-provided context parameters"""
         definitions = {'key1': 'val1', 'key2': 'val2'}
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = self.srv_response
+            mreq.urlopen.return_value.__enter__.return_value.read.return_value = self.srv_response
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
             res = n.send(['email', 'sms'], 'test_event', 1, context=definitions, priority=True)
-            self.assertEqual(res, True)
+            self.assertEqual(res, None)
             self.assertTrue(mreq.Request.mock_calls)
             self.assertTrue(mreq.urlopen.mock_calls)
             req_url = mreq.Request.call_args.args[0]
@@ -73,7 +75,7 @@ class TestTattlerClientHTTP(unittest.TestCase):
     def test_send_parameters_encoded(self):
         """Parameters are sent to server in URL-encoded form"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = self.srv_response
+            mreq.urlopen.return_value.__enter__.return_value.read.return_value = self.srv_response
             n = TattlerClientHTTP('test_scope', '123.32.21.31', self.port)
             n.send(vectors=['sms', 'email'], event='test_event', recipient='+,abc123über')
             mreq.Request.assert_called()
@@ -84,9 +86,9 @@ class TestTattlerClientHTTP(unittest.TestCase):
             self.assertIn('vector=email%2Csms', url)
 
     def test_send_all_vectors_fail_yields_failure(self):
-        """If notification to every requested vector fails, then the whole notification returns false"""
+        """If notification to every requested vector fails, then send() raises"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = b"""[{
+            mreq.urlopen.return_value.__enter__.return_value.read.return_value = b"""[{
                 "id": "email:d696e498-cc1a-4dc8-b893-2070e1b58187",
                 "vector": "email",
                 "resultCode": 1,
@@ -98,65 +100,78 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 "detail": "Error descr 123"}
                 ]"""
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-            res = n.send(['email', 'sms'], 'test_event', 1)
-            self.assertEqual(res, False)
+            with self.assertRaises(ValueError) as err:
+                n.send(['email', 'sms'], 'test_event', 1)
+            self.assertIn("targets failed", str(err.exception))
 
     def test_send_receive_no_response(self):
-        """If server response is empty, send() returns false"""
+        """If server response is empty, send() raises"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = b""
+            mreq.urlopen.return_value.__enter__.return_value.read.return_value = b""
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-            res = n.send(['email', 'sms'], 'test_event', 1)
-            self.assertEqual(res, False)
+            with self.assertRaises(ValueError) as err:
+                n.send(['email', 'sms'], 'test_event', 1)
+            self.assertIn("Error communicating", str(err.exception))
+            self.assertIn("empty response", str(err.exception))
 
     def test_send_receive_unparsable_response(self):
         """If server response is non-empty but unparsable, send() returns false"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            mreq.urlopen().__enter__().read.return_value = b"""[{"""
+            mreq.urlopen.return_value.__enter__.return_value.read.return_value = b"""[{"""
             n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-            res = n.send(['email', 'sms'], 'test_event', 1)
-            self.assertEqual(res, False)
+            with self.assertRaises(ValueError) as err:
+                n.send(['email', 'sms'], 'test_event', 1)
+            self.assertIn("Error communicating", str(err.exception))
+            self.assertIn("unparsable response", str(err.exception))
 
     def test_send_failure(self):
-        """If HTTP request returns a network-level error, send() returns false"""
+        """If HTTP request returns a network-level error, send() raises URLError"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for ertype in [urllib.error.URLError("errormsg123"), urllib.error.HTTPError('url', 500, "errormsg123", {}, None)]:
                 mreq.urlopen.side_effect = ertype
                 n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-                res = n.send(['email'], 'test_event', 1)
+                with self.assertRaises(urllib.error.URLError) as err:
+                    n.send(['email'], 'test_event', 1)
                 self.assertTrue(mreq.Request.mock_calls)
                 self.assertTrue(mreq.urlopen.mock_calls)
-                self.assertEqual(res, False)
+                self.assertIn('errormsg123', str(err.exception))
 
     def test_send_complex_obj_serialized(self):
+        """send() delivers to server a complex object serialized"""
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
-            n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
-            want_time = datetime(2022, 6, 9, 18, 44, 15, 157049)
-            want_context = {
-                'datetime': want_time,
-                'date': want_time.date(),
-                'set': {3, 2, 1}
-                }
-            res = n.send(['email'], 'test_event', 1, context=want_context)
-            have_context = json.loads(mreq.Request.call_args.kwargs['data'])
-            self.assertIn('datetime', have_context)
-            self.assertEqual(have_context['datetime'], want_time.isoformat())
-            self.assertIn('date', have_context)
-            self.assertEqual(have_context['date'], want_time.date().isoformat())
-            self.assertIn('set', have_context)
-            self.assertEqual(set(have_context['set']), want_context['set'])
+                mreq.urlopen.return_value.__enter__.return_value.read.return_value = self.srv_response
+                n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
+                want_time = datetime(2022, 6, 9, 18, 44, 15, 157049)
+                want_context = {
+                    'datetime': want_time,
+                    'date': want_time.date(),
+                    'set': {3, 2, 1}
+                    }
+                res = n.send(['email'], 'test_event', 1, context=want_context)
+                self.assertIsNone(res)
+                have_context = json.loads(mreq.Request.call_args.kwargs['data'])
+                self.assertIn('datetime', have_context)
+                self.assertEqual(have_context['datetime'], want_time.isoformat())
+                self.assertIn('date', have_context)
+                self.assertEqual(have_context['date'], want_time.date().isoformat())
+                self.assertIn('set', have_context)
+                self.assertEqual(set(have_context['set']), want_context['set'])
 
     def test_scopes(self):
+        """scopes() calls expected endpoint with GET"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for scopes in [[], ['a'], ['one', 'two']]:
-                mreq.urlopen().__enter__().read.return_value = json.dumps(scopes).encode()
+                mreq.urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(scopes).encode()
                 self.assertEqual(n.scopes(), scopes)
                 self.assertTrue(mreq.urlopen.call_args)
                 want_url = 'http://127.0.0.1:11503/notification/'
-                self.assertIn(want_url, mreq.urlopen.call_args.args)
+                self.assertEqual(1, len(mreq.urlopen.call_args.args))
+                self.assertEqual(0, len(mreq.urlopen.call_args.kwargs))
+                self.assertEqual(want_url, mreq.urlopen.call_args.args[0])
     
     def test_scopes_failure(self):
+        """scopes() raises exception upon communication failure"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen.side_effect = urllib.error.URLError("Cannot connect")
@@ -168,16 +183,20 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 n.scopes()
 
     def test_events(self):
+        """events() calls expected endpoint with GET"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for events in [[], ['a'], ['one', 'two']]:
-                mreq.urlopen().__enter__().read.return_value = json.dumps(events).encode()
+                mreq.urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(events).encode()
                 self.assertEqual(n.events(), events)
                 self.assertTrue(mreq.urlopen.call_args)
                 want_url = 'http://127.0.0.1:11503/notification/test_scope/'
-                self.assertIn(want_url, mreq.urlopen.call_args.args)
+                self.assertEqual(1, len(mreq.urlopen.call_args.args))
+                self.assertEqual(0, len(mreq.urlopen.call_args.kwargs))
+                self.assertEqual(want_url, mreq.urlopen.call_args.args[0])
 
     def test_events_failure(self):
+        """events() raises exception upon communication failure"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen.side_effect = urllib.error.URLError("Cannot connect")
@@ -189,16 +208,20 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 n.events()
 
     def test_vectors(self):
+        """vectors() calls expected endpoint with GET"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             for events in [[], ['email'], ['email', 'sms', 'telegram']]:
-                mreq.urlopen().__enter__().read.return_value = json.dumps(events).encode()
+                mreq.urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(events).encode()
                 self.assertEqual(n.vectors('test_event'), events)
                 self.assertTrue(mreq.urlopen.call_args)
                 want_url = 'http://127.0.0.1:11503/notification/test_scope/test_event/vectors/'
-                self.assertIn(want_url, mreq.urlopen.call_args.args)
+                self.assertEqual(1, len(mreq.urlopen.call_args.args))
+                self.assertEqual(0, len(mreq.urlopen.call_args.kwargs))
+                self.assertEqual(want_url, mreq.urlopen.call_args.args[0])
 
     def test_vectors_failure(self):
+        """vectors() raises exception upon communication failure"""
         n = TattlerClientHTTP('test_scope', '127.0.0.1', self.port)
         with mock.patch('tattler.client.tattler_py.tattler_client_http.request') as mreq:
             mreq.urlopen.side_effect = urllib.error.URLError("Cannot connect")

@@ -57,7 +57,7 @@ class TattlerClient(ABC):
         :return:        List of vectors available for the event within my scope, or None if unknown."""
         raise NotImplementedError("Not implemented")
 
-    def send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: str=None) -> bool:
+    def send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: Optional[str]=None):
         """Send a notification to a recipient list.
         
         :param vectors:         List of vector names to deliver the notification to, or None for 'all available'.
@@ -67,18 +67,19 @@ class TattlerClient(ABC):
         :param priority:        Whether the server should mark the notification as high-priority (e.g. in email); This may be controlled in the notification template itself too.
         :param correlationId:   Arbitrary string to identify this transaction with; the server will log this to allow tracing requests across different systems.
 
-        :return:                Whether the request could be sent successfully to the server.
+        :raise URLError:        Failed to communicate with Tattler server.
+        :raise ValueError:      Some steps of the delivery failed.
         """
         correlationId = correlationId or f"tattler_client_py:{uuid.uuid4()}"
         log.info("Sending e=%s to r=%s over v=%s with c=%s", event, recipient, vectors, context)
         try:
             return self.do_send(vectors, event, recipient, context=context, priority=priority, correlationId=correlationId)
         except Exception as err:
-            log.exception("Delivery failed ('%s') corrId=%s", err, correlationId)
+            log.error("Delivery with corrId=%s failed: %s", correlationId, err)
             self.deadletter_store({'vectors':vectors, 'event':event, 'recipient':recipient, 'context':context, 'priority':priority, 'correlationId':correlationId})
-            return False
+            raise
 
-    def do_send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: str=None) -> bool:
+    def do_send(self, vectors: Optional[Iterable[str]], event: str, recipient: str, context: Optional[Mapping[str, str]]=None, priority: bool=False, correlationId: str=None):
         """Implement this to concretely deliver over the custom channel.
         
         See :meth:`tattler.client.tattler_py.tattler_client.TattlerClient.send` .
