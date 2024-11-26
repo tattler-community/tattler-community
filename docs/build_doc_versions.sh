@@ -1,5 +1,19 @@
 #! /bin/sh
 
+# Use as follows:
+#
+# cd docs
+# ./build_doc_versions.sh
+#
+# rsync -avz --delete releases/en/ mic.frontdam.com:/var/www/sites/docs.tattler.dev/en/
+
+
+base_outdir=releases/en
+ts=$(date +%s)
+
+logmsg () {
+    echo $* >&2
+}
 
 get_versions () {
     git fetch --all --tags
@@ -8,30 +22,46 @@ get_versions () {
 
 checkout_version () {
     local ver="$1"
-    git checkout "tags/$ver" -b "$ver"
+    logmsg "========== $ver =========="
+    git checkout tags/$ver -b "$ver-$ts"
+    true
 }
 
 build_version () {
     local ver="$1"
-    local dstdir="docs/releases/$ver"
-    mkdir -p "$dstdir"
-    cd docs
-    make html
-    cd -
-    mv docs/build/html/* "$dstdir/"
+    local dstdir="$base_outdir/$ver"
+    rm -rf "$dstdir"
+    mkdir -p "$dstdir" || return 1
+    . ../../venv/bin/activate
+    PYTHONPATH=../src make html || return 1
+    deactivate
+    mv build/html/* "$dstdir/" || return 1
 }
 
-mydir=$(dirname "$0")
-mydir=$(realpath $mydir/..)
+link_latest () {
+    cd $base_outdir
+    rm -f latest
+    logmsg "===== Latest -> $latest_version ====="
+    ln -s "$latest_version" "latest"
+    cd -
+}
 
-mkdir -p docs/releases
+initial_dir=$(pwd)
+
+docroot=$(realpath "$0")
+docroot=$(dirname "$docroot")
+
+cd "$docroot"
+
 for version in $(get_versions)
 do
-    echo "Building version $version"
-    checkout_version "$version"
-    build_version "$version"
-    cd "$mydir"
+    git checkout main
+    checkout_version "$version" || break
+    build_version "$version" || break
+    cd $docroot
 done
 
-latest=$version
-mv "docs/releases/$version" docs/releases/latest
+latest_version=$(get_versions | sort -rn | head -n1)
+link_latest
+
+cd "$initial_dir"
