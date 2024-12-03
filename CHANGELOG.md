@@ -1,6 +1,7 @@
 # 2.2.0 -- 2024-12-03
 
 - Allow customization of SMS 'routing group' to control delivery time, quality cost with `BULKSMS_ROUTING_GROUP` envvar.
+- Declare compatibility with python 3.12
 
 # 2.1.0 -- 2024-11-25
 
