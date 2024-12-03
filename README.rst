@@ -155,7 +155,7 @@ Trigger a demo notification via HTTP:
 
 Done!
 
-Want more? Proceed to the `complete quickstart <https://docs.tattler.dev/quickstart.html>`_ in tattler's documentation
+Want more? Proceed to the `complete quickstart <https://docs.tattler.dev/en/latest/quickstart.html>`_ in tattler's documentation
 for plug-ins, deployment and more.
 
 
@@ -185,7 +185,7 @@ Tattler uses the powerful `Jinja <https://jinja.palletsprojects.com/en/3.1.x/tem
 Used to a different template engine already? Tattler also supports customizing this, too.
 
 Tattler also allows you to share common style among all your notifications with
-`base templates <https://docs.tattler.dev/templatedesigners/base_templates.html>`_.
+`base templates <https://docs.tattler.dev/en/latest/templatedesigners/base_templates.html>`_.
 Put your style, header, footer and any common text into the base template -- so your event
 templates only need to define the content specific to them.
 

@@ -1,7 +1,7 @@
 -- This is a toy database definition that provides a working environment
 -- for testing tattler plugins.
 --
--- See https://docs.tattler.dev/quickstart.html
+-- See https://docs.tattler.dev/en/latest/quickstart.html
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS "auth_user" (
