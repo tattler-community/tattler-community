@@ -114,7 +114,7 @@ class Sendable:
         
         :param language_code:       Language code of event to look up (only supported in tattler enterprise edition).
         """
-        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition does not support language '%s' and falls back to the default language. See https://docs.tattler.dev/templatedesigners/multilingualism.html and https://tattler.dev/#enterprise .", language_code)
+        log.warning("Multilingualism is only supported by tattler enterprise edition. Community edition does not support language '%s' and falls back to the default language. See https://docs.tattler.dev/en/latest/templatedesigners/multilingualism.html and https://tattler.dev/#enterprise .", language_code)
 
     def _get_template_pathname(self, base: bool=False) -> Path:
         """Return the path to the root folder of the event template for the vector.

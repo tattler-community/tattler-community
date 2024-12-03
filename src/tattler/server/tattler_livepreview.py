@@ -207,7 +207,7 @@ def monitor_fire(template_base: Path):
         except jinja2.exceptions.UndefinedError as err:
             errmsg = str(err)
             if 'base_template' in str(err):
-                errmsg = "Failed to load template: base is missing. Did you provide a '_base' template within your scope? See https://docs.tattler.dev/templatedesigners/base_templates.html"
+                errmsg = "Failed to load template: base is missing. Did you provide a '_base' template within your scope? See https://docs.tattler.dev/en/latest/templatedesigners/base_templates.html"
             log.error("Failed to load template: %s", errmsg)
         except jinja2.exceptions.TemplateAssertionError as err:
             log.error("Failed to load template: %s", err)
