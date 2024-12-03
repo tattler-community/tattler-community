@@ -109,6 +109,15 @@ The token to use to deliver SMS notifications via `BulkSMS.com <https://www.bulk
 The token is formatted as a pair of (user_id, secret) separated by a colon, i.e. ``user_id:secret``.
 
 
+BULKSMS_DEFAULT_ROUTING
+-----------------------
+
+The name of the `routing group <https://www.bulksms.com/pricing/sms-routing.htm>`_ to use for SMS delivery by default,
+in ``{ ECONOMY, STANDARD, PREMIUM }``.
+
+This environment variable is consumed by the `bulksms <https://pypi.org/project/bulksms/>`_ library itself.
+
+
 TATTLER_SMTP_ADDRESS
 --------------------
 

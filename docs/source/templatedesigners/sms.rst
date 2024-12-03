@@ -19,12 +19,12 @@ SMS templates
 
 .. hint:: SMS delivery through Tattler requires an account at `BulkSMS.com`_ .
 
-    Tattler uses `BulkSMS <https://bulksms.com>`_ for final delivery of SMS to their mobile
-    network, so you need an account with them and having purchased some credit in order to
-    deliver your SMS.
+    Tattler relies on the `bulksms library <https://pypi.org/project/bulksms/>`_ for final delivery of
+    SMS to their mobile network, so you need an account with `BulkSMS.com <https://www.bulksms.com>`_ and
+    some delivery credits in order to deliver your SMS messages.
     
-    Tattler has no affiliation to BulkSMS. Alternative gateways can be easily
-    implemented, but none has been, yet.
+    Tattler has no affiliation with BulkSMS. Alternative gateways can be easily implemented, but none
+    has been, yet.
 
 SMS notifications are less common than email notifications, but let's start here because
 their simplicity builds a base to understand the more complex emails.
