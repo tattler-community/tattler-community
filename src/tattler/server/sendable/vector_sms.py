@@ -5,10 +5,10 @@ import logging
 import os
 from typing import Iterable, Optional, Mapping, Any
 
+from bulksms import BulkSMS
+
 from tattler.server.sendable import vector_sendable
 from tattler.server.sendable.vector_sendable import getenv
-
-from .bulksms import BulkSMS
 
 
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
@@ -70,7 +70,8 @@ class SMSSendable(vector_sendable.Sendable):
     def get_sms_server(self):
         """Prepare SMS server object."""
         credentials = get_auth_from_environment()
-        return BulkSMS(*credentials)
+        # configure sender_id at delivery time, as it may be function of the recipient
+        return BulkSMS(token_id=credentials[0], token_secret=credentials[1])
 
     def validate_recipient(self, recipient: str) -> str:
         if re.match(r'(00|\+)[1-9][0-9]+', recipient):
