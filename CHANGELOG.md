@@ -1,3 +1,7 @@
+# 2.2.0 -- 2024-12-03
+
+- Allow customization of SMS 'routing group' to control delivery time, quality cost with `BULKSMS_ROUTING_GROUP` envvar.
+
 # 2.1.0 -- 2024-11-25
 
 - When an addressbook plug-in provides a first name, pass that to `user_firstname` template variable of guessing it from email
