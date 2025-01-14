@@ -1,3 +1,7 @@
+# 2.3.0 -- 2025-01-14
+
+- Configure server endpoint for tattler client with variable TATTLER_SERVER_ADDRESS
+
 # 2.2.0 -- 2024-12-03
 
 - Allow customization of SMS 'routing group' to control delivery time, quality cost with `BULKSMS_ROUTING_GROUP` envvar.

@@ -1,4 +1,5 @@
 import unittest
+import os
 from unittest import mock
 
 from urllib.error import URLError
@@ -21,6 +22,32 @@ class TattlerModuleTest(unittest.TestCase):
         cid = tattler_py.mk_correlation_id('x')
         self.assertIsInstance(cid, str)
         self.assertTrue(cid.startswith('x:'))
+
+    def test_send_notification_prioritizes_cmdline(self):
+        """send_notification() never looks up server address configuration if either srv_addr or srv_port are set"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP'):
+            with mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mgetenv:
+                mgetenv.side_effect = lambda k,v=None: {'TATTLER_SERVER_ADDRESS': None}.get(k, os.getenv(k, v))
+                tattler_py.send_notification('scope', 'event', 'rcpt', srv_addr='1.2.3.4', srv_port=1234)
+                mgetenv.assert_not_called()
+                mgetenv.reset_mock()
+                tattler_py.send_notification('scope', 'event', 'rcpt', srv_addr='1.2.3.4')
+                mgetenv.assert_not_called()
+                mgetenv.reset_mock()
+                tattler_py.send_notification('scope', 'event', 'rcpt', srv_port=1234)
+                mgetenv.assert_not_called()
+                mgetenv.reset_mock()
+
+    def test_send_notification_searches_endpoint_envvar_config(self):
+        """send_notification() looks up server address configuration in right envvar"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP') as mnotif:
+            with mock.patch('tattler.client.tattler_py.tattler_client_utils.getenv') as mgetenv:
+                mgetenv.side_effect = lambda k,v=None: {'TATTLER_SERVER_ADDRESS': '12.13.14.15:100'}.get(k, os.getenv(k, v))
+                tattler_py.send_notification('scope', 'event', 'rcpt')
+                mgetenv.assert_called_with('TATTLER_SERVER_ADDRESS')
+                self.assertEqual(1, mnotif.call_count)
+                self.assertEqual('12.13.14.15', mnotif.call_args.args[1])
+                self.assertEqual(100, mnotif.call_args.args[2])
 
     def test_send_notification_fails_silently(self):
         """send_notification() reports errors in retval instead of raising"""
@@ -70,3 +97,7 @@ class TattlerModuleTest(unittest.TestCase):
             pass
         with mock.patch('tattler.client.tattler_py.TattlerClientHTTP'):
             pass
+
+
+if __name__ == '__main__':
+    unittest.main()
