@@ -1,9 +1,9 @@
 .. tip:: Found anything unclear or needy of further explanation? Do send us the feedback at `docs@tattler.dev <mailto:docs@tattler.dev>`_ !
 
-Configuration
-=============
+Configuration for tattler_server
+================================
 
-``tattler_server`` is configured via environment variables.
+``tattler_server`` is configured with the following environment variables.
 
 .. _configuration_template_base:
 
@@ -241,3 +241,18 @@ The file pointed to by this configuration key file must in turn:
 - For security reasons, unreadable by other users.
 
 See :ref:`S/MIME <sysadmins/smime:Configuration>` for further details.
+
+
+Configuration for tattler_client
+================================
+
+``tattler_client`` -- both command line and python library -- is configured with the following environment variables.
+
+TATTLER_SERVER_ADDRESS
+----------------------
+
+Reach the server via TCP at this address and port.
+
+Format: *address:port*. Address is an IPv4 or IPv6 address; Port is an integer.
+
+Default: ``127.0.0.1:11503``
