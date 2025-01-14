@@ -21,9 +21,9 @@ description = "A client-server notification system for HTML emails, sms and more
 readme = "README.rst"
 requires-python = ">= 3.9"
 dependencies = [
-    "Jinja2 >= 3.1.2",
-    "humanize >= 4.7.0",
-    "bulksms >= 1.1.0",
+    "Jinja2 >= 3.1.5",
+    "humanize >= 4.11.0",
+    "bulksms >= 1.1.1",
     "envdir >= 1.0.1",
 ]
 
