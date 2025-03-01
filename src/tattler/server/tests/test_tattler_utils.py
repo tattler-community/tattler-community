@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest import mock
 from pathlib import Path
 from importlib.abc import Traversable
@@ -412,23 +412,40 @@ class TestTattlerUtils(unittest.TestCase):
 class ConversionTest(unittest.TestCase):
     """Unit tests for type conversion and serialization logic"""
 
-    def test_replace_time_values_supports_list(self):
-        """replace_time_values() can take a list and return converted items"""
-        res = tattler_utils.replace_time_values(['2010-01-02', '2022-05-26T11:26:20.246090'])
+    def test_decode_django_json_supports_list(self):
+        """decode_django_json() can take a list and return converted items"""
+        res = tattler_utils.decode_django_json(['2010-01-02', '2022-05-26T11:26:20.246090'])
         self.assertEqual([date(2010, 1, 2), datetime(2022, 5, 26, 11, 26, 20, 246090)], res)
 
-    def test_replace_time_values_supports_dict(self):
-        """replace_time_values() can take a dict and return converted values"""
-        res = tattler_utils.replace_time_values({"1": '2010-01-02', "2": '2022-05-26T11:26:20.246090'})
+    def test_decode_django_json_supports_dict(self):
+        """decode_django_json() can take a dict and return converted values"""
+        res = tattler_utils.decode_django_json({"1": '2010-01-02', "2": '2022-05-26T11:26:20.246090'})
         self.assertEqual({
             "1": date(2010, 1, 2),
             "2": datetime(2022, 5, 26, 11, 26, 20, 246090)
             }, res)
 
-    def test_replace_time_values_transparency(self):
-        """replace_time_values() returns initial object if it cannot be converted to a time"""
-        res = tattler_utils.replace_time_values(['2010-01-02', 'foo', list(range(10)), '2022-05-26T11:26:20.246090'])
+    def test_decode_timedelta_survives_invalid_values(self):
+        """decode_timedelta() raises ValueError when being passed invalid values"""
+        for badv in [None, '', '',
+                     tattler_utils.TATTLER_TIMEDELTA_PREFIX,
+                     tattler_utils.TATTLER_TIMEDELTA_PREFIX + 'PSu', tattler_utils.TATTLER_TIMEDELTA_PREFIX + '-0P1D2S3u']:
+            with self.assertRaises(ValueError):
+                tattler_utils.decode_timedelta(badv)
+
+    def test_decode_django_json_transparency(self):
+        """decode_django_json() returns initial object if it cannot be converted to a time"""
+        res = tattler_utils.decode_django_json(['2010-01-02', 'foo', list(range(10)), '2022-05-26T11:26:20.246090'])
         self.assertEqual([date(2010, 1, 2), 'foo', list(range(10)), datetime(2022, 5, 26, 11, 26, 20, 246090)], res)
+
+    def test_decode_json_duration(self):
+        """decode_django_json() returns initial timedelta after receiving respective string"""
+        self.assertEqual(tattler_utils.decode_django_json('^tattler^timedelta^P123D128748S3u'), timedelta(days=123, seconds=128748, microseconds=3))
+
+    def test_decode_json_duration_fail(self):
+        """decode_django_json() raises ValueError after receiving invalid string"""
+        with self.assertRaises(ValueError):
+            self.assertEqual(tattler_utils.decode_django_json('^tattler^timedelta^P-123D128748S3u'), timedelta(days=123, seconds=128748, microseconds=3))
 
     def test_unobfuscate_rejects_non_ascii(self):
         """unobfuscate() raises ValueError if passed non-ascii content"""
@@ -449,4 +466,4 @@ class ConversionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()         # pragma: no cover

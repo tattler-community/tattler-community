@@ -12,7 +12,7 @@ from tattler.server import pluginloader   # import in this exact way to ensure t
 
 from tattler.server.templatemgr import get_scopes
 from tattler.server import tattler_utils
-from tattler.server.tattler_utils import getenv, replace_time_values
+from tattler.server.tattler_utils import getenv, decode_django_json
 
 
 logging.basicConfig(level=getenv('LOG_LEVEL', 'info').upper())
@@ -44,8 +44,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         try:
             raw_body = self.rfile.read(blen).decode()
             log.debug("Received payload '%s'", raw_body)
-            definitions = json.loads(raw_body)
-            definitions = replace_time_values(definitions)
+            definitions = json.loads(raw_body, object_hook=decode_django_json)
         except (UnicodeError, json.decoder.JSONDecodeError) as exc:
             log.exception("Could not deserialize definitions:")
             raise ValueError("Invalid definitions in body. Want JSON dictionary.") from exc
