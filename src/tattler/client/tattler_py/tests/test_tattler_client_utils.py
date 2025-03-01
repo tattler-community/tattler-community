@@ -1,10 +1,12 @@
 """Test client utilities"""
 
+import json
 import unittest
 import unittest.mock
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import random
+from types import SimpleNamespace
 from collections.abc import Mapping
 
 from tattler.client.tattler_py import tattler_client_utils
@@ -114,6 +116,96 @@ class TestSerialization(unittest.TestCase):
         self.assertIn('"map1":', jsdec)
         self.assertIn('{"a": 3}', jsdec)
 
+    def test_serialize_objects(self):
+        """Serializing objects only returns properties and omits methods"""
+        badobj = SimpleNamespace(x=10, foo=lambda x: 10)
+        res = serialize_json(badobj)
+        dec = json.loads(res)
+        self.assertIsInstance(dec, dict)
+        self.assertIn('x', dec)
+        self.assertEqual(dec['x'], 10)
+        self.assertNotIn('foo', dec)
+
+    def test_serialize_function_fails(self):
+        """Serializing a function raises TypeError"""
+        with self.assertRaises(TypeError) as err:
+            serialize_json(lambda x: 10)
+        self.assertIn('function', str(err.exception))
+
+    def test_serialize_django_orm_flat(self):
+        """Serialize a flat model object from Django ORM"""
+        # reproduce a django object without drawing in Django as a dependency
+        tnow = datetime.now().replace(microsecond=0)
+        dur = timedelta(days=2, hours=1, minutes=5, seconds=12, microseconds=456)
+        djorm = SimpleNamespace(DoesNotExist=None,
+                                clean=None,
+                                full_clean=None,
+                                _meta=None,
+                                _hiddenkey={ 'foo': 'bar', 'x': 1 },
+                                tstamp=tnow,
+                                jsonf=[1, 2, 3],
+                                intf=123,
+                                charf='myfield',
+                                duratf=dur,
+                                emailf='asd@foo.com',
+                                floatf=10/3
+                                )
+        jsdec = serialize_json(djorm)
+        dec = json.loads(jsdec)
+        self.assertIsInstance(dec, dict)
+        for unwanted in ['_meta', '_hiddenkey']:
+            self.assertNotIn(unwanted, dec, msg=f"Unwanted key '{unwanted}'")
+        want = {
+            'tstamp': tnow.isoformat(),
+            'jsonf': [1, 2, 3],
+            'intf': 123,
+            'charf': 'myfield',
+            'duratf': '^tattler^timedelta^P2D3912S456u',
+            'emailf': 'asd@foo.com',
+            'floatf': 10/3
+        }
+        self.assertGreaterEqual(dec.items(), want.items())
+    
+    def test_serialize_djang_orm_foreignkey(self):
+        """Serialize a model object from Django ORM with ForeignKeys in it"""
+        djorm = SimpleNamespace(DoesNotExist=None,
+                                clean=None,
+                                full_clean=None,
+                                _meta=None,
+                                plainstr='plain string',
+                                foo_id='my_id',
+                                foo={
+                                    'intf': 10,
+                                    'strf': 'hello',
+                                    'deeper_key_id': 'deepid',
+                                    'deeper_key': {
+                                        'floatf': 3/2,
+                                        'strf': 'world',
+                                    }
+                                },
+                                bar_id='1234',
+                                bar={
+                                    'emailf': 'asd@foo.com',
+                                })
+        jsdec = serialize_json(djorm)
+        dec = json.loads(jsdec)
+        self.assertIsInstance(dec, dict)
+        # foo
+        self.assertIn('foo_id', dec)
+        self.assertEqual(dec['foo_id'], 'my_id')
+        self.assertIn('foo', dec)
+        self.assertIsInstance(dec['foo'], dict)
+        self.assertIn('deeper_key_id', dec['foo'])
+        self.assertEqual(dec['foo']['deeper_key_id'], 'deepid')
+        self.assertIsInstance(dec['foo']['deeper_key'], dict)
+        self.assertEqual(dec['foo']['deeper_key'], {'floatf': 3/2, 'strf': 'world'})
+        # bar
+        self.assertIn('bar_id', dec)
+        self.assertEqual(dec['bar_id'], '1234')
+        self.assertIn('bar', dec)
+        self.assertIsInstance(dec['bar'], dict)
+        self.assertEqual(dec['bar'], {'emailf': 'asd@foo.com'})
+
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()         # pragma: no cover

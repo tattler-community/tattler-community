@@ -5,7 +5,7 @@ import logging
 import json
 import unittest
 import unittest.mock
-from datetime import datetime
+from datetime import datetime, timedelta
 # to run server and test clients in parallel
 import threading
 import urllib
@@ -212,7 +212,11 @@ class TattlerHttpServerTest(unittest.TestCase):
     
     def test_send_complex_definitions(self):
         want_time = datetime.now()
-        defs = {'a': '1', 'b': '2', 'time': want_time.isoformat(), 'date': want_time.date().isoformat()}
+        defs = {'a': '1', 'b': '2',
+                'time': want_time.isoformat(),
+                'date': want_time.date().isoformat(),
+                'duration': '^tattler^timedelta^P3450D1234S45u',
+                }
         req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST', data=json.dumps(defs).encode())
         with unittest.mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as ab:
             ab.side_effect = lambda u, y=None: data_contacts[u]
@@ -229,6 +233,8 @@ class TattlerHttpServerTest(unittest.TestCase):
                             self.assertEqual(msend.call_args.kwargs['context']['time'], want_time)
                             self.assertIn('date', msend.call_args.kwargs['context'])
                             self.assertEqual(msend.call_args.kwargs['context']['date'], want_time.date())
+                            self.assertIn('duration', msend.call_args.kwargs['context'])
+                            self.assertEqual(msend.call_args.kwargs['context']['duration'], timedelta(days=3450, seconds=1234, microseconds=45))
 
     def test_send_correct_vectors(self):
         want_vectors = {

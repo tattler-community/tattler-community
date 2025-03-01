@@ -1,3 +1,7 @@
+# 2.4.0 -- 2025-02-27
+
+- Client API can now take django models (and other objects) as context and serialize it in depth, including ForeignKeys
+
 # 2.3.0 -- 2025-01-14
 
 - Configure server endpoint for tattler client with variable TATTLER_SERVER_ADDRESS

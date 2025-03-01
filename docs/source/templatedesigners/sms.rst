@@ -4,7 +4,7 @@ SMS templates
 +------------------------+---------------------------------------------------------------------------------+
 | Address type           | Mobile number, in `E.164 <https://www.bulksms.com/developer/json/v1/>`_ format. |
 +------------------------+---------------------------------------------------------------------------------+
-| Default gateway        | `BulkSMS.com <https://bulksms.com>`_                                            |
+| Default gateway        | `BulkSMS.com <https://www.bulksms.com>`_                                        |
 +------------------------+---------------------------------------------------------------------------------+
 | Encoding               | `GSM 03.38 <https://en.wikipedia.org/wiki/GSM_03.38>`_                          |
 +------------------------+---------------------------------------------------------------------------------+
@@ -17,7 +17,7 @@ SMS templates
 | Costs                  | See `BulkSMS pricing <https://www.bulksms.com/pricing/>`_. No affiliation.      |
 +------------------------+---------------------------------------------------------------------------------+
 
-.. hint:: SMS delivery through Tattler requires an account at `BulkSMS.com`_ .
+.. hint:: SMS delivery through Tattler requires an account at BulkSMS.com .
 
     Tattler relies on the `bulksms library <https://pypi.org/project/bulksms/>`_ for final delivery of
     SMS to their mobile network, so you need an account with `BulkSMS.com <https://www.bulksms.com>`_ and
