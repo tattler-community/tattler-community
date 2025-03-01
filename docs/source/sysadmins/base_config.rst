@@ -46,5 +46,5 @@ To clean that up, wrap all configuration variables into an `envdir <https://pypi
     # when your envdir is done, start tattler with it
     envdir ~tattler/confenv/testing tattler_server
 
-Go through the :ref:`configuration reference <configuration:Configuration>` for the full list of your options.
+Go through the :ref:`configuration reference <configuration:Configuration for tattler_server>` for the full list of your options.
 
