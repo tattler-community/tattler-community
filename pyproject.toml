@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tattler"
-version = "2.4.0"
+version = "2.4.1"
 authors = [{name = "Michele Mazzucchi", email = "support@tattler.dev"}]
 # have license information implicitly loaded from LICENSE* file
 classifiers = [
@@ -21,8 +21,8 @@ description = "A client-server notification system for HTML emails, sms and more
 readme = "README.rst"
 requires-python = ">= 3.9"
 dependencies = [
-    "Jinja2 >= 3.1.5",
-    "humanize >= 4.11.0",
+    "Jinja2 >= 3.1.6",
+    "humanize >= 4.12.3",
     "bulksms >= 1.1.1",
     "envdir >= 1.0.1",
 ]

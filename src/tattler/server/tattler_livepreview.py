@@ -8,14 +8,14 @@ import stat
 import sys
 import tempfile
 import time
-import json
 from typing import Mapping, Any, AbstractSet, Tuple
 from pathlib import Path
 
 import jinja2
 
 from tattler.server.templatemgr import TemplateMgr, get_scopes
-from tattler.server.tattler_utils import get_template_processor, decode_django_json, obfuscate, unobfuscate, setenv
+from tattler.utils.serialization import deserialize_json
+from tattler.server.tattler_utils import get_template_processor, obfuscate, unobfuscate, setenv
 from tattler.server.sendable import send_notification
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s', force=True)
@@ -110,7 +110,7 @@ def load_context(template_path: Path) -> Mapping[str, Any]:
         log.debug("No sample context found for %s. Place one at %s if you need one.", template_path, context_file)
         return {}
     try:
-        jdict = json.loads(context_file.read_text(encoding='utf-8'), object_hook=decode_django_json)
+        jdict = deserialize_json(context_file.read_bytes())
     except ValueError as err:
         raise ValueError(f"Invalid content in context file {context_file}: {err}") from err
     if not isinstance(jdict, dict) or not all(isinstance(k, str) for k in jdict):

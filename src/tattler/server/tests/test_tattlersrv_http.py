@@ -14,6 +14,7 @@ import urllib.error
 from pathlib import Path
 from typing import Mapping, Optional
 
+from tattler.utils.serialization import serialize_json
 from tattler.server import tattlersrv_http
 
 data_contacts = {
@@ -211,13 +212,15 @@ class TattlerHttpServerTest(unittest.TestCase):
                                 self.assertIn('id', job)
     
     def test_send_complex_definitions(self):
-        want_time = datetime.now()
+        """Server identifies and de-serializes complex objects as expected"""
+        want_dtime = datetime.now()
         defs = {'a': '1', 'b': '2',
-                'time': want_time.isoformat(),
-                'date': want_time.date().isoformat(),
-                'duration': '^tattler^timedelta^P3450D1234S45u',
+                'dtime': want_dtime,
+                'time': want_dtime.time(),
+                'date': want_dtime.date(),
+                'duration': timedelta(days=3450, seconds=1234, microseconds=45),
                 }
-        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST', data=json.dumps(defs).encode())
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST', data=serialize_json(defs))
         with unittest.mock.patch('tattler.server.tattler_utils.pluginloader.lookup_contacts') as ab:
             ab.side_effect = lambda u, y=None: data_contacts[u]
             with unittest.mock.patch('tattler.server.tattler_utils.sendable.send_notification') as msend:
@@ -229,10 +232,12 @@ class TattlerHttpServerTest(unittest.TestCase):
                             self.assertEqual(f.status, 200)
                             json.loads(f.read().strip())
                             self.assertIn('context', msend.call_args.kwargs)
+                            self.assertIn('dtime', msend.call_args.kwargs['context'])
+                            self.assertEqual(msend.call_args.kwargs['context']['dtime'], want_dtime)
                             self.assertIn('time', msend.call_args.kwargs['context'])
-                            self.assertEqual(msend.call_args.kwargs['context']['time'], want_time)
+                            self.assertEqual(msend.call_args.kwargs['context']['time'], want_dtime.time())
                             self.assertIn('date', msend.call_args.kwargs['context'])
-                            self.assertEqual(msend.call_args.kwargs['context']['date'], want_time.date())
+                            self.assertEqual(msend.call_args.kwargs['context']['date'], want_dtime.date())
                             self.assertIn('duration', msend.call_args.kwargs['context'])
                             self.assertEqual(msend.call_args.kwargs['context']['duration'], timedelta(days=3450, seconds=1234, microseconds=45))
 

@@ -7,7 +7,7 @@ from datetime import datetime
 import uuid
 from abc import ABC
 from typing import Mapping, Iterable, Optional
-from tattler.client.tattler_py.serialization import serialize_json
+from tattler.utils.serialization import serialize_json
 
 from tattler.client.tattler_py.tattler_client_utils import getenv
 

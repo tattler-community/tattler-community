@@ -1,3 +1,7 @@
+# 2.4.1 -- 2025-05-10
+
+- Fix client exception when passing datetime.time objects into the context of a notification
+
 # 2.4.0 -- 2025-02-27
 
 - Client API can now take django models (and other objects) as context and serialize it in depth, including ForeignKeys

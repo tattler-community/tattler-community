@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 import urllib.error
 
+from tattler.utils.serialization import deserialize_json
 from tattler.client.tattler_py.tattler_client_http import TattlerClientHTTP
 
 class TestTattlerClientHTTP(unittest.TestCase):
@@ -145,15 +146,18 @@ class TestTattlerClientHTTP(unittest.TestCase):
                 want_context = {
                     'datetime': want_time,
                     'date': want_time.date(),
+                    'time': want_time.time(),
                     'set': {3, 2, 1}
                     }
                 res = n.send(['email'], 'test_event', 1, context=want_context)
                 self.assertIsNone(res)
-                have_context = json.loads(mreq.Request.call_args.kwargs['data'])
+                have_context = deserialize_json(mreq.Request.call_args.kwargs['data'])
                 self.assertIn('datetime', have_context)
-                self.assertEqual(have_context['datetime'], want_time.isoformat())
+                self.assertEqual(have_context['datetime'], want_time)
                 self.assertIn('date', have_context)
-                self.assertEqual(have_context['date'], want_time.date().isoformat())
+                self.assertEqual(have_context['date'], want_time.date())
+                self.assertIn('time', have_context)
+                self.assertEqual(have_context['time'], want_time.time())
                 self.assertIn('set', have_context)
                 self.assertEqual(set(have_context['set']), want_context['set'])
 
