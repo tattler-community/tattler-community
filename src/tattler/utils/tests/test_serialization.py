@@ -40,7 +40,7 @@ class SerializationTest(unittest.TestCase):
             """A mapping-like, non-dict object"""
             def __getitem__(self, k, v=None):
                 return 3
-            def __len__(self):
+            def __len__(self):      # pragma: no cover
                 return 1
             def __iter__(self):
                 yield 'a'
