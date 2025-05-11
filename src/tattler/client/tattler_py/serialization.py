@@ -1,6 +1,6 @@
 """Serialization logic to transport client objects faithfully over JSON to server"""
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 import json
 
 from collections.abc import Mapping, Set
@@ -22,7 +22,7 @@ class DjangoJSONEncoder(json.JSONEncoder):
     
     def default(self, o):
         """Encode individual object based on its type, or return parent to raise error."""
-        if isinstance(o, (datetime, date)):
+        if isinstance(o, (datetime, date, time)):
             return o.isoformat()
         if isinstance(o, timedelta):
             return encode_timedelta(o)
@@ -31,7 +31,7 @@ class DjangoJSONEncoder(json.JSONEncoder):
         if isinstance(o, Set):
             return sorted(o)
         if isinstance(o, object) and getattr(o, '__call__', None) is None:
-            props = {k: v for k, v in o.__dict__.items() if getattr(v, '__call__', None) is None}
+            props = {k: v for k, v in o.__dict__.items() if getattr(v, '__call__', None) is None and not k.startswith('_')}
             if {'DoesNotExist', 'clean', 'full_clean', '__dict__', '_meta'} - set(dir(o)):
                 # regular object. Attempt to serialize as key: value
                 return props

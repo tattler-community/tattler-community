@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from unittest import mock
 from pathlib import Path
 from importlib.abc import Traversable
@@ -419,11 +419,17 @@ class ConversionTest(unittest.TestCase):
 
     def test_decode_django_json_supports_dict(self):
         """decode_django_json() can take a dict and return converted values"""
-        res = tattler_utils.decode_django_json({"1": '2010-01-02', "2": '2022-05-26T11:26:20.246090'})
-        self.assertEqual({
+        res = tattler_utils.decode_django_json({"1": '2010-01-02', "2": '2022-05-26T11:26:20.246090', "3": "11:26:20.246090", "4": "11:26:20"})
+        want_items = {
             "1": date(2010, 1, 2),
-            "2": datetime(2022, 5, 26, 11, 26, 20, 246090)
-            }, res)
+            "2": datetime(2022, 5, 26, 11, 26, 20, 246090),
+            "3": time(11, 26, 20, 246090),
+            "4": time(11, 26, 20)
+            }
+        for k, have in res.items():
+            want = want_items.get(k, None)
+            self.assertIsNotNone(want, msg=f"Item {k}: {have}")
+            self.assertEqual(want, have, msg=f"Item {k}: {have}")
 
     def test_decode_timedelta_survives_invalid_values(self):
         """decode_timedelta() raises ValueError when being passed invalid values"""
@@ -436,7 +442,10 @@ class ConversionTest(unittest.TestCase):
     def test_decode_django_json_transparency(self):
         """decode_django_json() returns initial object if it cannot be converted to a time"""
         res = tattler_utils.decode_django_json(['2010-01-02', 'foo', list(range(10)), '2022-05-26T11:26:20.246090'])
-        self.assertEqual([date(2010, 1, 2), 'foo', list(range(10)), datetime(2022, 5, 26, 11, 26, 20, 246090)], res)
+        want_items = [date(2010, 1, 2), 'foo', list(range(10)), datetime(2022, 5, 26, 11, 26, 20, 246090)]
+        for i, items in enumerate(zip(res, want_items)):
+            have, want = items
+            self.assertEqual(have, want, msg=f"Mismatch in item #{i}")
 
     def test_decode_json_duration(self):
         """decode_django_json() returns initial timedelta after receiving respective string"""

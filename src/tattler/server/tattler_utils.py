@@ -6,15 +6,13 @@ import re
 import logging
 import uuid
 import binascii
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from typing import Mapping, Any, Optional, Iterable, Union
 from pathlib import Path
 from importlib.resources import files
 
 from tattler.server import pluginloader           # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
-from tattler.server.templatemgr import TemplateMgr
-from tattler.server import sendable
 from tattler.server.sendable.template_processor import TemplateProcessor
 from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
@@ -352,7 +350,7 @@ def decode_django_json(obj):
         if obj.startswith(TATTLER_TIMEDELTA_PREFIX):
             return decode_timedelta(obj)
         # date?
-        for t in [date, datetime]:
+        for t in [time, date, datetime]:    # retain this order!
             try:
                 return t.fromisoformat(obj)
             except ValueError:

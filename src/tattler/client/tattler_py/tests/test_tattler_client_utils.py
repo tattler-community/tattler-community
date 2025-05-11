@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 import os
 import random
 from types import SimpleNamespace
+from typing import Any
 from collections.abc import Mapping
 
 from tattler.client.tattler_py import tattler_client_utils
@@ -143,6 +144,8 @@ class TestSerialization(unittest.TestCase):
                                 _meta=None,
                                 _hiddenkey={ 'foo': 'bar', 'x': 1 },
                                 tstamp=tnow,
+                                tdate=tnow.date(),
+                                ttime = tnow.time(),
                                 jsonf=[1, 2, 3],
                                 intf=123,
                                 charf='myfield',
@@ -151,12 +154,14 @@ class TestSerialization(unittest.TestCase):
                                 floatf=10/3
                                 )
         jsdec = serialize_json(djorm)
-        dec = json.loads(jsdec)
+        dec: dict[str, Any] = json.loads(jsdec)
         self.assertIsInstance(dec, dict)
         for unwanted in ['_meta', '_hiddenkey']:
             self.assertNotIn(unwanted, dec, msg=f"Unwanted key '{unwanted}'")
         want = {
             'tstamp': tnow.isoformat(),
+            'tdate': tnow.date().isoformat(),
+            'ttime': tnow.time().isoformat(),
             'jsonf': [1, 2, 3],
             'intf': 123,
             'charf': 'myfield',
