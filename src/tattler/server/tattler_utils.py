@@ -13,6 +13,8 @@ from importlib.resources import files
 
 from tattler.server import pluginloader           # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
+from tattler.server.templatemgr import TemplateMgr
+from tattler.server import sendable
 from tattler.server.sendable.template_processor import TemplateProcessor
 from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
