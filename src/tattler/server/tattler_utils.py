@@ -2,11 +2,10 @@
 
 import base64
 import os
-import re
 import logging
 import uuid
 import binascii
-from datetime import date, datetime, timedelta, time
+from datetime import datetime
 from typing import Mapping, Any, Optional, Iterable, Union
 from pathlib import Path
 from importlib.resources import files
@@ -20,8 +19,6 @@ from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
 
 mode_severity = ['debug', 'staging', 'production']
-
-TATTLER_TIMEDELTA_PREFIX = '^tattler^timedelta^P'
 
 
 template_processors_available = {
@@ -327,34 +324,3 @@ def unobfuscate(data: bytes, key: Optional[str]=None) -> str:
     if not outstr.startswith(key):
         raise ValueError("Key could not successfully unobfuscate string with given key.")
     return outstr[len(key):]
-
-def decode_timedelta(value: str) -> timedelta:
-    """Decode a string into a timedelta.
-    
-    :raises ValueError:     The format or semantic of the given string does not allow decoding.
-
-    :return:        Timedelta representation of the duration of the given string.
-    """
-    if not value or not value.startswith(TATTLER_TIMEDELTA_PREFIX):
-        raise ValueError('Not formatted as a valid tattler duration (invalid prefix)')
-    res = re.match(r'(?P<days>[0-9]+)D(?P<secs>[0-9]+)S(?P<micros>[0-9]+)u', value[len(TATTLER_TIMEDELTA_PREFIX):])
-    if res is None:
-        raise ValueError('Not formatted as a valid tattler duration (invalid fields)')
-    return timedelta(days=int(res.group('days')), seconds=int(res.group('secs')), microseconds=int(res.group('micros')))
-
-def decode_django_json(obj):
-    """Adapt object by replacing fields that can be cast to python"""
-    if isinstance(obj, dict):
-        return {k:decode_django_json(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [decode_django_json(v) for v in obj]
-    if isinstance(obj, str):
-        if obj.startswith(TATTLER_TIMEDELTA_PREFIX):
-            return decode_timedelta(obj)
-        # date?
-        for t in [time, date, datetime]:    # retain this order!
-            try:
-                return t.fromisoformat(obj)
-            except ValueError:
-                pass
-    return obj

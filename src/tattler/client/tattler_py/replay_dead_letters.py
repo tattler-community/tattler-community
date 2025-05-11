@@ -3,8 +3,8 @@ import sys
 import logging
 from typing import Iterable, Any, Mapping, Optional
 
+from tattler.utils.serialization import deserialize_json
 from tattler_py.tattler_client_http import TattlerClientHTTP
-from tattler_py.serialization import deserialize_json
 
 log = logging.getLogger(__name__)
 log.setLevel(os.getenv('LOG_LEVEL', 'info').upper())

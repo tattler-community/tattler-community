@@ -10,9 +10,10 @@ from urllib.parse import urlparse, parse_qsl
 from tattler.server import sendable
 from tattler.server import pluginloader   # import in this exact way to ensure that namespaces are aligned with those in the plugin import!
 
+from tattler.utils.serialization import decode_django_json
 from tattler.server.templatemgr import get_scopes
 from tattler.server import tattler_utils
-from tattler.server.tattler_utils import getenv, decode_django_json
+from tattler.server.tattler_utils import getenv
 
 
 logging.basicConfig(level=getenv('LOG_LEVEL', 'info').upper())

@@ -1,17 +1,13 @@
 """Test client utilities"""
 
-import json
 import unittest
 import unittest.mock
-from datetime import datetime, timezone, timedelta
 import os
 import random
-from types import SimpleNamespace
 from typing import Any
-from collections.abc import Mapping
 
+from tattler.utils.serialization import serialize_json
 from tattler.client.tattler_py import tattler_client_utils
-from tattler.client.tattler_py.serialization import serialize_json
 
 def get_random_ip4():
     """Generate a random IPv4 address for testing"""
@@ -79,137 +75,6 @@ class TattlerClientUtilsTest(unittest.TestCase):
                 self.assertIn('provide valid port value', str(err.exception), msg=f"With '{conf}'")
 
 
-class TestSerialization(unittest.TestCase):
-    """Tests for serialization logic"""
-
-    def test_serialize_objects_timestamp(self):
-        """serialize_json() gracefully supports timestamps"""
-        now = datetime.now(tz=timezone.utc)
-        js = serialize_json({'foo': now})
-        self.assertIsInstance(js, bytes)
-        jsdec = js.decode(encoding="utf-8")
-        self.assertIn('"foo":', jsdec)
-        self.assertIn(now.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'), jsdec)
-
-    def test_serialize_maps(self):
-        """serialize_json() gracefully supports maps"""
-        jsdec = serialize_json({'bar': {'1': 1, '2': 2}}).decode(encoding='utf-8')
-        self.assertIn('"bar":', jsdec)
-        self.assertIn('"1":', jsdec)
-    
-    def test_serialize_sets(self):
-        """serialize_json() gracefully supports sets, converts them as sorted lists"""
-        jsdec = serialize_json({'set1': {3, 1, 2}}).decode(encoding='utf-8')
-        self.assertIn('"set1":', jsdec)
-        self.assertIn('[1, 2, 3]', jsdec)
-
-    def test_serialize_mapping_objects(self):
-        """serialize_json() gracefully supports sets, converts them as sorted lists"""
-        class MyMappingNonDict(Mapping):
-            def __getitem__(k, v=None):
-                return 3
-            def __len__(self):
-                return 1
-            def __iter__(self):
-                yield 'a'
-        # mapt = Counter(a=4, b=5)
-        jsdec = serialize_json({'map1': MyMappingNonDict()}).decode(encoding='utf-8')
-        self.assertIn('"map1":', jsdec)
-        self.assertIn('{"a": 3}', jsdec)
-
-    def test_serialize_objects(self):
-        """Serializing objects only returns properties and omits methods"""
-        badobj = SimpleNamespace(x=10, foo=lambda x: 10)
-        res = serialize_json(badobj)
-        dec = json.loads(res)
-        self.assertIsInstance(dec, dict)
-        self.assertIn('x', dec)
-        self.assertEqual(dec['x'], 10)
-        self.assertNotIn('foo', dec)
-
-    def test_serialize_function_fails(self):
-        """Serializing a function raises TypeError"""
-        with self.assertRaises(TypeError) as err:
-            serialize_json(lambda x: 10)
-        self.assertIn('function', str(err.exception))
-
-    def test_serialize_django_orm_flat(self):
-        """Serialize a flat model object from Django ORM"""
-        # reproduce a django object without drawing in Django as a dependency
-        tnow = datetime.now().replace(microsecond=0)
-        dur = timedelta(days=2, hours=1, minutes=5, seconds=12, microseconds=456)
-        djorm = SimpleNamespace(DoesNotExist=None,
-                                clean=None,
-                                full_clean=None,
-                                _meta=None,
-                                _hiddenkey={ 'foo': 'bar', 'x': 1 },
-                                tstamp=tnow,
-                                tdate=tnow.date(),
-                                ttime = tnow.time(),
-                                jsonf=[1, 2, 3],
-                                intf=123,
-                                charf='myfield',
-                                duratf=dur,
-                                emailf='asd@foo.com',
-                                floatf=10/3
-                                )
-        jsdec = serialize_json(djorm)
-        dec: dict[str, Any] = json.loads(jsdec)
-        self.assertIsInstance(dec, dict)
-        for unwanted in ['_meta', '_hiddenkey']:
-            self.assertNotIn(unwanted, dec, msg=f"Unwanted key '{unwanted}'")
-        want = {
-            'tstamp': tnow.isoformat(),
-            'tdate': tnow.date().isoformat(),
-            'ttime': tnow.time().isoformat(),
-            'jsonf': [1, 2, 3],
-            'intf': 123,
-            'charf': 'myfield',
-            'duratf': '^tattler^timedelta^P2D3912S456u',
-            'emailf': 'asd@foo.com',
-            'floatf': 10/3
-        }
-        self.assertGreaterEqual(dec.items(), want.items())
-    
-    def test_serialize_djang_orm_foreignkey(self):
-        """Serialize a model object from Django ORM with ForeignKeys in it"""
-        djorm = SimpleNamespace(DoesNotExist=None,
-                                clean=None,
-                                full_clean=None,
-                                _meta=None,
-                                plainstr='plain string',
-                                foo_id='my_id',
-                                foo={
-                                    'intf': 10,
-                                    'strf': 'hello',
-                                    'deeper_key_id': 'deepid',
-                                    'deeper_key': {
-                                        'floatf': 3/2,
-                                        'strf': 'world',
-                                    }
-                                },
-                                bar_id='1234',
-                                bar={
-                                    'emailf': 'asd@foo.com',
-                                })
-        jsdec = serialize_json(djorm)
-        dec = json.loads(jsdec)
-        self.assertIsInstance(dec, dict)
-        # foo
-        self.assertIn('foo_id', dec)
-        self.assertEqual(dec['foo_id'], 'my_id')
-        self.assertIn('foo', dec)
-        self.assertIsInstance(dec['foo'], dict)
-        self.assertIn('deeper_key_id', dec['foo'])
-        self.assertEqual(dec['foo']['deeper_key_id'], 'deepid')
-        self.assertIsInstance(dec['foo']['deeper_key'], dict)
-        self.assertEqual(dec['foo']['deeper_key'], {'floatf': 3/2, 'strf': 'world'})
-        # bar
-        self.assertIn('bar_id', dec)
-        self.assertEqual(dec['bar_id'], '1234')
-        self.assertIn('bar', dec)
-        self.assertIsInstance(dec['bar'], dict)
-        self.assertEqual(dec['bar'], {'emailf': 'asd@foo.com'})
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ from typing import Mapping, Iterable, Optional
 
 from tattler.client.tattler_py.tattler_client import TattlerClient, log
 
-from tattler.client.tattler_py.serialization import serialize_json
+from tattler.utils.serialization import serialize_json
 
 class TattlerClientHTTP(TattlerClient):
     """HTTP implementation of TattlerClient"""
