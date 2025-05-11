@@ -317,6 +317,16 @@ class TestTattlerUtils(unittest.TestCase):
                 self.assertIsInstance(have, Path)
                 self.assertTrue(mfiles.mock_calls)
 
+    def test_demo_templates_python39(self):
+        """get_template_mgr() returns demo path under python 3.9"""
+        with unittest.mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
+            with unittest.mock.patch('tattler.server.tattler_utils.files') as mfiles:
+                mgetenv.side_effect = lambda k,v=None: {'TATTLER_TEMPLATE_BASE': None}.get(k, os.getenv(k, v))
+                mfiles.side_effect = TypeError("Artificial error from mocking")
+                have = tattler_utils.check_templates_health()
+                self.assertIsInstance(have, Path)
+                self.assertTrue(mfiles.mock_calls)
+
     def test_plugins_are_passed_correct_context(self):
         tattler_utils.init_plugins(Path(__file__).parent / 'fixtures' / 'plugins_integration')
         with mock.patch('tattler.server.tattler_utils.getenv') as mgetenv:
