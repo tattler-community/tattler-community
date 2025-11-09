@@ -103,7 +103,7 @@ This file must contain a JSON object, with zero or more keys:
             "Lady Jane"
         ],
         "appointment": {
-            "timestamp": "2024-05-11T10:45:04.123",
+            "timestamp": "^^tattler^timestamp^2024-05-11T10:45:04.123",
             "location": {
                 "latitude": 47.6589151,
                 "longitude": 9.1790431
@@ -120,4 +120,40 @@ Notice the following in the example:
 
 - Values may have any format -- even be structured. Their data type and format is only determined by what your templates expect it to be.
 
-- ``tattler`` automatically detects strings formatted as ISO-8601 and converts them into a python datetime. (field ``timestamp`` in the example)
+- ``tattler`` encodes certain strings as you instruct it to -- here a timestamp converts to a `datetime`.
+
+
+Parameter encoding
+^^^^^^^^^^^^^^^^^^
+
+Tattler can convert certain strings to other types for you:
+
+- Before version `1.5.2`, tattler automatically detected certain types such as `datetime` based on a format, such as ISO-8601.
+
+- With version `1.5.2`, tattler requires you to declare the desired type for your data. This removes ambiguities and makes it possible to encode many types, like `time` and `timedelta`.
+
+This conversion is entirely optional and you may choose to simply pass strings and convert them to your desired type directly in your template. If you want to have tattler do this conversion, here is your casting menu:
+
+.. code-block:: JSON
+
+    {
+        "my_datetime":  "^^tattler^timestamp^2024-05-11T10:45:04.123",
+        "my_time":      "^^tattler^time^10:45:04.123",
+        "my_date":      "^^tattler^date^2024-12-25",
+        // duration, in ISO-8601 format: 12 days and 82312 seconds => 22 hours, 51 minutes, 52 seconds
+        "my_interval":  "^^tattler^timedelta^P12D82312S234u",
+    }
+
+Supported encodings:
+
++--------------------------+--------------------+-----------------------------+-------------------------------------------------+
+| Prefix                   | Converted to type  | Format                      | Example                                         |
++==========================+====================+=============================+=================================================+
+| ``^^tattler^timestamp^`` | ``datetime``       | ISO-8601 date and time      | ``^^tattler^timestamp^2024-05-11T10:45:04.123`` |
++--------------------------+--------------------+-----------------------------+-------------------------------------------------+
+| ``^^tattler^date^``      | ``date``           | ISO-8601 date               | ``^^tattler^date^2014-09-18``                   |
++--------------------------+--------------------+-----------------------------+-------------------------------------------------+
+| ``^^tattler^time^``      | ``time``           | ISO-8601 time               | ``^^tattler^time^10:45:04.123``                 |
++--------------------------+--------------------+-----------------------------+-------------------------------------------------+
+| ``^^tattler^timedelta^`` | ``timedelta``      | ISO-8601 duration           | ``^^tattler^timedelta^10:45:04.123``            |
++--------------------------+--------------------+-----------------------------+-------------------------------------------------+
