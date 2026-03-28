@@ -1,1 +1,1 @@
-Plain: %(one)s
+Plain: {{ one }}

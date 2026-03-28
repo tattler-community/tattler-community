@@ -22,7 +22,6 @@ mode_severity = ['debug', 'staging', 'production']
 
 
 template_processors_available = {
-    'plain': TemplateProcessor,
     'jinja': JinjaTemplateProcessor,
 }
 # set via envvar

@@ -1,1 +1,1 @@
-Foobar123 %(one)s
+Foobar123 {{ one }}
