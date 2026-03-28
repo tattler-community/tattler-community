@@ -4,3 +4,5 @@ docs/releases
 htmlcov
 .coverage
 *.pyc
+*.egg-info/
+dist/
