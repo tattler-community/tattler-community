@@ -51,8 +51,8 @@ and here's some more advanced features:
 
 5. **Dev mode**: Let your applications trigger notifications to the real user, while tattler only delivers to your debug address.
 6. **Django**: Easily pass whole Django models to your templates without manual serialization.
-6. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
-7. **Template data**: Fetch variables for your templates natively (with trivial-to-write plug-ins) instead of assembling long context dictionaries.
+7. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
+8. **Template data**: Fetch variables for your templates natively (with trivial-to-write plug-ins) instead of assembling long context dictionaries.
 
 Tattler is designed with **simplicity** in mind. It strives for trivial deployment so you can focus on your
 communication, brand and customer journey.
