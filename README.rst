@@ -30,7 +30,9 @@
 👀 What is tattler?
 ===================
 
-Are you building an online service and need to send beautiful, branded notifications via email or SMS to your users?
+If you are building an online service, you'll need to notify your users. Sign up, password reset and the like.
+
+Tattler helps you send beautiful branded notifications easily, via email and SMS.
 
 Tattler makes that easy for you. Your application makes a simple HTTP call to tattler:
 
@@ -40,18 +42,19 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
 Tattler helps you with these basics:
 
-1. **Templates**: Load and expand powerful templates for event ``password_changed`` for email, SMS etc.
-2. **MIME**: Assemble a multi-part email with HTML, text fallback and advanced headers that satisfy spam filters.
-3. **Delivery**: Send the content through SMTP and an SMS delivery network.
+1. **Events**: Create templates for your events (e.g. `account_created` or `plan_upgraded`) and say which send email and/or SMS.
+2. **Templates**: Expand templates from MJML, HTML, text into multi-part emails that deliver and satisfy spam filters.
+3. **Delivery**: Send the content through SMTP / SMS.
 4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
 
 and here's some more advanced features:
 
 5. **Dev mode**: Let your applications trigger notifications to the real user, while tattler only delivers to your debug address.
+6. **Django**: Easily pass whole Django models to your templates without manual serialization.
 6. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
-7. **Template data**: Fetch variables for your templates from your DB (with trivial-to-write plug-ins).
+7. **Template data**: Fetch variables for your templates natively (with trivial-to-write plug-ins) instead of assembling long context dictionaries.
 
-Tattler is designed with simplicity in mind. It strives for trivial deployment so you can focus on your
+Tattler is designed with **simplicity** in mind. It strives for trivial deployment so you can focus on your
 communication, brand and customer journey.
 
 If your system sends notifications from multiple different softwares -- say a web application, a billing daemon,
