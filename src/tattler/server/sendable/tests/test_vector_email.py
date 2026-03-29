@@ -308,5 +308,33 @@ class TestVectorEmail(unittest.TestCase):
                 smtp_content = msmtp.SMTP.return_value.sendmail.call_args.args[2]
                 self.assertTrue(all(ord(x) < 128 for x in smtp_content), msg="Attempts to send non-ascii content to SMTP, which requires ASCII")
 
+    def test_mjml_template_produces_html(self):
+        """MJML template is compiled to HTML in the email content"""
+        e = EmailSendable('event_with_mjml', data_recipients['email'], template_base=tbase_standard_path)
+        content = e.content(context={'one': 'world'})
+        self.assertIn('Content-Type: text/html', content)
+        self.assertNotIn('<mjml', content)
+        self.assertNotIn('<mj-', content)
+        self.assertIn('world', content)
+
+    def test_mjml_detected_as_html_part(self):
+        """body.mjml is recognized as the html part"""
+        e = EmailSendable('event_with_mjml', data_recipients['email'], template_base=tbase_standard_path)
+        self.assertIn('body.html', e._get_available_parts().values())
+
+    def test_mjml_raw_content_returns_html(self):
+        """raw_content() converts MJML to HTML"""
+        e = EmailSendable('event_with_mjml', data_recipients['email'], template_base=tbase_standard_path)
+        raw = e.raw_content()
+        self.assertNotIn('<mjml', raw)
+        self.assertNotIn('<mj-', raw)
+
+    def test_mjml_preserves_template_variables(self):
+        """Template variables survive MJML compilation and are expanded"""
+        e = EmailSendable('event_with_mjml', data_recipients['email'], template_base=tbase_standard_path)
+        content = e.content(context={'one': '#MARKER#'})
+        self.assertIn('#MARKER#', content)
+
+
 if __name__ == '__main__':
     unittest.main()             # pragma: no cover

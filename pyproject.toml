@@ -25,6 +25,7 @@ dependencies = [
     "humanize >= 4.12.3",
     "bulksms >= 1.1.1",
     "envdir >= 1.0.1",
+    "mjml >= 0.12.0",
 ]
 
 [project.scripts]
