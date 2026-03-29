@@ -73,6 +73,21 @@ That's enough security for most. If it isn't for you, simply remove the configur
 folder used by ``tattler_livepreview`` as soon as you're done configuring it.
 
 
+Browser-based previews with MJML
+---------------------------------
+
+If you use :ref:`MJML templates <templatedesigners/email:MJML Emails>`, you can also preview your
+markup directly in the browser using tools from the MJML ecosystem -- for example the
+`MJML VS Code extension <https://marketplace.visualstudio.com/items?itemName=mjmlio.vscode-mjml>`_
+or the `MJML online editor <https://mjml.io/try-it-live>`_.
+
+These give you quick visual feedback as you edit, without sending an actual email.
+
+However, they render your template in a browser, not in an email client -- so they won't
+catch email-client-specific rendering issues. Use ``tattler_livepreview`` for a faithful
+preview through real email delivery.
+
+
 Passing variables
 -----------------
 

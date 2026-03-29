@@ -73,9 +73,10 @@ Tattler supports two ways to write rich email templates: MJML and HTML.
 
 Use **MJML** if you want to:
 
-- Get responsive emails that render well across all email clients without extra effort.
 - Avoid dealing with the quirks of email HTML rendering (inconsistent CSS support, broken layouts, etc.).
+- Get responsive emails that render well across all email clients without extra effort.
 - Write clean, readable markup and let the compiler handle the cross-client workarounds.
+- Get instant :ref:`browser-based previews <testing/livepreview:Browser-based previews with MJML>` as you edit, using the MJML VS Code extension or online editor.
 
 Use **HTML** if you:
 
