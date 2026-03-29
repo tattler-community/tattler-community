@@ -51,7 +51,7 @@ def template_files(template_base: Path) -> AbstractSet[Path]:
     if not template_base.is_dir():
         raise FileNotFoundError(f"Template base {template_base} is not a directory")
     # actually return template files
-    wanted_filenames = ['body.txt', 'body.html', 'subject.txt', 'priority'] + ['body_html', 'body_plain', 'subject']
+    wanted_filenames = ['body.txt', 'body.html', 'body.mjml', 'subject.txt', 'priority'] + ['body_html', 'body_plain', 'subject']
     wanted_files = set()
     for wfile in wanted_filenames:
         wanted_files |= {f for f in template_base.glob(f'**/email/{wfile}') if depth(f, template_base) == 4}
