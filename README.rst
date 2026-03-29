@@ -42,7 +42,7 @@ Tattler makes that easy for you. Your application makes a simple HTTP call to ta
 
 Tattler helps you with these basics:
 
-1. **Events**: Create templates for your events (e.g. `account_created` or `plan_upgraded`) and say which send email and/or SMS.
+1. **Events**: Create templates for your events (e.g. ``account_created``) and say which send email and/or SMS.
 2. **Templates**: Expand templates from MJML, HTML, text into multi-part emails that deliver and satisfy spam filters.
 3. **Delivery**: Send the content through SMTP / SMS.
 4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
