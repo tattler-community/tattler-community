@@ -59,7 +59,7 @@ The files have the following purpose:
 
 ``body.mjml``
     Optional. Alternative to ``body.html``. Contains `MJML <https://mjml.io>`_ markup which tattler automatically
-    compiles into HTML before delivering. See :ref:`MJML templates <templatedesigners/email:MJML templates>` below.
+    compiles into HTML before delivering. See :ref:`MJML Emails <templatedesigners/email:MJML Emails>` below.
 
 ``priority.txt``
     Optional. Contains an integer ∈ { 1, 2, 3, 4, 5 }, where ``1`` is "highest" and ``3`` is "normal" priority.
