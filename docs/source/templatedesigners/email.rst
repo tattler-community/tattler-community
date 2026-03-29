@@ -58,8 +58,8 @@ The files have the following purpose:
     view this content first.
 
 ``body.mjml``
-    Optional. Alternative to ``body.html``. Contains `MJML <https://mjml.io>`_ markup which tattler automatically
-    compiles into HTML before delivering. See :ref:`MJML Emails <templatedesigners/email:MJML Emails>` below.
+    Optional. Alternative to ``body.html`` -- provide one or the other, not both. Contains `MJML <https://mjml.io>`_ markup
+    which tattler automatically compiles into HTML before delivering. See :ref:`MJML Emails <templatedesigners/email:MJML Emails>` below.
 
 ``priority.txt``
     Optional. Contains an integer ∈ { 1, 2, 3, 4, 5 }, where ``1`` is "highest" and ``3`` is "normal" priority.
@@ -87,9 +87,10 @@ Use **HTML** if you:
 Both approaches support Jinja template variables, :ref:`base templates <templatedesigners/base_templates:Base templates>`,
 and :ref:`live previews <testing/livepreview:Live previews>`.
 
-.. note::
+.. warning::
 
-    If both ``body.html`` and ``body.mjml`` exist for the same event, ``body.html`` takes precedence.
+    Providing either ``body.html`` or ``body.mjml`` (or neither) in any event. Tattler's template validation at startup
+    will report an error if both files exist for an event.
 
 MJML Emails
 ------------

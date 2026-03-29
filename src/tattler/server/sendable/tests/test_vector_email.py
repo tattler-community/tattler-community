@@ -329,6 +329,17 @@ class TestVectorEmail(unittest.TestCase):
         self.assertNotIn('<mjml', raw)
         self.assertNotIn('<mj-', raw)
 
+    def test_mjml_and_html_both_present_raises(self):
+        """validate_template() raises if both body.html and body.mjml exist"""
+        import tempfile, shutil
+        with tempfile.TemporaryDirectory() as tdir:
+            event_dir = Path(tdir) / 'evt' / 'email'
+            shutil.copytree(tbase_standard_path / 'event_with_mjml' / 'email', event_dir)
+            (event_dir / 'body.html').write_text('<html>hi</html>')
+            e = EmailSendable('evt', data_recipients['email'], template_base=Path(tdir))
+            with self.assertRaises(ValueError, msg="validate_template() should raise when both body.html and body.mjml exist"):
+                e.validate_template()
+
     def test_mjml_preserves_template_variables(self):
         """Template variables survive MJML compilation and are expanded"""
         e = EmailSendable('event_with_mjml', data_recipients['email'], template_base=tbase_standard_path)

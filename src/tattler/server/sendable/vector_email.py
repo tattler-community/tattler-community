@@ -79,6 +79,8 @@ class EmailSendable(vector_sendable.Sendable):
         required = {'body.txt', 'subject.txt'}
         if required - parts:
             raise ValueError(f"Required parts are missing: {required - parts}")
+        if {'body.html', 'body.mjml'} <= set(self._get_template_elements()):
+            raise ValueError(f"Template '{self.event_name}' provides both 'body.html' and 'body.mjml', while only one of them is allowed.")
 
     def raw_content(self) -> str:
         """Return raw content as either a single-part message or a multi-part MIME message"""
