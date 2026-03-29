@@ -11,6 +11,8 @@ from email.mime.text import MIMEText
 from email.utils import formatdate
 import smtplib
 
+from mjml import mjml_to_html
+
 from tattler.server.sendable import vector_sendable
 
 # SMTP X-Priority header
@@ -58,7 +60,7 @@ class EmailSendable(vector_sendable.Sendable):
     filename_aliases = {
         'subject.txt': ['subject'],
         'body.txt': ['body_plain'],
-        'body.html': ['body_html'],
+        'body.html': ['body_html', 'body.mjml'],
         'priority.txt': ['priority'],
     }
 
@@ -77,6 +79,8 @@ class EmailSendable(vector_sendable.Sendable):
         required = {'body.txt', 'subject.txt'}
         if required - parts:
             raise ValueError(f"Required parts are missing: {required - parts}")
+        if {'body.html', 'body.mjml'} <= set(self._get_template_elements()):
+            raise ValueError(f"Template '{self.event_name}' provides both 'body.html' and 'body.mjml', while only one of them is allowed.")
 
     def raw_content(self) -> str:
         """Return raw content as either a single-part message or a multi-part MIME message"""
@@ -195,6 +199,18 @@ class EmailSendable(vector_sendable.Sendable):
     def subject(self, context: Mapping[str, Any]) -> str:
         """Return the e-mail subject."""
         return self._get_content_element('subject.txt', context).strip()
+
+    def _get_template_raw_element(self, name: str, base: bool=False) -> str:
+        """Return the content of a template element, converting MJML to HTML if needed."""
+        if name == 'body.html':
+            mjml_path = self._get_template_pathname(base) / 'body.mjml'
+            if mjml_path.exists():
+                content = mjml_path.read_text(encoding='utf-8')
+                result = mjml_to_html(content)
+                if result.errors:
+                    raise ValueError(f"Failed to compile MJML template 'body.mjml': {result.errors}")
+                return result.html
+        return super()._get_template_raw_element(name, base)
 
     def content(self, context: Mapping[str, Any]) -> str:
         return self._build_msg(context).as_string()

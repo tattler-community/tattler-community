@@ -1,1 +1,1 @@
-Bar whatsapp %(one)s
+Bar whatsapp {{ one }}

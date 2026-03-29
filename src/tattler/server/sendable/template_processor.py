@@ -30,21 +30,11 @@ class TemplateProcessor:
 
     def expand(self, context: Optional[Mapping[str, Any]]=None, **kwargs) -> str:
         """Expand the template into the actual content to deliver.
-        
+
         :param context: None or a dictionary of variables and values.
         :type context: dict or None
         :return: Expanded content for sending.
         :rtype: str
         :raises TypeError: if the template could not be expanded.
         """
-        full_context = context or {}
-        if self.base_content:
-            try:
-                bcontent = self.base_content % full_context
-                full_context = {'base_content': bcontent, **full_context}
-            except KeyError as err:
-                raise KeyError(f"Error expanding base template with base TemplateProcessor. One or more template-required variable were undefined ({err.args[0]})? Original error: '{err}'. Context: {context}") from err            
-        try:
-            return self.content % full_context
-        except KeyError as err:
-            raise KeyError(f"Error expanding template with base TemplateProcessor. One or more template-required variable were undefined ({err.args[0]})? Original error: '{err}'. Context: {context}") from err
+        raise NotImplementedError

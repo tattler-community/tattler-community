@@ -183,13 +183,55 @@ Done. Our notification templates directory now looks like this:
                    ├── body.txt
                    └── subject.txt
 
+Add an MJML template
+^^^^^^^^^^^^^^^^^^^^
+
+`MJML <https://mjml.io>`_ simplifies writing emails that render well across all email clients
+despite their various HTML restrictions, including responsive layouts, and enables live previews.
+
+Tattler supports MJML natively -- add a ``body.mjml`` file alongside your plain-text template:
+
+.. code-block:: bash
+
+    cd ~/tattler_quickstart/templates/mywebapp/password_changed/email
+
+    cat > body.mjml << 'EOF'
+    <mjml>
+      <mj-body>
+        <mj-section>
+          <mj-column>
+            <mj-text>
+              <h1>Password changed!</h1>
+              <p>Hey! Your account password was changed.</p>
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-body>
+    </mjml>
+    EOF
+
+Tattler compiles the MJML into responsive HTML at delivery time -- no extra tooling needed.
+
+Your template directory now looks like this:
+
+.. code-block:: text
+
+    tattler_quickstart/
+    └── templates/
+       └── mywebapp/                 # scope  = mywebapp
+           └── password_changed/     # event  = password_changed
+               └── email/            # vector = email
+                   ├── body.mjml     # MJML → compiled to HTML
+                   ├── body.txt      # plain text fallback
+                   └── subject.txt
+
 Find more information about designing templates in the
 :doc:`documentation for template designers <templatedesigners/index>`.
 
 Get live previews while editing
 -------------------------------
 
-When editing email templates -- especially with :ref:`HTML branding <templatedesigners/email:HTML Emails>` -- you usually want to iterate editing and previews.
+When editing email templates -- especially with :ref:`MJML <templatedesigners/email:MJML Emails>` or :ref:`HTML branding <templatedesigners/email:HTML Emails>` -- you usually want to iterate editing and previews.
 
 Tattler gives you live, hi-fi email previews as you edit with its embedded ``tattler_livepreview`` tool:
 
@@ -243,7 +285,7 @@ Then go check your mailbox to confirm that you received the notification with th
 .. hint:: Exploit the demo template!
 
     The demo template you used earlier is your friend. It includes tips on writing effective,
-    portable HTML emails -- and most of all it includes some code snippets which you can
+    portable email notifications -- and most of all it includes some code snippets which you can
     simply copy and paste to write your own templates.
 
     Find the source code of the demo templates in

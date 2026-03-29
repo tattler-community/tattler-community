@@ -9,6 +9,7 @@ from typing import Iterable, Mapping, Optional, Any, Union
 
 from . import TemplateProcessor
 from . import Blacklist
+from tattler.server.templateprocessor_jinja import JinjaTemplateProcessor
 
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class Sendable:
         'body.txt': ['body']
     }
 
-    def __init__(self, event: str, recipients: Iterable[str], template_processor: type[TemplateProcessor]=TemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
+    def __init__(self, event: str, recipients: Iterable[str], template_processor: type[TemplateProcessor]=JinjaTemplateProcessor, template_base: str=_default_template_base, debug_recipient: Optional[str]=None, language_code: Optional[str]=None):
         """Build an object which can be expanded into content and delivered through a vector.
         
         :param: event:              Event name to search among event templates database.

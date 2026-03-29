@@ -6,7 +6,7 @@ Template designers
 Your role:
 
 - Write templates for each event.
-- Design and implement the style of HTML email notifications.
+- Design and implement the style of email notifications -- using `MJML <https://mjml.io>`_ or HTML.
 - Review all that with your product manager.
 
 You are supposed to have received (or made yourself?) a
