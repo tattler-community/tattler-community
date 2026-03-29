@@ -16,7 +16,7 @@ and tattler does this for you:
 1. Load your templates for event ``password_changed``, and see where it should be notified. (Email? SMS? More?)
 2. Load the email address and mobile number for user ``123`` as required -- with trivial-to-write plug-ins.
 3. Load any variable that your templates require -- with trivial-to-write plug-ins. (What plan is the user on? How much of the plan is used up?)
-4. Expand the template and encode the content into an actual notification -- e.g. a multi-part MIME email with HTML and plain text fallback.
+4. Expand the template and encode the content into an actual notification -- e.g. a multi-part MIME email with HTML (or `MJML <https://mjml.io>`_) and plain text fallback.
 5. Deliver the final content through SMTP and an SMS delivery network.
 
 Tattler is designed with simplicity in mind. It strives to be easy to adopt and useful among common needs -- so you

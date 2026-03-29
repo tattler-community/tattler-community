@@ -1,7 +1,8 @@
 Base templates
 ==============
 
-You usually want to send notifications with a consistent style. Especially for HTML,
+You usually want to send notifications with a consistent style. Especially for
+:ref:`MJML <templatedesigners/email:MJML Emails>` or :ref:`HTML <templatedesigners/email:HTML Emails>` emails,
 where you want to have a common design -- colors, fonts, footer links etc.
 
 Sometimes also for plain-text, where you might want to include disclaimer footers.
@@ -16,14 +17,14 @@ Tattler supports **base templates** to simplify that::
     │   └── email/                      <- base template for email
     │       ├── subject.txt
     │       ├── body.txt
-    │       ├── body.html
+    │       ├── body.html              <- or body.mjml
     │       └── priority.txt
     └── mywebapp/                       <-- a scope
         └── reservation_confirmed/      <- event template
             └── email/
-                ├── subject.txt             
-                ├── body.txt          
-                ├── body.html
+                ├── subject.txt
+                ├── body.txt
+                ├── body.html              <- or body.mjml
                 └── priority.txt
 
 The base template is just like an event template, but named ``_base`` and placed

@@ -8,7 +8,7 @@ Email templates
 +------------------------+---------------------------------------------------------------------------------+
 | Encoding               | ASCII                                                                           |
 +------------------------+---------------------------------------------------------------------------------+
-| Content type           | HTML and/or plain text.                                                         |
+| Content type           | MJML, HTML and/or plain text.                                                   |
 +------------------------+---------------------------------------------------------------------------------+
 | Maximum content length | Several MegaBytes.                                                              |
 +------------------------+---------------------------------------------------------------------------------+
@@ -36,7 +36,7 @@ such files are enclosed into an ``email`` folder::
             └── email/                  <- email vector
                 ├── subject.txt         <- mandatory
                 ├── body.txt            <- mandatory
-                ├── body.html
+                ├── body.html           <- or body.mjml
                 └── priority.txt
 
 .. hint:: The ``body.txt`` definition is not required in `Tattler's enterprise edition <https://tattler.dev/#enterprise>`_.
@@ -57,13 +57,85 @@ The files have the following purpose:
     Optional. Contains template text which will be expanded with template variables to generate the HTML version of the email to send. If the recipient's e-mail application supports HTML emails, they will
     view this content first.
 
+``body.mjml``
+    Optional. Alternative to ``body.html``. Contains `MJML <https://mjml.io>`_ markup which tattler automatically
+    compiles into HTML before delivering. See :ref:`MJML templates <templatedesigners/email:MJML templates>` below.
+
 ``priority.txt``
     Optional. Contains an integer ∈ { 1, 2, 3, 4, 5 }, where ``1`` is "highest" and ``3`` is "normal" priority.
     Priority is implemented by setting the ``X-Priotity`` header in the final email to the user,
     so its potency depends on whether the user's email application supports that attribute -- which many do.
 
+MJML or HTML?
+-------------
+
+Tattler supports two ways to write rich email templates: MJML and HTML.
+
+Use **MJML** if you want to:
+
+- Get responsive emails that render well across all email clients without extra effort.
+- Avoid dealing with the quirks of email HTML rendering (inconsistent CSS support, broken layouts, etc.).
+- Write clean, readable markup and let the compiler handle the cross-client workarounds.
+
+Use **HTML** if you:
+
+- Already have existing HTML email templates you want to reuse.
+- Need precise control over every element in the final HTML output.
+- Depend on HTML constructs not yet supported by `mjml-python <https://pypi.org/project/mjml/>`_.
+
+Both approaches support Jinja template variables, :ref:`base templates <templatedesigners/base_templates:Base templates>`,
+and :ref:`live previews <testing/livepreview:Live previews>`.
+
+.. note::
+
+    If both ``body.html`` and ``body.mjml`` exist for the same event, ``body.html`` takes precedence.
+
+MJML Emails
+------------
+
+Writing HTML emails that render correctly across email clients is notoriously difficult.
+`MJML <https://mjml.io>`_ is a markup language that abstracts away these inconsistencies
+and compiles into responsive, cross-client HTML.
+
+Tattler supports MJML natively. Provide a ``body.mjml`` file with your MJML markup::
+
+    templates_base/
+    └── mywebapp/
+        └── password_changed/
+            └── email/
+                ├── subject.txt
+                ├── body.txt
+                └── body.mjml
+
+Tattler compiles the MJML into HTML at delivery time, so you write clean, semantic markup
+and get reliable rendering across email clients for free.
+
+Use Jinja template variables in your MJML just as you would in any other tattler template:
+
+.. code-block:: html
+
+    <mjml>
+      <mj-body>
+        <mj-section>
+          <mj-column>
+            <mj-text>
+              <h1>Password changed!</h1>
+              <p>Dear {{ user_firstname }},</p>
+              <p>Your password was changed at {{ appointment_time }}.</p>
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-body>
+    </mjml>
+
+Tattler relies on `mjml-python <https://pypi.org/project/mjml/>`_ for compilation,
+not the official node-based MJML compiler -- so support for some corners of the language
+may lag behind the official compiler.
+
 HTML Emails
 -----------
+
+If you prefer to write HTML directly, you can provide a ``body.html`` file instead of ``body.mjml``.
 
 HTML emails are plain-text emails with an HTML file attached, packaged in a special way dictated by the `MIME standard <https://de.wikipedia.org/wiki/Multipurpose_Internet_Mail_Extensions>`_.
 
@@ -97,6 +169,8 @@ Clients that do support HTML emails do so limitedly and inconsistently.
 
 Avoid JavaScript. Basic CSS is often supported. Refer to the excellent
 `CanIEmail <https://www.caniemail.com>`_.
+
+MJML abstracts away most of these concerns -- see :ref:`MJML or HTML? <templatedesigners/email:MJML or HTML?>` above.
 
 
 Email priority

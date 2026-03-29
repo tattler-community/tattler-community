@@ -37,7 +37,7 @@ Your template designer defines which events are available for each event, by pla
     └── mywebapp/
         └── password_changed/
             ├── email/
-            │   ├── body.html
+            │   ├── body.mjml       <- or body.html
             │   ├── body.txt
             │   └── subject.txt
             └── sms/

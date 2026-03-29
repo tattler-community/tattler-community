@@ -1,3 +1,7 @@
+# 3.0.0 -- 2026-03-29
+
+- Add support for [MJML](https://mjml.io) templates to improve MUA compatibility and enable live previews
+
 # 2.4.1 -- 2025-05-10
 
 - Fix client exception when passing datetime.time objects into the context of a notification
