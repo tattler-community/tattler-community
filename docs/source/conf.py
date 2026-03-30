@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'tattler'
-copyright = '2023 - 2024, tattler.dev'
+copyright = '2023 - 2026, tattler.dev'
 author = 'Michele Mazzucchi, keencons.com'
 release = '3.0.0'
 
