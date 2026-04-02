@@ -118,7 +118,7 @@ This file must contain a JSON object, with zero or more keys:
             "Lady Jane"
         ],
         "appointment": {
-            "timestamp": "^^tattler^timestamp^2024-05-11T10:45:04.123",
+            "timestamp": "^tattler^datetime^2024-05-11T10:45:04.123",
             "location": {
                 "latitude": 47.6589151,
                 "longitude": 9.1790431
@@ -152,11 +152,11 @@ This conversion is entirely optional and you may choose to simply pass strings a
 .. code-block:: JSON
 
     {
-        "my_datetime":  "^^tattler^timestamp^2024-05-11T10:45:04.123",
-        "my_time":      "^^tattler^time^10:45:04.123",
-        "my_date":      "^^tattler^date^2024-12-25",
+        "my_datetime":  "^tattler^datetime^2024-05-11T10:45:04.123",
+        "my_time":      "^tattler^time^10:45:04.123",
+        "my_date":      "^tattler^date^2024-12-25",
         // duration, in ISO-8601 format: 12 days and 82312 seconds => 22 hours, 51 minutes, 52 seconds
-        "my_interval":  "^^tattler^timedelta^P12D82312S234u",
+        "my_interval":  "^tattler^timedelta^P12D82312S234u",
     }
 
 Supported encodings:
@@ -164,11 +164,11 @@ Supported encodings:
 +--------------------------+--------------------+-----------------------------+-------------------------------------------------+
 | Prefix                   | Converted to type  | Format                      | Example                                         |
 +==========================+====================+=============================+=================================================+
-| ``^^tattler^timestamp^`` | ``datetime``       | ISO-8601 date and time      | ``^^tattler^timestamp^2024-05-11T10:45:04.123`` |
+| ``^tattler^datetime^``   | ``datetime``       | ISO-8601 date and time      | ``^tattler^datetime^2024-05-11T10:45:04.123``   |
 +--------------------------+--------------------+-----------------------------+-------------------------------------------------+
-| ``^^tattler^date^``      | ``date``           | ISO-8601 date               | ``^^tattler^date^2014-09-18``                   |
+| ``^tattler^date^``       | ``date``           | ISO-8601 date               | ``^tattler^date^2014-09-18``                    |
 +--------------------------+--------------------+-----------------------------+-------------------------------------------------+
-| ``^^tattler^time^``      | ``time``           | ISO-8601 time               | ``^^tattler^time^10:45:04.123``                 |
+| ``^tattler^time^``       | ``time``           | ISO-8601 time               | ``^tattler^time^10:45:04.123``                  |
 +--------------------------+--------------------+-----------------------------+-------------------------------------------------+
-| ``^^tattler^timedelta^`` | ``timedelta``      | ISO-8601 duration           | ``^^tattler^timedelta^10:45:04.123``            |
+| ``^tattler^timedelta^``  | ``timedelta``      | ISO-8601 duration           | ``^tattler^timedelta^10:45:04.123``             |
 +--------------------------+--------------------+-----------------------------+-------------------------------------------------+
