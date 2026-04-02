@@ -7,6 +7,7 @@ Your role:
 
 - Determine what systems need to trigger notifications for the :ref:`defined events <productmanagers:the table>`.
 - Implement logic to call tattler upon each of those events.
+- Validate that the context your code passes to ``send_notification()`` matches what the templates expect -- see :ref:`testing notifications <developers/testing_notifications:testing notifications>`.
 
 Potential follow-up tasks:
 
@@ -22,5 +23,6 @@ Potential follow-up tasks:
     api_python_low
     api_http
     correlationid
+    testing_notifications
 
 

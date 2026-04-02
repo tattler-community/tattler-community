@@ -6,3 +6,4 @@ htmlcov
 *.pyc
 *.egg-info/
 dist/
+__pycache__
