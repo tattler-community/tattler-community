@@ -4,7 +4,7 @@ import unittest
 import os
 from unittest import mock
 from pathlib import Path
-from importlib.abc import Traversable
+from importlib.resources.abc import Traversable
 from tattler.server.tests.testutils import get_template_dir
 
 from tattler.server import tattler_utils
