@@ -182,7 +182,7 @@ def get_template_mgr(event_scope: Optional[str]=None) -> TemplateMgr:
         raise FileNotFoundError(f"Scope does not exist: '{event_scope}'")
     return TemplateMgr(base_path.joinpath(event_scope))
 
-def get_validated_template_mgr(event_scope: str, event_name: str, vectors: Iterable[str]) -> TemplateMgr:
+def get_validated_template_mgr(event_scope: str, event_name: str, vectors: Optional[Iterable[str]]=None) -> TemplateMgr:
     """Verifies the availability of the event parameters at the requested template base and returns a template manager for it.
     
     :param base_path:       Path for which to contruct the template manager.
