@@ -3,9 +3,9 @@
 .. |badge_coverage| image:: https://codecov.io/gh/tattler-community/tattler-community/graph/badge.svg?token=Q5KGRSR0WT 
    :target: https://codecov.io/gh/tattler-community/tattler-community
 
-.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-3.0.0-blue
+.. |badge_release| image:: https://img.shields.io/badge/Latest%20Release-3.1.0-blue
 
-.. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20|%203.12-blue
+.. |badge_pyver| image:: https://img.shields.io/badge/py-3.9%20|%203.10%20|%203.11%20|%203.12|%203.13|%203.14-blue
 
 .. |badge_license| image:: https://img.shields.io/badge/license-BSD_3--clause-blue
 
@@ -34,25 +34,49 @@ If you are building an online service, you'll need to notify your users. Sign up
 
 Tattler helps you send beautiful branded notifications easily, via email and SMS.
 
-Tattler makes that easy for you. Your application makes a simple HTTP call to tattler:
+It's perfect for python and django with its easy API:
+
+.. code-block:: python
+   
+   from auth.models import User
+   from tattler.client.tattler_py import send_notification
+
+   myusr = User.object.get(pk=123)
+   send_notification('mywebapp', 'account_upgraded', 'foo@bar.com', {'user': myusr})
+
+... but it's easy to use with any other application via its HTTP API too:
 
 .. code-block:: bash
 
-   curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=123'
+   curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/account_upgraded/?user=foo@bar.com'
+
+Your designers control templates with a simple directory structure::
+
+   templates_base/
+   └── mywebapp/
+      └── password_changed/      <- your event, one of many
+         ├── email/
+         │  ├── subject.txt
+         │  ├── body.mjml        <- in MJML format, see https://www.mjml.io
+         │  ├── body.txt         <- text fallback
+         │  └── priority.txt
+         └── sms/
+            └── body.txt
+
 
 Tattler helps you with these basics:
 
-1. **Events**: Create templates for your events (e.g. ``account_created``) and say which send email and/or SMS.
-2. **Templates**: Expand templates from MJML, HTML, text into multi-part emails that deliver and satisfy spam filters.
-3. **Delivery**: Send the content through SMTP / SMS.
-4. **Live previews**: Get faithful email previews in real-time as you edit your templates.
+1. **Templates**: Load and expand powerful templates for event ``password_changed`` for email, SMS etc.
+2. **MIME**: Assemble a great-looking email which displays perfectly on all clients and satisfies spam filters (with `MJML <https://mjml.io>`_).
+3. **Delivery**: Send everything via SMTP and/or SMS.
 
 and here's some more advanced features:
 
-5. **Dev mode**: Let your applications trigger notifications to the real user, while tattler only delivers to your debug address.
-6. **Django**: Easily pass whole Django models to your templates without manual serialization.
-7. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
-8. **Template data**: Fetch variables for your templates natively (with trivial-to-write plug-ins) instead of assembling long context dictionaries.
+1. **Dev mode**: Let your applications trigger notifications to the real user, while tattler only delivers to your debug address.
+2. **Django**: Easily pass whole Django models to your templates without manual serialization.
+3. **CI/CD**: let tattler verify in your CI/CD that your code supplies all the data you require to your templates.
+4. **Addressbook**: Fetch the user's email address and mobile number from your DB (with trivial-to-write plug-ins).
+5. **Template data**: Fetch variables for your templates natively (with trivial-to-write plug-ins) instead of assembling long context dictionaries.
 
 Tattler is designed with **simplicity** in mind. It strives for trivial deployment so you can focus on your
 communication, brand and customer journey.
