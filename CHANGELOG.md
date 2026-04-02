@@ -1,4 +1,4 @@
-# 3.1.0 -- 2026-04-01
+# 3.1.0 -- 2026-04-02
 
 - Add utils to validate that your `send_notification()` always sends the context required by your notification.
 
