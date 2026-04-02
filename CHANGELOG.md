@@ -5,6 +5,7 @@
 # 3.0.0 -- 2026-03-29
 
 - Add support for [MJML](https://mjml.io) templates to improve MUA compatibility and enable live previews
+- enterprise: Multilingual templates fall back to the language-agnostic template when the requested language is not available, instead of failing.
 
 # 2.4.1 -- 2025-05-10
 
