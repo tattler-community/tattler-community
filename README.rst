@@ -1,4 +1,4 @@
-.. |badge_pipeline| image:: https://gitlab.com/tattler/tattler-community/badges/main/pipeline.svg
+.. |badge_pipeline| image:: https://github.com/tattler-community/tattler-community/actions/workflows/github-actions-test.yml/badge.svg
 
 .. |badge_coverage| image:: https://codecov.io/gh/tattler-community/tattler-community/graph/badge.svg?token=Q5KGRSR0WT 
    :target: https://codecov.io/gh/tattler-community/tattler-community
