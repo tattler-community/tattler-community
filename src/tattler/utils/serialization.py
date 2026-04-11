@@ -110,6 +110,11 @@ def serialize_json(dict_like_data: Mapping[str: Any]) -> bytes:
     :return:            The byte string holding a serialized version of the content of the object."""
     return json.dumps(dict_like_data, cls=DjangoJSONEncoder).encode('utf-8')
 
+def strip_json_comments(text: str) -> str:
+    """Remove comments from a JSON string"""
+    # group 1 = string, group 2 = // comment
+    jsonc_line_comments = re.compile(r'("(?:\\.|[^"\\])*")|(//[^\r\n]*)', re.MULTILINE)
+    return jsonc_line_comments.sub(lambda m: m.group(1) or "", text)
 
 def deserialize_json(content: bytes) -> Mapping[str: Any]:
     """De-serialize a byte string into a complex python object.
@@ -117,4 +122,5 @@ def deserialize_json(content: bytes) -> Mapping[str: Any]:
     :param content: The byte string holding the serialized version of the object.
     
     :return:        A python mapping-like object with key:value pairs and possible nested objects."""
-    return json.loads(content.decode(encoding='utf-8'), object_hook=decode_django_json)
+    strcontent = strip_json_comments(content.decode(encoding='utf-8'))
+    return json.loads(strcontent, object_hook=decode_django_json)
