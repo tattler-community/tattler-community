@@ -102,4 +102,4 @@ If they or you alter anything, those tests will immediately report:
 See :ref:`developers/testing_notifications:Testing notifications` .
 
 Additionally, ``context.json`` files are used to fill out sample data in live previews.
-See :ref:`testing/livepreview:Testing notifications`.
+See :ref:`testing/livepreview:Live previews`.
