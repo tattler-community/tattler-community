@@ -1,3 +1,7 @@
+# 3.2.0 -- 2026-04-11
+
+- Support comments with `//` in `context.json` files to document fields (e.g. "// always >= 10")
+
 # 3.1.0 -- 2026-04-02
 
 - Add utils to validate that your `send_notification()` always sends the context required by your notification.
