@@ -58,13 +58,8 @@ Context files as specification
 
 Always provide a ``context.json`` file as part of your templates.
 
-Their utility goes beyond being able to live-preview them.
-
-Sample context files serve as a quick reference of a specification for the event template:
-
-- Which variables does the template take?
-- What is their concrete data type?
-- If a variable is an object, what are its expected members?
+Their utility goes well beyond being able to live-preview them.
+See :ref:`templatedesigners/documenting:Documenting templates` for the full picture.
 
 
 Which email client to test against
