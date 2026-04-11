@@ -213,3 +213,62 @@ class DeserializationTest(unittest.TestCase):
         }
         serbytes = serialization.serialize_json(inobj)
         self.assertEqual(inobj, serialization.deserialize_json(serbytes))
+
+
+class StripJsonCommentsTest(unittest.TestCase):
+    """Tests for strip_json_comments()"""
+
+    def test_no_comments(self):
+        """strip_json_comments() returns input unchanged when no comments present"""
+        text = '{"key": "value", "num": 42}'
+        self.assertEqual(serialization.strip_json_comments(text), text)
+
+    def test_line_comment_stripped(self):
+        """strip_json_comments() removes a // comment at end of line"""
+        text = '{"key": "value"} // this is a comment'
+        self.assertEqual(json.loads(serialization.strip_json_comments(text)), {"key": "value"})
+
+    def test_comment_only_line(self):
+        """strip_json_comments() removes a line consisting solely of a comment"""
+        text = '// comment\n{"key": 1}'
+        self.assertEqual(json.loads(serialization.strip_json_comments(text)), {"key": 1})
+
+    def test_multiple_comments(self):
+        """strip_json_comments() removes multiple comments across lines"""
+        text = '{\n// first\n"a": 1, // inline\n// second\n"b": 2\n}'
+        result = json.loads(serialization.strip_json_comments(text))
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_double_slash_inside_string_preserved(self):
+        """strip_json_comments() preserves // inside quoted strings"""
+        text = '{"url": "https://example.com"}'
+        self.assertEqual(serialization.strip_json_comments(text), text)
+
+    def test_double_slash_inside_string_with_trailing_comment(self):
+        """strip_json_comments() preserves // in strings but strips trailing comment"""
+        text = '{"url": "https://example.com"} // comment'
+        result = json.loads(serialization.strip_json_comments(text))
+        self.assertEqual(result, {"url": "https://example.com"})
+
+    def test_escaped_quote_in_string(self):
+        """strip_json_comments() handles escaped quotes inside strings correctly"""
+        text = r'{"say": "he said \"hi\""} // comment'
+        result = serialization.strip_json_comments(text)
+        self.assertIn(r'\"hi\"', result)
+        self.assertNotIn('// comment', result)
+
+    def test_empty_comment(self):
+        """strip_json_comments() handles bare // with nothing after it"""
+        text = '{"a": 1} //'
+        result = json.loads(serialization.strip_json_comments(text))
+        self.assertEqual(result, {"a": 1})
+
+    def test_empty_string(self):
+        """strip_json_comments() handles empty input"""
+        self.assertEqual(serialization.strip_json_comments(""), "")
+
+    def test_deserialize_json_with_comments(self):
+        """deserialize_json() correctly handles input with // comments"""
+        text = b'{\n// a comment\n"key": "value" // inline\n}'
+        result = serialization.deserialize_json(text)
+        self.assertEqual(result, {"key": "value"})
