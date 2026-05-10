@@ -1,3 +1,7 @@
+# 3.3.0 -- 2026-05-10
+
+- Support delivering email notifications with attachments, both inline and not
+
 # 3.2.0 -- 2026-04-11
 
 - Support comments with `//` in `context.json` files to document fields (e.g. "// always >= 10")
