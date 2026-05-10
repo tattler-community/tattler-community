@@ -1,10 +1,13 @@
-import unittest
+import base64
 import os
+import unittest
+from pathlib import Path
 from unittest import mock
 
 from urllib.error import URLError
 
 from tattler.client import tattler_py
+from tattler.client.tattler_py import translate_attachments
 
 class TattlerModuleTest(unittest.TestCase):
     """Test cases for the tattler.client module"""
@@ -86,6 +89,67 @@ class TattlerModuleTest(unittest.TestCase):
             self.assertEqual(2, len(res))
             self.assertEqual(False, res[0])
             self.assertIsInstance(res[1], dict)
+
+    def testtranslate_attachments_path_reads_and_b64s(self):
+        """A Path value is read and base64-encoded into wire format"""
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(b'hello bytes')
+            tmp = Path(f.name)
+        try:
+            out = translate_attachments({'a.bin': tmp})
+            self.assertEqual(out, {'a.bin': {
+                'content_b64': base64.b64encode(b'hello bytes').decode()}})
+        finally:
+            tmp.unlink()
+
+    def testtranslate_attachments_url_str_forwarded(self):
+        """An http(s):// string value is forwarded as a URL entry"""
+        for url in ('http://x/a', 'https://y/b'):
+            self.assertEqual(translate_attachments({'a.png': url}),
+                             {'a.png': {'url': url}})
+
+    def testtranslate_attachments_str_without_scheme_rejected(self):
+        with self.assertRaisesRegex(ValueError, "http\\(s\\)://"):
+            translate_attachments({'a.png': 'just-a-string'})
+
+    def testtranslate_attachments_unsupported_scheme_rejected(self):
+        for bad in ('file:///etc/passwd', 'ftp://x', 'data:text/plain,hi'):
+            with self.assertRaisesRegex(ValueError, "http\\(s\\)://"):
+                translate_attachments({'a.png': bad})
+
+    def testtranslate_attachments_wrong_type_rejected(self):
+        for bad in (b'raw bytes', {'url': 'http://x'}, 42, None):
+            with self.assertRaises(TypeError):
+                translate_attachments({'a.png': bad})
+
+    def test_send_notification_attachments_param_injects_into_context(self):
+        """attachments= is translated into context['_attachments'] before sending"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP') as mnotif:
+            tattler_py.send_notification(
+                'scope', 'event', 'rcpt',
+                context={'name': 'Alice'},
+                attachments={'logo@brand': 'https://x/logo.png'})
+            ctx_sent = mnotif.return_value.send.call_args.kwargs['context']
+            self.assertEqual(ctx_sent['name'], 'Alice')
+            self.assertEqual(ctx_sent['_attachments'],
+                             {'logo@brand': {'url': 'https://x/logo.png'}})
+
+    def test_send_notification_rejects_double_attachments(self):
+        """Passing attachments= and context['_attachments'] together raises (programmer error)"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP'):
+            with self.assertRaisesRegex(ValueError, "not both"):
+                tattler_py.send_notification(
+                    'scope', 'event', 'rcpt',
+                    context={'_attachments': {}},
+                    attachments={'a.png': 'https://x/a.png'})
+
+    def test_send_notification_no_attachments_leaves_context_alone(self):
+        """When attachments= is not passed, context is not mutated to add _attachments"""
+        with mock.patch('tattler.client.tattler_py.TattlerClientHTTP') as mnotif:
+            tattler_py.send_notification('scope', 'event', 'rcpt', context={'a': 1})
+            ctx_sent = mnotif.return_value.send.call_args.kwargs['context']
+            self.assertNotIn('_attachments', ctx_sent)
 
     def test_module_exports_expected_symbols(self):
         """The client module exports all symbols intended public"""

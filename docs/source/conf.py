@@ -9,7 +9,7 @@
 project = 'tattler'
 copyright = '2023 - 2026, tattler.dev'
 author = 'Michele Mazzucchi, keencons.com'
-release = '3.2.0'
+release = '3.3.0'
 
 language = 'en'
 
@@ -22,6 +22,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
+    "sphinx_design",
     "sphinxcontrib.googleanalytics",
 ]
 

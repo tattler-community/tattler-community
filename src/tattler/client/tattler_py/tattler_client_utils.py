@@ -1,8 +1,10 @@
 """Utilities for tattler client"""
 
+import base64
 import os
 import uuid
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Mapping, Optional, Tuple, Union
 
 DEFAULT_ADDRESS = '127.0.0.1'
 DEFAULT_PORT = 11503
@@ -20,6 +22,30 @@ def mk_correlation_id(prefix: Optional[str]='tattler') -> str:
     if prefix:
         return f'{prefix}:{uuid.uuid4()}'
     return str(uuid.uuid4())
+
+def translate_attachments(spec: Mapping[str, Union[Path, str]]) -> Mapping[str, Mapping[str, str]]:
+    """Translate user-supplied attachment values to the wire format.
+
+    Each value must be one of:
+
+    * :class:`pathlib.Path` -- local file; read and base64-encoded by the client.
+    * :class:`str` starting with ``http://`` or ``https://`` -- forwarded to the
+      server as a URL to fetch.
+    """
+    out = {}
+    for key, val in spec.items():
+        if isinstance(val, Path):
+            out[key] = {'content_b64': base64.b64encode(val.read_bytes()).decode()}
+        elif isinstance(val, str):
+            if not val.startswith(('http://', 'https://')):
+                raise ValueError(
+                    f"attachments[{key!r}]: str values must be an http(s):// URL; got {val!r}")
+            out[key] = {'url': val}
+        else:
+            raise TypeError(
+                f"attachments[{key!r}] must be Path or str; got {type(val).__name__}")
+    return out
+
 
 def get_endpoint_config(envvar_name: str) -> Tuple[str, int]:
     """Retrieve the configuration for the server endpoint from an environment variable.

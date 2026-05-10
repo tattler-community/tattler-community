@@ -4,16 +4,16 @@ import logging
 import socket
 import getpass
 
-from typing import Mapping, Iterable, Optional, Any, Tuple, Union
-from email.mime.multipart import MIMEMultipart
-from email.mime.nonmultipart import MIMENonMultipart
-from email.mime.text import MIMEText
+from typing import Mapping, Iterable, Optional, Any, Tuple
+from email.message import EmailMessage
+from email.policy import default as default_policy
 from email.utils import formatdate
 import smtplib
 
 from mjml import mjml_to_html
 
 from tattler.server.sendable import vector_sendable
+from tattler.server.sendable.attachments import normalize_attachments
 
 # SMTP X-Priority header
 _valid_priorities = [1, 2, 3, 4, 5]
@@ -102,37 +102,56 @@ class EmailSendable(vector_sendable.Sendable):
         """
         return all(ord(x) < 128 for x in self.content(context or {}))
 
-    def _add_msg_parts(self, msg: Union[MIMEMultipart, MIMENonMultipart], context: Optional[Mapping[str, Any]]=None) -> None:
-        """Add text/html parts to MIME message by loading and expanding templates and determining their encoding.
-        
-        :param msg:             Message to add available parts to.
-        :param context:         Optional variables to expand template with.
-        """
-        if 'body.html' in self._get_available_parts().values():
-            msg.preamble = 'Your e-mail client does not support multipart/alternative messages.'
-            # Record the MIME types of both parts - text/plain and text/html.
-            for part_type, part_fname in self._get_available_parts().items():
-                part_content = self._get_content_element(part_fname, context)
-                msg.attach(MIMEText(part_content, part_type))
+    def _get_body_parts(self, context: Optional[Mapping[str, Any]]=None) -> Tuple[str, Optional[str]]:
+        """Return (plain_text, html_or_None) bodies for the message.
 
-    def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> Union[MIMEMultipart, MIMENonMultipart]:
+        Subclasses may override to derive one body from the other (e.g. plain from HTML).
+
+        :param context:         Optional variables to expand template with.
+        :return:                Tuple of plain text body and optional HTML body.
+        """
+        plain = self._get_content_element('body.txt', context)
+        if 'body.html' in self._get_available_parts().values():
+            html = self._get_content_element('body.html', context)
+        else:
+            html = None
+        return plain, html
+
+    def _build_msg(self, context: Optional[Mapping[str, Any]]=None) -> EmailMessage:
         """Load all parts of the message and return a final email assembly.
-        
+
         :param context:         Optional variables to expand template with.
 
         :return:                Email object with all required parts filled out.
         """
-        # Create message container - the correct MIME type is multipart/alternative.
-        if 'body.html' in self._get_available_parts().values():
-            msg = MIMEMultipart('alternative')
-            self._add_msg_parts(msg, context)
-        else:
-            # must provide payload here because MIMEText sets encoding
-            # based on payload at construction. It won't update it if
-            # set_payload() is called later with a different encoding!
-            msg = MIMEText(self._get_content_element('body.txt', context))
+        context = dict(context or {})
+        attachments = normalize_attachments(context.pop('_attachments', None))
+        inline = [a for a in attachments if a.cid is not None]
+        regular = [a for a in attachments if a.cid is None]
 
-        # fill out header
+        plain, html = self._get_body_parts(context)
+
+        msg = EmailMessage(policy=default_policy)
+        msg.set_content(plain)
+        if html is not None:
+            msg.add_alternative(html, subtype='html')
+            # Attach inline parts under the HTML alternative, producing
+            # multipart/alternative > [text/plain, multipart/related > [text/html, ...]]
+            html_part = msg.get_payload()[1]
+            for att in inline:
+                html_part.add_related(att.content,
+                                      maintype=att.maintype, subtype=att.subtype,
+                                      cid=f'<{att.cid}>', filename=att.filename,
+                                      disposition='inline')
+        elif inline:
+            # No HTML to reference cid:; downgrade inline to regular attachments.
+            regular = inline + regular
+
+        for att in regular:
+            msg.add_attachment(att.content,
+                               maintype=att.maintype, subtype=att.subtype,
+                               filename=att.filename)
+
         msg['From'] = self.sender()
         msg['To'] = ", ".join(self.recipients)
         msg['Date'] = formatdate()
@@ -141,10 +160,7 @@ class EmailSendable(vector_sendable.Sendable):
         sender_domain = self.sender().split('@')[1].lower()
         msg['Message-ID'] = f'<{self.nid}@{sender_domain}>'
 
-        # add priority information, if required
-        msg = self._add_priority_info(msg)
-
-        return msg
+        return self._add_priority_info(msg)
 
     def validate_recipient(self, recipient: str) -> None:
         """Check that recipient is valid for current vector, and raise ValueError otherwise."""

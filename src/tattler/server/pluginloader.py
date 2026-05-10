@@ -82,7 +82,26 @@ class ContextPlugin(TattlerPlugin):
 
         The latest (previous) context is passed as input to this method, allowing
         the method to add, change or remove variables from it.
-        
+
+        Email attachments may be supplied via the reserved ``_attachments``
+        key, a dict whose keys disambiguate inline from regular by format:
+        a key containing ``@`` is the Content-ID of an inline image
+        (referenced from HTML as ``cid:<key>``); content type is auto-detected
+        from the bytes (PNG, JPEG, GIF, WebP, SVG). A key without ``@`` is
+        the filename of a regular attachment, and the key drives content type.
+
+        The same shape is used by HTTP callers, except plugins pass raw
+        ``bytes`` via ``content_bytes`` instead of base64 via ``content_b64``.
+
+        Plugins are pipelined: a later plugin sees the attachments accumulated
+        by earlier plugins and may extend the dict. To avoid mutating upstream
+        state, copy before adding::
+
+            attachments = dict(context.get('_attachments', {}))
+            attachments['logo@local'] = {'content_bytes': b'...'}      # inline
+            attachments['invoice.pdf'] = {'content_bytes': b'...'}     # regular
+            context['_attachments'] = attachments
+
         :param context:     The latest context resulting from the previous plug-in, or tattler's native context for the first-running context plug-in.
         :return:            The generated context to either feed to the template, or to the next context plug-in in the chain.
         """

@@ -423,6 +423,33 @@ class TattlerHttpServerTest(unittest.TestCase):
                 mgetenv.side_effect = lambda x, y=None: y
                 tattlersrv_http.main()
 
+    def test_oversized_request_body_rejected(self):
+        """Requests with Content-Length above the body cap are rejected with 400"""
+        # Lie about Content-Length using a raw socket - we don't actually need to send 12+ MB.
+        import socket
+        oversize = tattlersrv_http.MAX_REQUEST_BODY_BYTES + 1
+        req = (
+            f"POST /notification/jinja/jinja_humanize/?user=123 HTTP/1.1\r\n"
+            f"Host: 127.0.0.1:{self.port}\r\n"
+            f"Content-Type: application/json\r\n"
+            f"Content-Length: {oversize}\r\n"
+            f"\r\n"
+        ).encode()
+        s = socket.create_connection(('127.0.0.1', self.port), timeout=5)
+        try:
+            s.sendall(req)
+            resp = b''
+            while True:
+                chunk = s.recv(4096)
+                if not chunk:
+                    break
+                resp += chunk
+                if b'\r\n\r\n' in resp:
+                    break
+        finally:
+            s.close()
+        self.assertIn(b' 400 ', resp.split(b'\r\n', 1)[0])
+
     def test_malformed_request(self):
         """Server responds 404 to malformed requests"""
         with unittest.mock.patch('tattler.server.tattlersrv_http.getenv') as mgetenv:

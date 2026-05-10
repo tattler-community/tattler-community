@@ -42,6 +42,39 @@ the command line variables will complement (or override!) the former.
 
 This allows you to quickly change specific values on top of a base context.
 
+Attach a file
+^^^^^^^^^^^^^
+
+For email notifications, you can attach files with ``--attach NAME=VALUE`` (repeatable):
+
+.. code:: bash
+
+    # attach an invoice from disk and an inline logo
+    tattler_notify --mode production your@email.com mywebapp invoice_ready \
+        --attach invoice.pdf=/tmp/inv.pdf \
+        --attach logo@brand=/srv/branding/logo.png
+
+    # have the server fetch a file from a URL
+    tattler_notify --mode production your@email.com mywebapp policy_update \
+        --attach terms.pdf=https://internal/legal/terms.pdf
+
+The shape of ``NAME`` decides how the file is treated:
+
+* ``NAME`` containing ``@`` (e.g. ``logo@brand``) is the **Content-ID** of an
+  inline image, referenced from the HTML template as
+  ``<img src="cid:logo@brand">``.
+* ``NAME`` without ``@`` is the **filename** of a regular paperclip-style
+  attachment shown in the recipient's mail client.
+
+The shape of ``VALUE`` decides where the bytes come from:
+
+* A bare path (e.g. ``/tmp/inv.pdf``) -- the client reads the local file and
+  uploads it.
+* An ``http(s)://`` URL -- the server fetches it.
+
+See :ref:`Sending attachments <developers/api_http:Sending attachments>` for the
+full schema, MIME-detection rules, size limits, and trust model.
+
 Need a server for testing?
 --------------------------
 
