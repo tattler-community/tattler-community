@@ -6,7 +6,8 @@ import logging
 import os
 import sys
 import json
-from typing import Tuple
+from pathlib import Path
+from typing import Tuple, Union
 
 from tattler.client.tattler_py import send_notification
 
@@ -28,6 +29,14 @@ def parse_cmdline(args):
             raise ValueError("Some name must be given for context variable, i.e. 'name=value'")
         return val.split('=', 1)
 
+    def attach_arg(val: str) -> Tuple[str, Union[Path, str]]:
+        if '=' not in val or val.startswith('='):
+            raise argparse.ArgumentTypeError("attach must be 'NAME=PATH-or-URL'")
+        name, target = val.split('=', 1)
+        if target.startswith(('http://', 'https://')):
+            return name, target
+        return name, Path(target)
+
     def server_endpoint_spec(val: str) -> Tuple[str, int]:
         srv = '127.0.0.1'
         port = 11503
@@ -48,6 +57,7 @@ def parse_cmdline(args):
     parser.add_argument('-m', '--mode', choices={'debug', 'staging', 'production'}, default="debug", help="Optional mode for sending the notification (debug, staging, production). Default: debug.")
     parser.add_argument('-p', '--priority', type=int, choices={1, 2, 3, 4, 5}, help="Optional priority for the notification. Default: None.")
     parser.add_argument('-j', '--json-context', type=argparse.FileType('r', encoding='utf-8'), help='Optional path to a JSON file holding context data. Any command-line context vars gets merged on top of it.')
+    parser.add_argument('-a', '--attach', action='append', default=[], type=attach_arg, metavar='NAME=PATH-or-URL', help="Attach a file to email notifications under NAME. NAME containing '@' is treated as an inline image (cid), referenced from HTML as <img src=\"cid:NAME\">. NAME without '@' is the filename of a regular attachment. The value is either a local path (read and uploaded) or an http(s):// URL (fetched by the server). Repeat to attach multiple files.")
     return parser.parse_args(args=args)
 
 def main():
@@ -58,7 +68,8 @@ def main():
         if not isinstance(jctx, dict):
             raise ValueError(f"Context file must be a dictionary (JSON object), not {type(jctx)}")
         args.context = {**jctx, **dict(args.context)}
-    success, details = send_notification(args.scope, args.event_name, args.recipient, dict(args.context), vectors=args.vectors, mode=args.mode, priority=args.priority, srv_addr=args.server[0], srv_port=args.server[1])
+    attachments = dict(args.attach) or None
+    success, details = send_notification(args.scope, args.event_name, args.recipient, dict(args.context), vectors=args.vectors, mode=args.mode, priority=args.priority, srv_addr=args.server[0], srv_port=args.server[1], attachments=attachments)
     if success:
         log.info("Notification succeeded. Details: %s", details)
     else:

@@ -175,6 +175,47 @@ Avoid JavaScript. Basic CSS is often supported. Refer to the excellent
 MJML abstracts away most of these concerns -- see :ref:`MJML or HTML? <templatedesigners/email:MJML or HTML?>` above.
 
 
+Inline images and file attachments
+----------------------------------
+
+Tattler can attach files to outgoing emails. Two kinds of attachment are supported:
+
+* **Inline images** — embedded inside the HTML body, displayed by the email client as if part of the page (e.g. a logo or an inline screenshot).
+* **Regular attachments** — paperclip-style files the recipient can save or open (PDF invoices, ZIP exports, etc.).
+
+You don't supply attachments in the template itself: the developer who triggers the
+notification :ref:`passes them as a context variable <developers/api_http:Sending attachments>`,
+or a :ref:`context plug-in <plugins/context:Supplying attachments>` provides them.
+
+What the template author needs to know is **how to reference inline images from HTML**.
+Inline images are addressed by their *Content-ID* (cid). In your HTML, use a ``cid:`` URL:
+
+.. code-block:: html
+
+    <html>
+        <body>
+            <img src="cid:logo@brand" alt="logo">
+            <h1>Password changed!</h1>
+            <p>Hi {{ user_firstname }}, ...</p>
+        </body>
+    </html>
+
+The token ``logo@brand`` is whatever cid the developer (or plug-in) attaches the image
+under. Coordinate the names with the developer the same way you coordinate template
+variables.
+
+By convention, a cid contains an ``@``: that's how tattler distinguishes inline images
+(cid keys) from regular attachments (filename keys) in the request payload.
+
+If a template references a cid that isn't supplied, the email is delivered anyway and
+the recipient sees a broken-image icon in that spot — the same behaviour as a missing
+external image. Conversely, an inline image that isn't referenced from the HTML reaches
+the recipient as a (slightly puzzling) extra paperclip attachment.
+
+Regular attachments don't appear in the template at all: they show up as paperclip
+files in the recipient's mail client.
+
+
 Email priority
 --------------
 

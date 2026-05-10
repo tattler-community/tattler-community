@@ -21,6 +21,8 @@ log = logging.getLogger(__name__)
 
 default_master_mode = 'debug'
 
+MAX_REQUEST_BODY_BYTES = 12 * 1024 * 1024  # ~7 MB raw attachments + base64 overhead + slack
+
 notification_req_re = re.compile(r'/notification/(?P<scope>[a-zA-Z0-9:._-]+)/((?P<event>[a-zA-Z0-9:._-]+)(?P<evprop>/vectors/)?)?')
 
 class TattlerServer(http.server.BaseHTTPRequestHandler):
@@ -38,6 +40,8 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
         blen = int(self.headers.get('Content-Length', 0))
         if blen == 0:
             return {}
+        if blen > MAX_REQUEST_BODY_BYTES:
+            raise ValueError(f"Request body exceeds {MAX_REQUEST_BODY_BYTES} bytes")
         if self.headers.get_content_type() != 'application/json':
             log.warning("Client %s sent content with unknown type %s. Rejecting", self.client_address, self.headers.get_content_type())
             raise ValueError(f"Invalid content type {self.headers.get_content_type()}")

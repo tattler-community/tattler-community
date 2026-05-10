@@ -41,3 +41,51 @@ To create a context plug-in:
 2. Start coding your own starting with the `sample plug-ins <https://github.com/tattler-community/tattler-community/blob/main/plugins/>`_ in Tattler's repository.
 
 See :ref:`Deploying plug-ins <sysadmins/deploy_plugins:Deploy custom plug-ins>` for tips on deployment.
+
+
+Supplying attachments
+---------------------
+
+A context plug-in can attach files (inline images, PDFs, etc.) to outgoing emails by
+populating the reserved ``_attachments`` context key. The shape is the same as the
+:ref:`HTTP wire format <developers/api_http:Sending attachments>`, with one
+plug-in-only convenience: payloads can be passed as raw ``bytes`` via ``content_bytes``
+instead of base64 strings.
+
+.. code-block:: python
+
+    from tattler.server.pluginloader import ContextPlugin
+
+
+    class BrandingTattlerPlugin(ContextPlugin):
+        def process(self, context):
+            attachments = dict(context.get('_attachments', {}))
+
+            # inline image -- key is the cid (must contain '@')
+            attachments['logo@brand'] = {
+                'content_bytes': self._load_logo_bytes(),
+            }
+
+            # regular attachment -- key is the filename
+            attachments['terms.pdf'] = {
+                'url': 'https://internal/legal/terms.pdf',
+            }
+
+            context['_attachments'] = attachments
+            return context
+
+A few things to know:
+
+* **Disambiguation by key shape.** A key containing ``@`` is the Content-ID of an
+  inline image, referenced from HTML as ``<img src="cid:logo@brand">``. A key without
+  ``@`` is the filename of a regular attachment, and the file extension drives the
+  MIME type (so use real filenames like ``invoice.pdf``, not ``file1``).
+* **Pipelining.** When several context plug-ins are configured, a later plug-in sees
+  the attachments accumulated by earlier plug-ins. Always copy the dict before
+  mutating it (``dict(context.get('_attachments', {}))``) so you don't accidentally
+  mutate state owned by a sibling plug-in.
+* **Type detection for inline images.** Tattler auto-detects PNG, JPEG, GIF, WebP, and
+  SVG from the bytes. You don't (and can't) supply a ``filename`` for inline entries;
+  if your bytes aren't one of those formats, the notification fails with a clear error.
+* **Size limit.** The total raw size of attachments per email is capped at 7 MB. Plug-ins
+  hitting the cap should consider linking to the file from the email body instead.

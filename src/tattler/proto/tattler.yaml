@@ -122,13 +122,28 @@ paths:
         schema:
           $ref: "#/components/schemas/OperatingMode"
       requestBody:
-        description: Context, as map of key=value pairs to pass to the notification template for expansion
+        description: |
+          Context as a map of key=value pairs passed to the notification template
+          for expansion.
+
+          The reserved key `_attachments` (an object keyed by Content-ID or filename)
+          supplies inline images and file attachments to email notifications.
+          See the `Attachments` schema for the shape and rules.
+
+          The total request body must not exceed 12 MB.
         content:
           application/json:
-            example: {"key1": "value1", "key2": "value2"}
+            example:
+              user_firstname: Alice
+              _attachments:
+                "logo@brand":  {content_b64: "iVBORw0KG..."}
+                "invoice.pdf": {url: "https://internal.example.com/invoice.pdf"}
             schema:
               type: object
               additionalProperties: true
+              properties:
+                _attachments:
+                  $ref: "#/components/schemas/Attachments"
       responses:
         200:
           description: Notification request taken up for delivery, with details of associated jobs.
@@ -139,7 +154,12 @@ paths:
                 items:
                   $ref: "#/components/schemas/NotificationJob"
         400:
-          description: Bad request.
+          description: |
+            Bad request. Returned for invalid parameters, request body larger
+            than 12 MB, or attachment validation errors (oversize total
+            attachments, unknown image format for an inline entry, unknown
+            file extension for a regular entry, malformed base64, URL fetch
+            failure, etc.).
         500:
           description: Server error.
         
@@ -180,3 +200,44 @@ components:
       type: string
       default: debug
       enum: [debug, staging, production]
+    Attachments:
+      description: |
+        Map of attachment entries for email notifications. The shape of the key
+        disambiguates inline images from regular file attachments:
+
+        - A key containing `@` is the Content-ID of an inline image, referenced
+          from HTML as `<img src="cid:<key>">`. The image format is auto-detected
+          from the bytes (PNG, JPEG, GIF, WebP, SVG).
+        - A key without `@` is the filename of a regular attachment; the
+          extension drives the MIME type and unknown extensions are rejected.
+
+        Total raw size of all attachments per email is capped at 7 MB
+        (approximately 9.5 MB after base64 inflation).
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/Attachment"
+      example:
+        "logo@brand":  {content_b64: "iVBORw0KG..."}
+        "invoice.pdf": {url: "https://internal.example.com/invoice.pdf"}
+    Attachment:
+      description: |
+        A single attachment entry. The payload must be supplied via exactly one
+        of `url` or `content_b64`.
+      type: object
+      oneOf:
+        - required: [url]
+        - required: [content_b64]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: |
+            HTTP(S) URL the server fetches the bytes from. Only `http` and
+            `https` schemes are accepted. Up to 5 redirects are followed,
+            with a 3 s connect timeout and a 20 s per-chunk read timeout.
+          example: "https://internal.example.com/invoice.pdf"
+        content_b64:
+          type: string
+          format: byte
+          description: Base64-encoded payload bytes.
+          example: "iVBORw0KG..."

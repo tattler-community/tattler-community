@@ -62,7 +62,7 @@ class CmdLineTest(unittest.TestCase):
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
-                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321, attachments=None)
 
     def test_long_params_passed_through(self):
         """Cmdline short params are passed through to send_notification"""
@@ -72,7 +72,7 @@ class CmdLineTest(unittest.TestCase):
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
-                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321, attachments=None)
     
     def test_json_context_missing_file(self):
         """If a JSON context file is provided that does not exist, run fails"""
@@ -112,7 +112,7 @@ class CmdLineTest(unittest.TestCase):
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
-                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 1}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 1}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321, attachments=None)
 
     def test_json_context_merged_cmdline(self):
         """If both a JSON context file is provided and command-line context, the latter is merged onto the former"""
@@ -122,7 +122,70 @@ class CmdLineTest(unittest.TestCase):
                 msnot.return_value = True, 'asd'
                 main()
                 msnot.assert_called_once()
-                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 'x'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321)
+                msnot.assert_called_with('myscope', 'myevent', '1', {'foo': 'bar', 'x': 'var', 'jsonvar1': [1, 2, 3], 'jsonvar2': {"object": {}}, 'overrideme': 'x'}, vectors=['email', 'sms'], mode='staging', priority=2, srv_addr='3.4.5.6', srv_port=321, attachments=None)
+
+    def test_attach_local_path_passed_as_path(self):
+        """--attach NAME=PATH (no scheme) -> Path passed to send_notification"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent',
+                             '--attach', 'invoice.pdf=/tmp/inv.pdf']
+                msnot.return_value = True, 'asd'
+                main()
+                msnot.assert_called_once()
+                self.assertIn('attachments', msnot.call_args.kwargs)
+                atts = msnot.call_args.kwargs['attachments']
+                self.assertEqual(atts, {'invoice.pdf': Path('/tmp/inv.pdf')})
+
+    def test_attach_url_passed_as_string(self):
+        """--attach NAME=URL -> URL string passed through"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent',
+                             '--attach', 'terms.pdf=https://example.com/terms.pdf']
+                msnot.return_value = True, 'asd'
+                main()
+                self.assertEqual(msnot.call_args.kwargs['attachments'],
+                                 {'terms.pdf': 'https://example.com/terms.pdf'})
+
+    def test_attach_repeatable(self):
+        """Multiple --attach flags accumulate"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent',
+                             '-a', 'invoice.pdf=/tmp/inv.pdf',
+                             '-a', 'logo@brand=/srv/logo.png',
+                             '-a', 'terms.pdf=https://example.com/terms.pdf']
+                msnot.return_value = True, 'asd'
+                main()
+                self.assertEqual(msnot.call_args.kwargs['attachments'], {
+                    'invoice.pdf': Path('/tmp/inv.pdf'),
+                    'logo@brand': Path('/srv/logo.png'),
+                    'terms.pdf': 'https://example.com/terms.pdf',
+                })
+
+    def test_attach_without_equals_rejected(self):
+        """--attach without '=' fails argument parsing"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', '--attach', 'no-equals']
+            with self.assertRaises(SystemExit):
+                main()
+
+    def test_attach_with_empty_name_rejected(self):
+        """--attach with empty name fails argument parsing"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            msys.argv = ['tattler_notify', '1', 'myscope', 'myevent', '--attach', '=foo.pdf']
+            with self.assertRaises(SystemExit):
+                main()
+
+    def test_no_attach_passes_none(self):
+        """When no --attach is given, attachments=None reaches send_notification"""
+        with mock.patch('tattler.client.tattler_py.tattler_cmd.sys') as msys:
+            with mock.patch('tattler.client.tattler_py.tattler_cmd.send_notification') as msnot:
+                msys.argv = ['tattler_notify', '1', 'myscope', 'myevent']
+                msnot.return_value = True, 'asd'
+                main()
+                self.assertIsNone(msnot.call_args.kwargs['attachments'])
 
     def test_nonzero_exit_code_if_delivery_fails(self):
         """Cmd exists non-zero if notification request fails to send"""

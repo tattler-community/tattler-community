@@ -31,6 +31,7 @@ exclude_urls = [
     '/api.telegram.org/',
     '//tattler.dev/api/v2',
     '//graph.facebook.com/v19.0/',
+    'internal.example.com',
     ]
 # only consider URLs that contain any of these literal strings; empty to include all
 # include_urls = ['tattler.dev', 'docs.tattler.dev']
@@ -84,13 +85,16 @@ def link_valid(link: str) -> bool:
         )
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT):
             pass
-    except urllib.error.URLError as err:
+    except urllib.error.HTTPError as err:
         if err.status == 429:
             logging.info("Link '%s' returns %s '%s' -> assuming valid", link, err.status, err.reason)
             result = True
         else:
             logging.debug("Link '%s' appears invalid: %s", link, err)
             result = False
+    except urllib.error.URLError as err:
+        logging.debug("Link '%s' appears invalid: %s", link, err)
+        result = False
     except TimeoutError:
         logging.warning("Link '%s' timed out. Assuming error is temporary and link is valid.", link)
         result = True

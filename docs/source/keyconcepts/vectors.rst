@@ -10,6 +10,11 @@ Notification vectors determine:
 
 and more.
 
+The email vector supports both inline images (referenced from HTML via ``cid:``) and
+regular file attachments. See :ref:`Inline images and file attachments <templatedesigners/email:Inline images and file attachments>`
+for the template-author view, and :ref:`Sending attachments <developers/api_http:Sending attachments>`
+for the API.
+
 A notification may be delivered to one or multiple vectors, as determined by 3 factors:
 
 * Content availability: is content for that vector available for the `event <notification events>`_ we are trying to send?

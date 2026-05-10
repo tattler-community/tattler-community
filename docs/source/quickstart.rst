@@ -9,10 +9,7 @@ This guides you to:
 
 2. :ref:`run <quickstart:run tattler server>` ``tattler_server``
 
-3. trigger a notification through it, using any of your 3 available options:
-    - via :ref:`HTTP <quickstart:Send a notification via HTTP>`
-    - or via :ref:`command line <quickstart:Send a notification via command-line>`
-    - or via :ref:`python <quickstart:Send a notification via python>`.
+3. :ref:`trigger a notification <quickstart:Send a notification>` through it -- via Python, ``curl``, or the bundled command-line tool.
 
 4. Write your first :ref:`notification template <quickstart:Write your own notification templates>`.
 
@@ -20,9 +17,11 @@ This guides you to:
 
 6. :ref:`Organize your configuration <quickstart:Organize your configuration>`.
 
-7. `Write an addressbook plug-in`_ to load contact data of your users.
+7. :ref:`Attach files to your notification <quickstart:Attach files to your notification>` -- inline images and regular files.
 
-8. `Write a context plug-in`_ to load common variables for your templates.
+8. `Write an addressbook plug-in`_ to load contact data of your users.
+
+9. `Write a context plug-in`_ to load common variables for your templates.
 
 Install
 -------
@@ -60,24 +59,52 @@ This causes the following basic scenario:
 
 Don't worry, you'll soon learn a simpler, secure way to `manage this configuration <manage configuration>`_.
 
-Send a notification via HTTP
-----------------------------
+Send a notification
+-------------------
 
-You can do this via plain HTTP request, e.g. using ``curl``:
+You have three ways to trigger a notification: from Python (using tattler's
+client SDK), via plain HTTP (e.g. ``curl``), or with the bundled
+``tattler_notify`` command-line tool. All three hit the same REST endpoint
+on ``tattler_server``.
 
-.. code-block:: bash
+Replace ``your@email.com`` with your actual email address, and pick the
+flavor you prefer -- the rest of this guide will keep showing all three:
 
-    # in a new terminal:
-    
-    # replace ``your@email.com`` with your actual email address
-    curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
+.. tab-set::
 
-Here's what this does:
+    .. tab-item:: Python
+        :sync: python
 
-- It contacts tattler_server at its REST endpoint ``http://127.0.0.1:11503/notification/``.
+        .. code-block:: python
+
+            # in a terminal with the tattler venv loaded
+            from tattler.client.tattler_py import send_notification
+
+            send_notification('demoscope', 'demoevent', 'your@email.com',
+                              mode='production')
+
+    .. tab-item:: curl
+        :sync: curl
+
+        .. code-block:: bash
+
+            # in any terminal
+            curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?mode=production&user=your@email.com'
+
+    .. tab-item:: command-line
+        :sync: cli
+
+        .. code-block:: bash
+
+            # in a terminal with the tattler venv loaded
+            tattler_notify -s '127.0.0.1:11503' -m production your@email.com demoscope demoevent
+
+Here's what this does, regardless of the flavor you picked:
+
+- It contacts ``tattler_server`` at its REST endpoint ``http://127.0.0.1:11503/notification/``.
 - It asks to send the notification for ``demoevent``, which is built into tattler's distribution.
 - It asks to send it to ``your@email.com``.
-- It asks to actually send it to the indicated recipient, with ``mode=production``.
+- It asks to actually send it to the indicated recipient, with mode ``production``.
 
 In the terminal running ``tattler_server`` you'll see the notification go out successfully::
 
@@ -89,11 +116,11 @@ In the terminal running ``tattler_server`` you'll see the notification go out su
 ... and your mailbox will show the demo notification:
 
 
-.. list-table:: 
+.. list-table::
 
     * - .. image:: ../../demos/tattler-notification-demo-email-html-light.png
 
-        - .. image:: ../../demos/tattler-notification-demo-email-plaintext-light.png
+      - .. image:: ../../demos/tattler-notification-demo-email-plaintext-light.png
 
 
 Why demo? Why email?
@@ -106,48 +133,6 @@ Now here's a couple of things which might turn your nose:
 
 "Why ``your@email.com``? I thought tattler would look up user information for me!"
     That's right. Tattler really shines when it loads your data for you. We'll look into that in the :ref:`plug-ins section <plugins/index:Tattler plug-ins>`.
-
-
-Send a notification via command-line
-------------------------------------
-
-An alternative is for you to trigger the notification with a command line tool.
-
-Tattler includes a little utility to easily trigger notifications from the command line:
-
-.. code-block:: bash
-
-    # load the same virtual environment where you installed tattler server
-    . ~/tattler_quickstart/venv/bin/activate
-
-    # replace ``your@email.com`` with your actual email address
-    tattler_notify -s '127.0.0.1:11503' -m production your@email.com demoscope demoevent
-
-Done!
-
-This does exactly the same as `Send a notification via HTTP`_, using the same REST API, and
-actually relying on tattler's python client SDK which we'll look into next.
-
-- Argument ``-s`` provides the SMTP address to use to deliver email.
-- Argument ``-m`` controls what notification mode the client should request, as ``TATTLER_MASTER_MODE`` did for the server.
-
-
-Send a notification via python
-------------------------------
-
-A third option is for you to trigger the notification from python code.
-
-Tattler includes a little python client library:
-
-.. code-block:: python3
-
-    from tattler.client.tattler_py import send_notification
-
-    # replace ``your@email.com`` with your actual email address
-    send_notification('demoscope', 'demoevent', 'your@email.com', mode='production', srv_addr='127.0.0.1', srv_port=11503)
-
-Again, this code does the same as shown in `Send a notification via HTTP`_: it contacts
-``tattler_server`` on the same REST API endpoint.
 
 
 Write your own notification templates
@@ -269,9 +254,32 @@ So let's restart it with it:
 
 ... and tell tattler to send a notification for your new event (replace your email address, as usual):
 
-.. code-block:: bash
+.. tab-set::
 
-   curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=your@email.com&mode=production'
+    .. tab-item:: Python
+        :sync: python
+
+        .. code-block:: python
+
+            # in a terminal with the tattler venv loaded
+            from tattler.client.tattler_py import send_notification
+
+            send_notification('mywebapp', 'password_changed', 'your@email.com',
+                              mode='production')
+
+    .. tab-item:: curl
+        :sync: curl
+
+        .. code-block:: bash
+
+            curl -X POST 'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=your@email.com&mode=production'
+
+    .. tab-item:: command-line
+        :sync: cli
+
+        .. code-block:: bash
+
+            tattler_notify -m production your@email.com mywebapp password_changed
 
 Upon which ``tattler_server`` will confirm::
 
@@ -342,6 +350,105 @@ And finally start tattler having ``envdir`` loads the configuration above:
 
 Refer to :doc:`available configuration options <configuration>`
 and :doc:`documentation for sysadmins <sysadmins/index>` for further information.
+
+
+Attach files to your notification
+---------------------------------
+
+Email notifications can carry **inline images** (a logo embedded in the body)
+and **regular file attachments** (e.g. a PDF invoice the recipient can download).
+
+Tattler tells the two apart by the dictionary key you use:
+
+* a key containing ``@`` is the *Content-ID* of an inline image, referenced
+  from the HTML body as ``<img src="cid:NAME">``.
+* a key without ``@`` is the *filename* of a regular paperclip attachment;
+  its extension drives the MIME type.
+
+Reference an inline image from your template
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Open the ``body.mjml`` you wrote earlier and add an ``<mj-image>`` pointing
+at the cid you'll attach below:
+
+.. code-block:: xml
+
+    <mjml>
+      <mj-body>
+        <mj-section>
+          <mj-column>
+            <mj-image src="cid:logo@brand" width="120px"/>
+            <mj-text>
+              <h1>Password changed!</h1>
+              <p>Hey! Your account password was changed.</p>
+            </mj-text>
+          </mj-column>
+        </mj-section>
+      </mj-body>
+    </mjml>
+
+Trigger a notification with attachments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Python SDK takes attachments through a dedicated ``attachments`` keyword
+and accepts :class:`pathlib.Path` (local file, the SDK reads and base64-encodes
+it for you) or an ``http(s)://`` URL string (tattler fetches it server-side).
+
+Over plain HTTP, attachments travel under the reserved ``_attachments`` key
+in the JSON body, where each entry takes either a ``url`` or a ``content_b64``
+(base64 of the file bytes):
+
+.. tab-set::
+
+    .. tab-item:: Python
+        :sync: python
+
+        .. code-block:: python
+
+            from pathlib import Path
+            from tattler.client.tattler_py import send_notification
+
+            send_notification(
+                'mywebapp', 'password_changed', 'your@email.com',
+                mode='production',
+                attachments={
+                    'logo@brand': Path('/path/to/logo.png'),               # local file
+                    'terms.pdf':  'https://yourdomain.example/terms.pdf',  # remote URL
+                },
+            )
+
+    .. tab-item:: curl
+        :sync: curl
+
+        .. code-block:: bash
+
+            curl -X POST \
+                -H 'Content-Type: application/json' \
+                -d '{
+                      "_attachments": {
+                        "logo@brand": {"url": "https://yourdomain.example/logo.png"},
+                        "terms.pdf":  {"url": "https://yourdomain.example/terms.pdf"}
+                      }
+                    }' \
+                'http://127.0.0.1:11503/notification/mywebapp/password_changed/?user=your@email.com&mode=production'
+
+    .. tab-item:: command-line
+        :sync: cli
+
+        .. code-block:: bash
+
+            # repeat -a for each file; use NAME@... for inline images, plain
+            # filenames for paperclip attachments
+            tattler_notify -m production your@email.com mywebapp password_changed \
+                -a 'logo@brand=/path/to/logo.png' \
+                -a 'terms.pdf=https://yourdomain.example/terms.pdf'
+
+Your inbox now shows the inline logo rendered in the email body and the PDF
+attached as a paperclip.
+
+Total attachments per email are capped at 7 MB. Find the full reference
+-- MIME-type detection rules, the trust model and the underlying wire
+format -- in :ref:`Sending attachments <developers/api_http:Sending attachments>`.
 
 
 Write an addressbook plug-in
@@ -416,9 +523,30 @@ Have a look at the log output here. You'll see some message like the following::
 
 and now trigger a notification using a user ID:
 
-.. code-block:: bash
+.. tab-set::
 
-    curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=2&mode=production'
+    .. tab-item:: Python
+        :sync: python
+
+        .. code-block:: python
+
+            from tattler.client.tattler_py import send_notification
+
+            send_notification('demoscope', 'demoevent', '2', mode='production')
+
+    .. tab-item:: curl
+        :sync: curl
+
+        .. code-block:: bash
+
+            curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=2&mode=production'
+
+    .. tab-item:: command-line
+        :sync: cli
+
+        .. code-block:: bash
+
+            tattler_notify -m production 2 demoscope demoevent
 
 ... and there you go: tattler delivers the notification to email address ``your@email.net`` as stored in the database::
 
@@ -466,9 +594,30 @@ Then simply reload tattler and you'll see the new plug-in loaded::
 
 and now trigger a notification again:
 
-.. code-block:: bash
+.. tab-set::
 
-    curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=2&mode=production'
+    .. tab-item:: Python
+        :sync: python
+
+        .. code-block:: python
+
+            from tattler.client.tattler_py import send_notification
+
+            send_notification('demoscope', 'demoevent', '2', mode='production')
+
+    .. tab-item:: curl
+        :sync: curl
+
+        .. code-block:: bash
+
+            curl -X POST 'http://127.0.0.1:11503/notification/demoscope/demoevent/?user=2&mode=production'
+
+    .. tab-item:: command-line
+        :sync: cli
+
+        .. code-block:: bash
+
+            tattler_notify -m production 2 demoscope demoevent
 
 ... and observe that tattler loads new context variables::
 
