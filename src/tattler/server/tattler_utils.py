@@ -115,10 +115,8 @@ def prettify_name(name: str) -> str:
         return name     # user has already capitalized it
     return ' '.join(part.capitalize() for part in name.split(' ') if part)
 
-def core_template_variables(recipient: str, firstname: Optional[str], correlationId: Optional[str], mode: str, vector: str, event_scope: str, event_name: str) -> ContextType:
+def core_template_variables(recipient: str, recipient_contacts: Mapping[str, Optional[str]], firstname: Optional[str], correlationId: Optional[str], mode: str, vector: str, event_scope: str, event_name: str) -> ContextType:
     """Return a set of variables to be fed to every template."""
-    # contacts
-    recipient_contacts = pluginloader.lookup_contacts(recipient)
     if not firstname:
         try:
             firstname = guess_first_name(recipient_contacts['email'])
@@ -249,7 +247,7 @@ def send_notification_user_vectors(recipient_user, vectors, event_scope, event_n
         if usrlang is not None:
             log.warning("User language set to non-default '%s', but tattler community edition doesn't do multilingual, so I'll send the default language", usrlang)
         recipient = user_contacts[vname]
-        template_context = core_template_variables(recipient_user, user_contacts.get('first_name', None), correlationId, mode, vname, event_scope, event_name)
+        template_context = core_template_variables(recipient_user, user_contacts, user_contacts.get('first_name', None), correlationId, mode, vname, event_scope, event_name)
         if context:
             template_context.update(context)
         template_context = plugin_template_variables(template_context)

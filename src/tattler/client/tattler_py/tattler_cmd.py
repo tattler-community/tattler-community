@@ -20,8 +20,11 @@ def alnum_argument(value: str) -> str:
         raise argparse.ArgumentTypeError("must be alphanumeric with possibly {_, -, .} values")
     return value
 
-def parse_cmdline(args):
-    """Get operating parameters from command line"""
+def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser for tattler_notify.
+
+    :return:    Argument parser, not yet run over any command line.
+    """
     def contextvar(val: str) -> Tuple[str, str]:
         if '=' not in val:
             raise ValueError("context variable must be formatted like 'name=value'")
@@ -58,7 +61,11 @@ def parse_cmdline(args):
     parser.add_argument('-p', '--priority', type=int, choices={1, 2, 3, 4, 5}, help="Optional priority for the notification. Default: None.")
     parser.add_argument('-j', '--json-context', type=argparse.FileType('r', encoding='utf-8'), help='Optional path to a JSON file holding context data. Any command-line context vars gets merged on top of it.')
     parser.add_argument('-a', '--attach', action='append', default=[], type=attach_arg, metavar='NAME=PATH-or-URL', help="Attach a file to email notifications under NAME. NAME containing '@' is treated as an inline image (cid), referenced from HTML as <img src=\"cid:NAME\">. NAME without '@' is the filename of a regular attachment. The value is either a local path (read and uploaded) or an http(s):// URL (fetched by the server). Repeat to attach multiple files.")
-    return parser.parse_args(args=args)
+    return parser
+
+def parse_cmdline(args):
+    """Get operating parameters from command line"""
+    return build_parser().parse_args(args=args)
 
 def main():
     """Main function run on command line call."""

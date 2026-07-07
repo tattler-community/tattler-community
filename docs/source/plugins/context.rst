@@ -9,6 +9,14 @@ account status, support tickets etc.
 Each context plug-in can indicate whether it should be loaded based on the content of the current context.
 This enables them to "fire" based on the event being notified, or the recipient, or more.
 
+If a context plug-in fails -- by raising an exception, or by returning something other than
+a dictionary -- tattler aborts the notification and returns ``503`` to the client, rather
+than sending a notification with incomplete data.
+
+.. versionchanged:: 3.4.0
+    In earlier versions, tattler logged the failure, skipped the failing plug-in,
+    and sent the notification anyway -- potentially with incomplete context data.
+
 .. note:: The class for context plugins was renamed in Tattler version 1.2.0 .
 
     Up until Tattler version 1.1.1 you would inherit from class

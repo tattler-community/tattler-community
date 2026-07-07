@@ -103,6 +103,7 @@ Proceed to the following contents to learn about deploying and using Tattler for
    developers/index
    plugins/index
    sysadmins/index
+   clitools
    configuration
    enterprise
    diagrams

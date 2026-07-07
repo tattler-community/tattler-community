@@ -132,6 +132,12 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
             notif_jobs = tattler_utils.send_notification_user_vectors(recipient_user, vectors, scope, event, definitions, correlation_id, mode=mode)
             if not notif_jobs:
                 return self.send_error(400, f"Unknown recipient {recipient_user} - no contacts found.")
+        except pluginloader.AddressbookLookupError as err:
+            log.exception("Backend error looking up recipient %s (corrId=%s)", recipient_user, correlation_id)
+            return self.send_error(503, f"Temporarily unable to look up recipient: {err}")
+        except pluginloader.ContextProcessingError as err:
+            log.exception("Backend error building context for recipient %s (corrId=%s)", recipient_user, correlation_id)
+            return self.send_error(503, f"Temporarily unable to build notification content: {err}")
         except ValueError as err:
             log.exception("Client request failed with %s", err)
             return self.send_error(400, f"Invalid value provided: {err}")
