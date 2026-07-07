@@ -1,3 +1,12 @@
+# 3.4.0 -- 2026-07-07
+
+- Fix crash when an addressbook plug-in's contact lookup fails transiently (e.g. database connection errors), which caused a `'NoneType' object has no attribute 'get'` error instead of a proper failure response
+- Distinguish addressbook backend failures (e.g. database unreachable) from a genuinely unknown recipient: the server now returns `503` instead of `400` when contacts cannot be looked up due to a backend error, and logs include the recipient ID for easier correlation
+- Abort notifications with `503` when a context plug-in fails (raises an exception or returns invalid data), instead of silently sending the notification with incomplete context data; failure logs now include the recipient ID and correlation ID
+- Document command-line utilities `tattler_server`, `tattler_notify` and `tattler_livepreview` in the online docs, generated directly from the code
+- `tattler_livepreview` now supports `--help` and reports command-line errors in standard argparse style
+- Drop support for python 3.9, which reached end of life in October 2025. Tattler now requires python 3.10+
+
 # 3.3.0 -- 2026-05-10
 
 - Support delivering email notifications with attachments, both inline and not

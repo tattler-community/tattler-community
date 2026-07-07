@@ -333,16 +333,28 @@ def init(paths: Iterable[str]) -> None:
     global loaded_plugins
     loaded_plugins = load_plugins_from_modules(paths)
 
+class ContextProcessingError(Exception):
+    """Raised when a context plugin failed to process the context, e.g. due to backend errors.
+
+    Notifications are aborted in this case, since sending a notification with incomplete or
+    wrong data is worse than sending none."""
+
+
 def process_context(context: ContextType) -> ContextType:
-    """Process the context through pipelines of all plugins loaded, and return resulting context."""
+    """Process the context through pipelines of all plugins loaded, and return resulting context.
+
+    :raise ContextProcessingError:  if any context plugin raised an error or returned an invalid
+                                     context, so the notification should be aborted rather than
+                                     sent with incomplete data.
+    """
     context_plugins = loaded_plugins.get('context', {})
     for i, (pname, proc) in enumerate(context_plugins.items()):
         log.info("Processing context through context plugin #%d '%s'", i, pname)
         try:
             preq = proc.processing_required(context)
-        except:
-            log.exception("Plugin %s failed checking if processing_required():", pname)
-            continue
+        except Exception as err:
+            log.exception("Plugin #%d '%s' raised exception in processing_required() (recipient='%s', corrId=%s). Aborting notification. Error was:", i, pname, context.get('user_id'), context.get('correlation_id'))
+            raise ContextProcessingError(f"Context plugin '{pname}' failed in processing_required().") from err
         if not preq:
             log.info("Skipping plugin %s as its processing_required() was False", pname)
             log.debug("PS: Context checked was: %s", context)
@@ -350,19 +362,38 @@ def process_context(context: ContextType) -> ContextType:
         log.info("Processing context through plugin %s", pname)
         t0 = datetime.now()
         try:
-            context = proc.process(context)
-            log.info("Context after plugin %s (in %s): %s", pname, datetime.now()-t0, context)
-        except:
-            log.exception("Plugin %s failed process():", pname)
+            newcontext = proc.process(context)
+        except Exception as err:
+            log.exception("Plugin #%d '%s' raised exception in process() (recipient='%s', corrId=%s). Aborting notification. Error was:", i, pname, context.get('user_id'), context.get('correlation_id'))
+            raise ContextProcessingError(f"Context plugin '{pname}' failed in process().") from err
+        if not isinstance(newcontext, Mapping):
+            log.error("Plugin #%d '%s' returned invalid context %s instead of a mapping (recipient='%s', corrId=%s). Aborting notification.", i, pname, type(newcontext), context.get('user_id'), context.get('correlation_id'))
+            raise ContextProcessingError(f"Context plugin '{pname}' returned invalid context of type {type(newcontext)}.")
+        context = newcontext
+        log.info("Context after plugin %s (in %s): %s", pname, datetime.now()-t0, context)
     return context
+
+
+class AddressbookLookupError(Exception):
+    """Raised when no addressbook plugin could determine whether a recipient exists, due to backend errors.
+
+    This is distinct from a recipient being genuinely unknown: it signals that the lookup itself
+    failed (e.g. a database being unreachable), rather than the addressbook plugins cleanly reporting
+    that the recipient does not exist.
+    """
 
 
 def lookup_contacts(recipient_id: str, role: Optional[str]=None, vectors: Optional[Iterable[str]]=None) -> Mapping[str, Optional[str]]:
     """Lookup an attribute of a given user in all addressbook plugins.
 
     @role  [str|None]  Role to look up for this user, e.g. 'billing', 'technical', 'administrative'.
+
+    :raise AddressbookLookupError:  if every addressbook plugin raised an error, so the recipient's
+                                     existence could not be determined (as opposed to being cleanly
+                                     reported as unknown).
     """
     addressbook_plugins = loaded_plugins.get('addressbook', {})
+    had_errors = False
     for i, (pname, proc) in enumerate(addressbook_plugins.items()):
         log.info("Looking up recipient %s with addressbook plugin #%d '%s'", recipient_id, i, pname)
         try:
@@ -370,14 +401,19 @@ def lookup_contacts(recipient_id: str, role: Optional[str]=None, vectors: Option
                 log.debug("Plugin %s doesn't know recipient %s. Moving on to next plugin.", pname, recipient_id)
                 continue
         except Exception:
-            log.exception("Plugin #%d '%s' raised exception in recipient_exists(). Moving on to next. Error was:", i, pname)
+            log.exception("Plugin #%d '%s' raised exception in recipient_exists() for recipient '%s'. Moving on to next. Error was:", i, pname, recipient_id)
+            had_errors = True
             continue
         try:
             attrs = proc.attributes(recipient_id)
         except Exception:
-            log.exception("Plugin #%d '%s' raised exception in attributes(). Moving on to next. Error was:", i, pname)
+            log.exception("Plugin #%d '%s' raised exception in attributes() for recipient '%s'. Moving on to next. Error was:", i, pname, recipient_id)
+            had_errors = True
             continue
         if attrs is not None:
             return attrs
+    if had_errors:
+        log.error("Could not determine contacts for recipient '%s': every addressbook plugin consulted raised an error.", recipient_id)
+        raise AddressbookLookupError(f"Could not look up recipient '{recipient_id}': addressbook plugin(s) failed.")
     log.warning("No contacts could be found for recipient '%s'.", recipient_id)
     return None

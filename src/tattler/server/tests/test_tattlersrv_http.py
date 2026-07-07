@@ -16,6 +16,7 @@ from typing import Mapping, Optional
 
 from tattler.utils.serialization import serialize_json
 from tattler.server import tattlersrv_http
+from tattler.server import pluginloader
 
 data_contacts = {
     '123': {
@@ -180,6 +181,26 @@ class TattlerHttpServerTest(unittest.TestCase):
             with self.assertRaises(urllib.error.URLError):
                 with urlopen(req):
                     pass
+
+    def test_send_addressbook_lookup_error_returns_503(self):
+        """Backend errors in the addressbook lookup surface as 503, not 400/500"""
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST')
+        with unittest.mock.patch('tattler.server.tattler_utils.send_notification_user_vectors') as msend:
+            msend.side_effect = pluginloader.AddressbookLookupError("db unavailable")
+            with self.assertRaises(urllib.error.HTTPError) as err:
+                with urlopen(req):
+                    pass
+            self.assertEqual(503, err.exception.code)
+
+    def test_send_context_processing_error_returns_503(self):
+        """Backend errors in context plugins surface as 503, not 400/500"""
+        req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST')
+        with unittest.mock.patch('tattler.server.tattler_utils.send_notification_user_vectors') as msend:
+            msend.side_effect = pluginloader.ContextProcessingError("db unavailable")
+            with self.assertRaises(urllib.error.HTTPError) as err:
+                with urlopen(req):
+                    pass
+            self.assertEqual(503, err.exception.code)
 
     def test_send_empty_body(self):
         req = self.mkreq('/notification/jinja/jinja_humanize/?user=123', method='POST')

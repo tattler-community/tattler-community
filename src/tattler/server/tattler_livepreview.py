@@ -1,6 +1,7 @@
 """Monitor template files and trigger respective notification when one changes"""
 
 from datetime import datetime
+import argparse
 import logging
 import getpass
 import os
@@ -219,10 +220,15 @@ def get_conf_path(create: bool=False) -> Path:
         confpath.mkdir(exist_ok=True)
     return confpath
 
-def usage() -> None:
-    """Print usage instructions"""
-    print("Usage:", file=sys.stderr)
-    print("tattler_livepreview /path/to/template_dir", file=sys.stderr)
+def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser for tattler_livepreview.
+
+    :return:    Argument parser, not yet run over any command line.
+    """
+    parser = argparse.ArgumentParser(prog='tattler_livepreview',
+        description='Monitor event templates and email you the expanded notification whenever a template file changes, to preview edits live.')
+    parser.add_argument('template_dir', type=Path, help='Path to the templates directory, holding scopes and event templates within it.')
+    return parser
 
 def check_templates_sanity(tbase: Path):
     """Validate that the path provided is holds scopes and events."""
@@ -243,11 +249,13 @@ def get_cmdline_args():                 # pragma: no cover
 
 def main():
     """Entry point function for command line execution."""
-    args = get_cmdline_args()
-    if len(args) < 2:
-        usage()
-        return 1
-    template_base = Path(args[1])
+    try:
+        # str() each argument as tests inject Path objects, which argparse cannot match against option strings
+        args = build_parser().parse_args([str(arg) for arg in get_cmdline_args()[1:]])
+    except SystemExit as err:
+        # tests call main() directly and expect an exit code returned, not raised
+        return err.code
+    template_base = args.template_dir
     try:
         check_templates_sanity(template_base)
     except (FileNotFoundError, ValueError) as err:

@@ -162,7 +162,13 @@ paths:
             failure, etc.).
         500:
           description: Server error.
-        
+        503:
+          description: |
+            Temporarily unable to compose or address the notification, because
+            a plugin backend (such as a database) failed: either the recipient's
+            contacts could not be looked up, or a context plugin failed to
+            provide template data. Retrying later may succeed.
+
 components:
   schemas:
     NameList:

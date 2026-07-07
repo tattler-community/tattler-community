@@ -159,24 +159,48 @@ class PluginLoaderTest(unittest.TestCase):
                     m.process.assert_not_called()
             self.assertEqual(4, len(have_ctx))
 
-    def test_process_context_tolerates_failing_plugins(self):
-        """Context plugins that raise exception do not prevent subsequent plugins from running"""
+    def test_process_context_raises_when_processing_required_fails(self):
+        """process_context() raises ContextProcessingError if a plugin's processing_required() raises"""
         with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
-            mocks = [mock.MagicMock() for i in range(1, 3)]
+            mocks = [mock.MagicMock() for i in range(2)]
             mocks[0].processing_required.side_effect = RuntimeError
-            mocks[1].processing_required.return_value = True
-            mocks[1].process.side_effect = RuntimeError
             mplugs.get.side_effect = lambda x, y=None: {
                 'addressbook': {},
                 'context': {f'foo{i}': m for i, m in enumerate(mocks)},
             }.get(x, y)
-            pluginloader.process_context({})
-            for m in mocks:
-                m.processing_required.assert_called()
-                if m.processing_required.side_effect:
-                    m.process.assert_not_called()
-                else:
-                    m.process.assert_called()
+            with self.assertRaises(pluginloader.ContextProcessingError):
+                pluginloader.process_context({})
+            mocks[0].process.assert_not_called()
+            mocks[1].processing_required.assert_not_called()
+
+    def test_process_context_raises_when_process_fails(self):
+        """process_context() raises ContextProcessingError if a plugin's process() raises"""
+        with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
+            mocks = [mock.MagicMock() for i in range(2)]
+            mocks[0].processing_required.return_value = True
+            mocks[0].process.side_effect = RuntimeError
+            mplugs.get.side_effect = lambda x, y=None: {
+                'addressbook': {},
+                'context': {f'foo{i}': m for i, m in enumerate(mocks)},
+            }.get(x, y)
+            with self.assertRaises(pluginloader.ContextProcessingError):
+                pluginloader.process_context({})
+            mocks[0].process.assert_called()
+            mocks[1].processing_required.assert_not_called()
+
+    def test_process_context_raises_when_plugin_returns_invalid_context(self):
+        """process_context() raises ContextProcessingError if a plugin's process() returns None or a non-mapping"""
+        for badretval in [None, 'foo', 123, ['a', 'b']]:
+            with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
+                m = mock.MagicMock()
+                m.processing_required.return_value = True
+                m.process.return_value = badretval
+                mplugs.get.side_effect = lambda x, y=None: {
+                    'addressbook': {},
+                    'context': {'foo': m},
+                }.get(x, y)
+                with self.assertRaises(pluginloader.ContextProcessingError, msg=f"process_context() failed to reject plugin return value {badretval}"):
+                    pluginloader.process_context({})
 
     def test_lookup_contacts_stops_at_first_successful(self):
         """Addressbook lookups stop at first successful plugin"""
@@ -231,6 +255,20 @@ class PluginLoaderTest(unittest.TestCase):
             mocks[2].recipient_exists.assert_called()
             mocks[2].attributes.assert_called()
             self.assertEqual(have_contacts, mocks[2].attributes.return_value)
+
+    def test_lookup_contacts_raises_when_all_plugins_fail(self):
+        """lookup_contacts() raises AddressbookLookupError if every plugin raises, rather than returning None"""
+        with mock.patch('tattler.server.pluginloader.loaded_plugins') as mplugs:
+            mocks = [mock.MagicMock() for i in range(2)]
+            mocks[0].recipient_exists.side_effect = RuntimeError
+            mocks[1].recipient_exists.return_value = True
+            mocks[1].attributes.side_effect = RuntimeError
+            mplugs.get.side_effect = lambda x, y=None: {
+                'addressbook': {f'addrbookplugin{i}': m for i, m in enumerate(mocks)},
+                'context': {},
+            }.get(x, y)
+            with self.assertRaises(pluginloader.AddressbookLookupError):
+                pluginloader.lookup_contacts('recx')
 
     def test_attributes_returns_all_vectors(self):
         """Default attributes() implementation returns keys for all vectors"""

@@ -9,7 +9,7 @@
 project = 'tattler'
 copyright = '2023 - 2026, tattler.dev'
 author = 'Michele Mazzucchi, keencons.com'
-release = '3.3.0'
+release = '3.4.0'
 
 language = 'en'
 
@@ -20,6 +20,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.mermaid",
     "sphinx.ext.autodoc",
+    "sphinxarg.ext",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "sphinx_design",
@@ -31,6 +32,10 @@ copybutton_exclude = '.linenos, .gp'
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
+
+# clitools documents multiple argparse-based tools, each generating identically-named
+# subsections ("Positional Arguments", "Named Arguments") that autosectionlabel flags as duplicates
+suppress_warnings = ['autosectionlabel.clitools']
 
 
 templates_path = ['_templates']
