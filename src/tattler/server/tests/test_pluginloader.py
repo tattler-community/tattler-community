@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 import random
+import tempfile
 from pathlib import Path
 
 from tattler.server.sendable import vector_sendables
@@ -134,6 +135,34 @@ class PluginLoaderTest(unittest.TestCase):
             self.assertEqual({'file_tattler_plugin'}, set(plugcand))
             self.assertEqual(1, mlog.warning.call_count)
             self.assertEqual(fpath / 'folder_tattler_plugin', mlog.warning.call_args.args[1])
+
+    def test_plugins_outside_package_loaded_from_file(self):
+        """Plug-ins outside tattler's package, e.g. user plug-ins, are loaded from their files"""
+        want_modules = {'test1_tattler_plugin', 'test2_tattler_plugin'}
+        want_plugins = {'Test1TattlerPlugin', 'Test2TattlerPlugin'}
+        with mock.patch('tattler.server.pluginloader._dotted_module_name') as mdotted:
+            mdotted.return_value = None
+            plugcand = pluginloader.load_candidate_modules(self.plugin_paths)
+        self.assertEqual(want_modules, set(plugcand))
+        for modname, module in plugcand.items():
+            self.assertEqual(modname, module.__name__)
+            self.assertEqual(Path(self.plugin_paths[0]) / f'{modname}.py', Path(module.__file__))
+        plugmap = pluginloader.load_plugins(plugcand)
+        self.assertEqual(want_plugins, set(plugmap['context']))
+
+    def test_dotted_module_name_only_within_package(self):
+        """Paths within tattler's package get their dotted module name, paths outside it get none"""
+        want_dotted = 'tattler.server.sendable.backends'
+        self.assertEqual(want_dotted, pluginloader._dotted_module_name(Path(pluginloader.__file__).parent / 'sendable' / 'backends'))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.assertIsNone(pluginloader._dotted_module_name(Path(tmpdir)))
+
+    def test_non_directory_paths_skipped(self):
+        """Plug-in paths that aren't directories are skipped, while plug-ins in other paths are loaded"""
+        want_modules = {'test1_tattler_plugin', 'test2_tattler_plugin'}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            plugcand = pluginloader.load_candidate_modules([str(Path(tmpdir) / 'missing'), *self.plugin_paths])
+        self.assertEqual(want_modules, set(plugcand))
 
     def test_class_name_collision_rejected(self):
         """Loading two plug-in classes with the same name fails explicitly"""
