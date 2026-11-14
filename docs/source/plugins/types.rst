@@ -9,6 +9,10 @@ Tattler plug-ins can be either:
 **Context plug-ins**
     Allow you to give tattler data to fill out template variables.
 
+**SMS backend plug-ins**
+    Allow you to deliver SMS through a gateway that tattler does not support out of the box --
+    or to add a whole new vector, by declaring a vector name of your own.
+
 Tattler can operate both without and with plug-ins. You can also provide multiple plug-ins of each type.
 
 Each type of plug-in is coded in python, by extending a class.
@@ -26,9 +30,15 @@ This file must fulfill these requirements:
 
 - Be named with suffix ``_tattler_plugin.py``.
 
+- Name its classes uniquely:
+   - No two plug-ins may define the same class name: tattler refuses to start on collision. Importing the same class into multiple plug-ins, e.g. a shared base class, is fine.
+   - These class names are used by tattler's built-in plug-ins, so they are reserved: ``BulkGateBackend``, ``BulkSMSBackend``, ``PassThroughAddressbookPlugin``.
+   - These file names are used by tattler's built-in plug-ins, so they are reserved too: ``bulkgate_tattler_plugin.py``, ``bulksms_tattler_plugin.py``, ``passthrough_addressbook_tattler_plugin.py``.
+
 - Contain one class which subclasses either:
    - class :class:`AddressbookPlugin <tattler.server.pluginloader.AddressbookPlugin>` if you are providing an :ref:`Addressbook plug-in <plugins/addressbook:Addressbook plug-ins>`.
    - class :class:`ContextPlugin <tattler.server.pluginloader.ContextPlugin>` if you are providing a :ref:`Context plug-in <plugins/context:Context plug-ins>`.
+   - class :class:`DeliveryBackend <tattler.server.sendable.delivery_backend.DeliveryBackend>` if you are providing an :ref:`SMS backend plug-in <plugins/smsbackend:SMS backend plug-ins>`.
 
 So if you configure ``TATTLER_PLUGIN_PATH=foo/my_plugin_path``, this directory may look like this::
 

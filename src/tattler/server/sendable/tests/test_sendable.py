@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Set
 
 from tattler.server import sendable
+from tattler.server import pluginloader
 
 
 data_recipients = {
@@ -32,6 +33,7 @@ class SendableTest(unittest.TestCase):
 
     def setUp(self):
         os.environ['TATTLER_BULKSMS_TOKEN'] = 'foo:bar'
+        pluginloader.init([str(p) for p in pluginloader.native_plugin_paths])
         self.supervisor_addrs = {
             'sms': '+5432156',
             'email': 'supervisor_foo@bar.com',
@@ -188,7 +190,7 @@ class SendableTest(unittest.TestCase):
             e.content(context={})
 
     def test_sms_send_triggers_delivery(self):
-        with unittest.mock.patch('tattler.server.sendable.vector_sms.BulkSMS') as msms:
+        with unittest.mock.patch('tattler.server.sendable.backends.bulksms_tattler_plugin.BulkSMS') as msms:
             e = sendable.SMSSendable('event_with_email_and_sms', data_recipients['sms'], template_base=self.template_base)
             e.send(context={'one': '1'})
             msms.assert_called()
@@ -201,20 +203,20 @@ class SendableTest(unittest.TestCase):
         blacklisted_rcpt = '+12345678'
         recipients_full = {blacklisted_rcpt, '+29876'}
         recipients_blacklisted = {'+29876'}
-        with unittest.mock.patch('tattler.server.sendable.vector_sms.BulkSMS') as msms:
+        with unittest.mock.patch('tattler.server.sendable.backends.bulksms_tattler_plugin.BulkSMS') as msms:
             e = sendable.SMSSendable('event_with_email_and_sms', recipients_full, template_base=self.template_base)
             # send without blacklist
             e.send(context={'one': '1'})
             msms().send.assert_called()
             c_args, _ = msms().send.call_args
-            self.assertIn(recipients_full, c_args)
+            self.assertEqual(recipients_full, set(c_args[0]))
             # send again with blacklist
             e.blacklist(self.blacklist_path)
             e.send(context={'one': '1'})
             msms().send.assert_called()
             c_args, _ = msms().send.call_args
-            self.assertNotIn(recipients_full, c_args)
-            self.assertIn(recipients_blacklisted, c_args)
+            self.assertNotEqual(recipients_full, set(c_args[0]))
+            self.assertEqual(recipients_blacklisted, set(c_args[0]))
 
     def test_make_notification(self):
         for vname, vclass in sendable.vector_sendables.items():

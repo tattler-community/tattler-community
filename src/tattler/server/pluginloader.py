@@ -1,10 +1,9 @@
 """Definitions to declare Tattler plugins and logic to load them"""
 
-import importlib
-from importlib.abc import MetaPathFinder
-import pkgutil
+import importlib.util
 import logging
 from datetime import datetime
+from pathlib import Path
 import os
 import inspect
 from typing import Mapping, Any, Iterable, Optional
@@ -13,8 +12,18 @@ ContextType = Mapping[str, Any]
 
 plugins_suffix = '_tattler_plugin'
 
+# paths tattler ships plug-ins in, scanned in addition to any user-supplied TATTLER_PLUGIN_PATH
+native_plugin_paths = [
+    Path(__file__).parent / 'plugins',
+    Path(__file__).parent / 'sendable' / 'backends',
+]
+
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
+
+
+class PluginNotConfigured(ValueError):
+    """Raised by a plugin's setup() when it is deliberately left unconfigured, so it is skipped without error."""
 
 
 class TattlerPlugin:
@@ -24,9 +33,10 @@ class TattlerPlugin:
     """Base class for any tattler plugin."""
     def setup(self) -> None:
         """Perform a one-off initialization of this plugin, e.g. connect to DB.
-        
+
         Overriding this method is optional. If a plugin's setup() method raises an exception,
-        the plugin is not activated.
+        the plugin is not activated. Raise :class:`PluginNotConfigured` to signal that the plugin
+        is simply not configured for use, so it is skipped without reporting an error.
         """
         pass
 
@@ -233,6 +243,21 @@ _plugin_classes = [ContextPlugin, ContextTattlerPlugin, AddressbookPlugin]
 
 loaded_plugins = {}
 
+# {category: {classname: (class, error message)}} for candidates that failed setup(), so
+# callers needing every candidate's status (e.g. reporting "no backend configured") can retrieve why.
+loaded_plugin_errors = {}
+
+
+def register_plugin_class(baseclass: type) -> None:
+    """Register an additional plugin base class, so its subclasses are recognized as plug-ins.
+
+    This lets other tattler modules define plugin categories without this module having
+    to know them, avoiding circular imports.
+
+    :param baseclass:   TattlerPlugin subclass defining the category, e.g. an SMS backend interface."""
+    if baseclass not in _plugin_classes:
+        _plugin_classes.append(baseclass)
+
 
 
 def plugin_category(symbolname: str, symbolclass: type) -> Optional[str]:
@@ -246,13 +271,9 @@ def plugin_category(symbolname: str, symbolclass: type) -> Optional[str]:
     return None
 
 
-def get_plugin_names(paths: Iterable[str]) -> Mapping[str, MetaPathFinder]:
-    importlib.invalidate_caches()
-    return {name: finder for finder, name, _ in pkgutil.iter_modules(paths) if name.endswith(plugins_suffix)}
-
 def load_candidate_modules(paths: Iterable[str]) -> Mapping[str, Any]:
     """Find and import modules that match Tattler plugins naming requirements.
-    
+
     The modules are only 'candidates': a later stage will find classes within them
     that implement the required interface to be processors.
 
@@ -260,13 +281,47 @@ def load_candidate_modules(paths: Iterable[str]) -> Mapping[str, Any]:
 
     :return:        Dictionary {name: module} listing modules that may hold classes implementing plug-ins.
     """
-    candidate_modules = get_plugin_names(paths)
     loaded_modules = {}
-    for name, finder in candidate_modules.items():
-        modspec = finder.find_spec(name)
-        loaded_modules[name] = importlib.util.module_from_spec(modspec)
-        modspec.loader.exec_module(loaded_modules[name])
+    for path in paths:
+        path = Path(path)
+        if not path.is_dir():
+            log.debug("Skipping plugin path '%s': not a directory.", path)
+            continue
+        # plug-ins that live within this package (e.g. sendable/backends) are imported by their
+        # dotted name like any other submodule, keeping a single canonical module/class object
+        # (needed e.g. for tests to mock.patch() their dependencies); third-party plug-ins
+        # (TATTLER_PLUGIN_PATH) live outside the package and have no dotted name, so they're
+        # loaded directly from file.
+        dotted_pkg = _dotted_module_name(path)
+        log.debug("Scanning plugin path '%s' (dotted package: %s)", path, dotted_pkg or 'none, loading from file')
+        for moddir in sorted(p for p in path.glob(f'*{plugins_suffix}') if p.is_dir()):
+            log.warning("Ignoring plugin folder '%s': plugins must be single files named '*%s.py'.", moddir, plugins_suffix)
+        for modfile in sorted(path.glob(f'*{plugins_suffix}.py')):
+            assert modfile.stem not in loaded_modules, f"Plugin module name collision: '{modfile.stem}' (in '{path}') is provided by multiple plugin paths."
+            if dotted_pkg:
+                log.info("Importing candidate plugin module '%s.%s'", dotted_pkg, modfile.stem)
+                loaded_modules[modfile.stem] = importlib.import_module(f'{dotted_pkg}.{modfile.stem}')
+            else:
+                log.info("Loading candidate plugin module '%s' from file '%s'", modfile.stem, modfile)
+                modspec = importlib.util.spec_from_file_location(modfile.stem, modfile)
+                loaded_modules[modfile.stem] = importlib.util.module_from_spec(modspec)
+                modspec.loader.exec_module(loaded_modules[modfile.stem])
+    log.debug("Found %d candidate plugin module(s): %s", len(loaded_modules), sorted(loaded_modules))
     return loaded_modules
+
+
+def _dotted_module_name(path: Path) -> Optional[str]:
+    """Return the dotted package name of a directory within this package, or None if outside it.
+
+    :param path:    Directory to name, e.g. .../tattler/server/sendable/backends.
+
+    :return:        Dotted name, e.g. 'tattler.server.sendable.backends', or None if path isn't under it."""
+    try:
+        rel = path.resolve().relative_to(Path(__file__).resolve().parent.parent.parent)
+    except ValueError:
+        log.debug("Plugin path '%s' is outside this package; treating it as a third-party path.", path)
+        return None
+    return '.'.join(rel.parts)
 
 def check_sanity(classname: str, modname: str, pluginclass: type) -> bool:
     """Check whether a candidate plug-in class is safe to load as a plug-in.
@@ -287,17 +342,19 @@ def load_plugins(candidate_modules: Mapping[str, Any]) -> Mapping[str, Mapping[s
 
     :return:        Dictionary {typename: {pluginname: class}} whose keys are plugin types in {'context', 'addressbook'}, and values are dictionaries mapping plug-in names to their class.
     """
+    global loaded_plugin_errors
+    loaded_plugin_errors = {}
     enabled_processor_classes = {}
-    # sort classes by name, so the order of initialization and execution are deterministic and externally-controllable
-    candidate_classes = []
+    # {(defining module, classname): (classname, modname, class)}: modules importing the same class (e.g. a shared
+    # base) expose it multiple times, possibly as distinct objects if loaded twice, so consider each definition once
+    candidate_classes: dict[tuple[str, str], tuple[str, str, type]] = {}
     for modname, modobj in candidate_modules.items():
         members = inspect.getmembers(modobj, inspect.isclass)
-        log.warning("Members of %s: %s", modname, members)
+        log.debug("Members of %s: %s", modname, members)
         for classname, classcand in members:
-            candidate_classes.append((classname, [modname, classcand]))
-    candidate_classes.sort(key=lambda x: x[0])
-    for classname, classitems in candidate_classes:
-        modname, processor_candidate = classitems
+            candidate_classes.setdefault((classcand.__module__, classname), (classname, modname, classcand))
+    # sort classes by name, so the order of initialization and execution are deterministic and externally-controllable
+    for classname, modname, processor_candidate in sorted(candidate_classes.values(), key=lambda x: x[0]):
         pclass = plugin_category(classname, processor_candidate)
         if pclass is None:
             log.debug("Ignoring class %s (%s) from module %s which is not a subclass of %s", classname, processor_candidate, modname, TattlerPlugin)
@@ -306,14 +363,17 @@ def load_plugins(candidate_modules: Mapping[str, Any]) -> Mapping[str, Mapping[s
                 log.warning("Candidate plug-in class '%s' (%s) from module %s failed sanity check. Will not load it.", classname, processor_candidate, modname)
                 continue
             log.info("Loading plugin %s (%s) from module %s", classname, processor_candidate, modname)
+            assert classname not in enabled_processor_classes.get(pclass, {}), f"Plugin class name collision: '{classname}' (in module '{modname}') is declared by multiple plugin modules."
             try:
                 cand = processor_candidate()
                 cand.setup()
-                if pclass not in enabled_processor_classes:
-                    enabled_processor_classes[pclass] = {}
-                enabled_processor_classes[pclass][classname] = cand
+                enabled_processor_classes.setdefault(pclass, {})[classname] = cand
+            except PluginNotConfigured as err:
+                log.info("Plugin %s (in %s) is not configured, so not enabling it: %s", classname, modname, err)
+                loaded_plugin_errors.setdefault(pclass, {})[classname] = (processor_candidate, str(err))
             except Exception as err:
-                log.error("Plugin %s (in %s) failed to setup. Skipping to enable it. Error %s: %s", classname, modname, type(err), err)
+                log.error("Plugin %s (in %s) failed to setup, so not enabling it. Error %s: %s", classname, modname, type(err), err)
+                loaded_plugin_errors.setdefault(pclass, {})[classname] = (processor_candidate, str(err))
     return enabled_processor_classes
 
 def load_plugins_from_modules(paths: Iterable[str]) -> Mapping[str, Mapping[str, TattlerPlugin]]:

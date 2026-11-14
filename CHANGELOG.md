@@ -1,3 +1,17 @@
+# 4.0.0 -- 2026-11-14
+
+- Support user plugins to deliver via vectors like SMS or arbitrary vectors
+- Transform existing delivery vectors to be plugins shipping out of the box
+- Add support to deliver SMS via EU company [BulkGate](https://www.bulkgate.com); this comes alongside the existing [BulkSMS](https://www.bulksms.com) backend
+- Publish `llms.txt` alongside the HTML docs, for AI-assisted use of the documentation
+- Fix configuration examples in the docs that set `NOTIF_DEBUG_RECIPIENT_EMAIL`, which tattler ignores, instead of `TATTLER_DEBUG_RECIPIENT_EMAIL`
+- Drop support for python 3.10, which reached end of life in October 2026. Tattler now requires python 3.11+
+
+Breaking changes for custom plug-ins:
+
+- Plug-ins must be single files named `*_tattler_plugin.py`, as documented. Plug-ins packaged as folders (`foo_tattler_plugin/__init__.py`) or shipped only as compiled modules are no longer loaded; tattler logs a warning for each plug-in folder it ignores
+- Tattler refuses to start if two plug-ins define classes with the same name, or if a plug-in file has the same name as another plug-in file, including those built into tattler: `bulkgate_tattler_plugin.py`, `bulksms_tattler_plugin.py`, `passthrough_addressbook_tattler_plugin.py`. Previously, one of them was silently ignored
+
 # 3.4.0 -- 2026-07-07
 
 - Fix crash when an addressbook plug-in's contact lookup fails transiently (e.g. database connection errors), which caused a `'NoneType' object has no attribute 'get'` error instead of a proper failure response

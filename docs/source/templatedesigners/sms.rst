@@ -4,7 +4,7 @@ SMS templates
 +------------------------+---------------------------------------------------------------------------------+
 | Address type           | Mobile number, in `E.164 <https://www.bulksms.com/developer/json/v1/>`_ format. |
 +------------------------+---------------------------------------------------------------------------------+
-| Default gateway        | `BulkSMS.com <https://www.bulksms.com>`_                                        |
+| Gateways               | `BulkSMS <https://www.bulksms.com>`_, `BulkGate <https://www.bulkgate.com>`_    |
 +------------------------+---------------------------------------------------------------------------------+
 | Encoding               | `GSM 03.38 <https://en.wikipedia.org/wiki/GSM_03.38>`_                          |
 +------------------------+---------------------------------------------------------------------------------+
@@ -17,14 +17,21 @@ SMS templates
 | Costs                  | See `BulkSMS pricing <https://www.bulksms.com/pricing/>`_. No affiliation.      |
 +------------------------+---------------------------------------------------------------------------------+
 
-.. hint:: SMS delivery through Tattler requires an account at BulkSMS.com .
+.. hint:: SMS delivery through Tattler requires an account at an SMS gateway.
 
-    Tattler relies on the `bulksms library <https://pypi.org/project/bulksms/>`_ for final delivery of
-    SMS to their mobile network, so you need an account with `BulkSMS.com <https://www.bulksms.com>`_ and
-    some delivery credits in order to deliver your SMS messages.
+    Tattler delivers SMS through plugins, and ships with native support for two services:
     
-    Tattler has no affiliation with BulkSMS. Alternative gateways can be easily implemented, but none
-    has been, yet.
+    - `BulkSMS.com <https://www.bulksms.com>`_ (see :ref:`TATTLER_BULKSMS_TOKEN <configuration:TATTLER_BULKSMS_TOKEN>`)
+    - `BulkGate <https://www.bulkgate.com>`_ (see :ref:`TATTLER_BULKGATE_TOKEN <configuration:TATTLER_BULKGATE_TOKEN>`)
+    
+    Tattler has no affiliation with either provider.
+
+    You can deliver SMS notifications out of the box with an account (with credits) with either of these.
+    Alternatively, you can add support for your own delivery methods by writing a small
+    :ref:`SMS backend plug-in <plugins/smsbackend:SMS backend plug-ins>`.
+
+    Tattler activates all SMS gateways for which configuration is supplied. If you do configure
+    multiple gateways, tattler falls over from one to the next until one accepts the message.
 
 SMS notifications are less common than email notifications, but let's start here because
 their simplicity builds a base to understand the more complex emails.

@@ -118,6 +118,37 @@ class PluginLoaderTest(unittest.TestCase):
             self.assertIn('eprecat', mlogwarn.call_args.args[0])
             self.assertIn('ContextTattlerPlugin', mlogwarn.call_args.args[0])
 
+    def test_module_name_collision_rejected(self):
+        """Loading two plug-in files with the same module name from different paths fails explicitly"""
+        fixtures = Path(__file__).parent / 'fixtures'
+        paths = [str(fixtures / 'plugins_colliding_module_a'), str(fixtures / 'plugins_colliding_module_b')]
+        with self.assertRaises(AssertionError) as err:
+            pluginloader.load_candidate_modules(paths)
+        self.assertIn('dup_tattler_plugin', str(err.exception))
+
+    def test_plugin_folders_ignored_with_warning(self):
+        """Folders named like plug-ins are not loaded, and a warning names them"""
+        fpath = Path(__file__).parent / 'fixtures' / 'plugins_as_folder'
+        with mock.patch('tattler.server.pluginloader.log') as mlog:
+            plugcand = pluginloader.load_candidate_modules([str(fpath)])
+            self.assertEqual({'file_tattler_plugin'}, set(plugcand))
+            self.assertEqual(1, mlog.warning.call_count)
+            self.assertEqual(fpath / 'folder_tattler_plugin', mlog.warning.call_args.args[1])
+
+    def test_class_name_collision_rejected(self):
+        """Loading two plug-in classes with the same name fails explicitly"""
+        fpath = Path(__file__).parent / 'fixtures' / 'plugins_colliding_classname'
+        with self.assertRaises(AssertionError) as err:
+            pluginloader.load_plugins_from_modules([str(fpath)])
+        self.assertIn('DupNameTattlerPlugin', str(err.exception))
+
+    def test_class_shared_across_modules_loaded_once(self):
+        """A class exposed by multiple plug-in modules, e.g. a shared base class, is loaded once without collision"""
+        fpath = Path(__file__).parent / 'fixtures' / 'plugins_sharing_class'
+        want_plugins = {'AaaContextPlugin', 'BbbContextPlugin', 'SharedBaseContextPlugin'}
+        loaded_plugins = pluginloader.load_plugins_from_modules([str(fpath)])
+        self.assertEqual(want_plugins, set(loaded_plugins['context']))
+
     def test_init_tolerates_failing_plugins(self):
         """init() does not fail if a plug-in raises exception while loading"""
         fpath = Path(__file__).parent / 'fixtures' / 'plugins_raising'
@@ -133,6 +164,18 @@ class PluginLoaderTest(unittest.TestCase):
             mlog.error.assert_called()
             setupfailmsg = [call for call in mlog.error.call_args_list if 'failed to setup' in call.args[0]]
             self.assertEqual({'RaisesInitializationContextPlugin', 'RaisesInitializationAddressbookPlugin'}, set(c.args[1] for c in setupfailmsg))
+
+    def test_unconfigured_plugins_skipped_without_error(self):
+        """Plug-ins raising PluginNotConfigured are skipped and logged at info level, not as errors"""
+        fpath = Path(__file__).parent / 'fixtures' / 'plugins_unconfigured'
+        with mock.patch('tattler.server.pluginloader.log') as mlog:
+            loaded_plugins = pluginloader.load_plugins_from_modules([str(fpath)])
+            self.assertIn('ConfiguredContextPlugin', loaded_plugins['context'])
+            self.assertNotIn('UnconfiguredContextPlugin', loaded_plugins['context'])
+            self.assertIn('UnconfiguredContextPlugin', pluginloader.loaded_plugin_errors['context'])
+            mlog.error.assert_not_called()
+            skipmsgs = [call for call in mlog.info.call_args_list if 'not configured' in call.args[0]]
+            self.assertEqual(['UnconfiguredContextPlugin'], [c.args[1] for c in skipmsgs])
 
     def test_process_context_runs_all_enabled_plugins(self):
         """All enabled context plugins are executed when processing"""

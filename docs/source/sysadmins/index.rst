@@ -41,5 +41,6 @@ We proceed as follows:
     base_config
     update_templates
     deploy_plugins
+    upgrading
     smime
     additional_considerations

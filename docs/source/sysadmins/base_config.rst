@@ -36,7 +36,7 @@ To clean that up, wrap all configuration variables into an `envdir <https://pypi
     echo "debug" > TATTLER_MASTER_MODE
     echo "127.0.0.1:11503" > TATTLER_LISTEN_ADDRESS
     echo "~tattler/tattler_templates" > TATTLER_TEMPLATE_BASE
-    echo "your_own_email@company.com" > NOTIF_DEBUG_RECIPIENT_EMAIL
+    echo "your_own_email@company.com" > TATTLER_DEBUG_RECIPIENT_EMAIL
 
     # for any private configuration value:
     touch DATABASE
