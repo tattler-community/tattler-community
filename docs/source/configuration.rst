@@ -101,6 +101,18 @@ This is a text file containing one blacklisted entry per line. Entries of differ
 :ref:`vectors <keyconcepts/vectors:notification vectors>` can be mixed in one same blacklist file.
 
 
+TATTLER_BULKGATE_TOKEN
+----------------------
+
+The token to use to deliver SMS notifications via `BulkGate <https://www.bulkgate.com>`_ .
+
+The token is formatted as a pair of (application_id, application_token) separated by a colon, i.e. ``application_id:application_token``.
+Create the credentials in BulkGate's portal under "Modules & APIs" > "HTTP simple API".
+
+If you configure multiple SMS gateways -- e.g. this and :ref:`TATTLER_BULKSMS_TOKEN <configuration:TATTLER_BULKSMS_TOKEN>` --
+tattler tries them in alphabetical order, and falls over to the next when one fails to accept the message.
+
+
 TATTLER_BULKSMS_TOKEN
 ---------------------
 

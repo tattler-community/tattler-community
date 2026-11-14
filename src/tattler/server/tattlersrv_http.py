@@ -110,7 +110,7 @@ class TattlerServer(http.server.BaseHTTPRequestHandler):
             vectors = qr_params.get('vector', None)
             if vectors is not None:
                 vectors = {v.strip().lower() for v in vectors.split(',')}
-                unknown_vectors = vectors - set(sendable.vector_sendables.keys())
+                unknown_vectors = vectors - sendable.available_vectors()
                 assert set() == unknown_vectors
         except AssertionError:
             log.info("Rejecting req as client provided unknown vector '%s'", unknown_vectors)

@@ -26,6 +26,8 @@ exclude_paths = ['/test', '/venv', '__pycache__', 'docs/build/', 'templates/', '
 exclude_urls = [
     '127.0.0.1',
     'api.bulksms.com/v1',
+    'portal.bulkgate.com/api',
+    'www.bulkgate.com/en/docs/',    # site rejects the validator's requests with HTTP 455
     'pypi.tattler.dev',
     '/company.intranet',
     '/api.telegram.org/',

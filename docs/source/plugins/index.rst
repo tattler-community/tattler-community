@@ -12,6 +12,7 @@ Plug-ins allow you to:
 
 - Look up user information -- like email, mobile number, first name etc -- so your applications can simply ask "Notify user #123 about event XYZ".
 - Build context information -- like data about their open orders, pending payments, usage history etc.
+- Deliver SMS through gateways that tattler does not support out of the box.
 
 The idea is to build these look-ups once into tattler, so you don't have to bloat
 application code with notification logic, potentially multiple times.
@@ -21,5 +22,6 @@ application code with notification logic, potentially multiple times.
     types
     addressbook
     context
+    smsbackend
     addressbookplugin_reference
     contextplugin_reference

@@ -318,14 +318,14 @@ Here's how you setup your configuration using ``envdir``:
     cd ~/tattler_quickstart/etc
 
     # create file "TATTLER_MASTER_MODE" to hold content "staging",
-    # to have tattler copy notifications to the actual recipient and to NOTIF_DEBUG_RECIPIENT_EMAIL
+    # to have tattler copy notifications to the actual recipient and to TATTLER_DEBUG_RECIPIENT_EMAIL
     echo "staging" > TATTLER_MASTER_MODE
 
     # add more non-sensitive configuration values
     echo support@myorganization.org > TATTLER_EMAIL_SENDER
     echo "127.0.0.1:11503" > TATTLER_LISTEN_ADDRESS
     echo ~/tattler_quickstart/templates > TATTLER_TEMPLATE_BASE
-    echo "your_own_email@company.com" > NOTIF_DEBUG_RECIPIENT_EMAIL
+    echo "your_own_email@company.com" > TATTLER_DEBUG_RECIPIENT_EMAIL
     echo "127.0.0.1:25" > TATTLER_SMTP_ADDRESS
     echo yes > TATTLER_SMTP_TLS
     

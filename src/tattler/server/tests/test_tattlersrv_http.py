@@ -49,7 +49,7 @@ class TattlerHttpServerTest(unittest.TestCase):
             self.server = tattlersrv_http.parse_opts_and_serve()
             if self.server is None:
                 raise self.fail("Unable to start server thread. There's likely another server instance running on the same port.")
-            self.server_thread = threading.Thread(target=self.server.serve_forever)
+            self.server_thread = threading.Thread(target=self.server.serve_forever, kwargs={'poll_interval': 0.01})
             logging.info("starting up server ...")
             self.server_thread.start()
     

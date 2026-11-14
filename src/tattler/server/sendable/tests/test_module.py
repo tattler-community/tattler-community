@@ -7,7 +7,9 @@ from pathlib import Path
 # suppress warning when SMSSendable is imported
 os.environ['TATTLER_BULKSMS_TOKEN'] = 'A:B'
 
+from tattler.server import pluginloader
 from tattler.server import sendable
+from tattler.server.sendable.vector_text import TextSendable
 
 
 class UtilsTest(unittest.TestCase):
@@ -50,3 +52,48 @@ class UtilsTest(unittest.TestCase):
         with mock.patch('tattler.server.sendable.Sendable.send') as msend:
             sendable.send_notification('email', 'event_with_email_and_sms', ['u1@x.com'], mode='debug', blacklist='inexistent-file-1234.txt')
             self.assertEqual(msend.call_count, 1)
+
+    def test_available_vectors_includes_plugin_declared(self):
+        """available_vectors() includes vectors declared by loaded delivery backend plug-ins along with built-ins"""
+        backend = mock.MagicMock()
+        backend.vector.return_value = 'signal'
+        with mock.patch.dict(pluginloader.loaded_plugins, {'deliverybackend': {'SignalBackend': backend}}, clear=True):
+            self.assertIn('signal', sendable.available_vectors())
+            self.assertIn('sms', sendable.available_vectors())
+            self.assertIn('email', sendable.available_vectors())
+
+    def test_get_vector_class_serves_plugin_declared_vector(self):
+        """get_vector_class() builds a TextSendable bound to a vector that only a plug-in declares"""
+        backend = mock.MagicMock()
+        backend.vector.return_value = 'signal'
+        with mock.patch.dict(pluginloader.loaded_plugins, {'deliverybackend': {'SignalBackend': backend}}, clear=True):
+            with mock.patch.dict(sendable._dynamic_sendables, clear=True):
+                vclass = sendable.get_vector_class('signal')
+                self.assertTrue(issubclass(vclass, TextSendable))
+                self.assertEqual('signal', vclass.vector())
+                self.assertIs(vclass, sendable.get_vector_class('signal'))
+
+    def test_register_vector_sendable(self):
+        """register_vector_sendable() makes a dedicated class available under the vector it declares"""
+        class FaxSendable(TextSendable):
+            vector_name = 'fax'
+        with mock.patch.dict(sendable.vector_sendables):
+            sendable.register_vector_sendable(FaxSendable)
+            self.assertIn('fax', sendable.available_vectors())
+            self.assertTrue(issubclass(sendable.get_vector_class('fax'), FaxSendable))
+
+    def test_register_sendable_base_composes_every_vector(self):
+        """register_sendable_base() composes registered and plug-in-declared vector classes with the new base"""
+        class CustomBase(sendable.Sendable):
+            pass
+        backend = mock.MagicMock()
+        backend.vector.return_value = 'signal'
+        with mock.patch.dict(sendable.vector_sendables):
+            with mock.patch.object(sendable, '_sendable_base', sendable._sendable_base):
+                with mock.patch.dict(pluginloader.loaded_plugins, {'deliverybackend': {'SignalBackend': backend}}, clear=True):
+                    with mock.patch.dict(sendable._dynamic_sendables, clear=True):
+                        sendable.register_sendable_base(CustomBase)
+                        for vname in ('sms', 'email', 'signal'):
+                            vclass = sendable.get_vector_class(vname)
+                            self.assertTrue(issubclass(vclass, CustomBase), msg=f"Vector {vname} class lacks the registered base.")
+                        self.assertEqual('SMSSendable', sendable.get_vector_class('sms').__name__)

@@ -67,7 +67,7 @@ def _start_server(**attrs):
     srv.sleep_before = attrs.get('sleep_before', 0)
     srv.hop_count = 0
     srv.paths_seen = []
-    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t = threading.Thread(target=srv.serve_forever, kwargs={'poll_interval': 0.01}, daemon=True)
     t.start()
     return srv, t
 

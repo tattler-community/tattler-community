@@ -5,7 +5,7 @@ import logging
 from typing import Iterable
 from pathlib import Path
 
-from tattler.server.sendable import vector_sendables, get_vector_class, Sendable
+from tattler.server.sendable import available_vectors, get_vector_class, Sendable
 
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class TemplateMgr:
         :return:            Set of vector names that this event can be sent over.
         """
         vectors = set()
-        for vname in vector_sendables:
+        for vname in available_vectors():
             vclass = get_vector_class(vname)
             if vclass.exists(event_name, self.base_path):
                 vectors.add(vname)

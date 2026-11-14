@@ -29,7 +29,7 @@ default_template_processor_name = 'jinja'
 template_processor = None
 
 # search for native plugins in the following paths
-native_plugins_path = [Path(__file__).parent / 'plugins']
+native_plugins_path = pluginloader.native_plugin_paths
 
 # trim long notification IDs at this number of characters
 max_notification_id_len = 12

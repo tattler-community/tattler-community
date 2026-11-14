@@ -22,7 +22,7 @@ Create a python virtual environment and let tattler run into it.
     mkdir ~tattler/tattler_templates
 
     # run tattler
-    NOTIF_DEBUG_RECIPIENT_EMAIL=your_own_email@company.com \
+    TATTLER_DEBUG_RECIPIENT_EMAIL=your_own_email@company.com \
         TATTLER_TEMPLATE_BASE=~tattler/tattler_templates \
         TATTLER_LISTEN_ADDRESS="127.0.0.1:11503" \
         TATTLER_MASTER_MODE="debug" \
