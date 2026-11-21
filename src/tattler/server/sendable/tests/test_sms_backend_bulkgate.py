@@ -56,7 +56,51 @@ class TestBulkGateBackend(unittest.TestCase):
                 sent = json.loads(murlopen.call_args[0][0].data.decode())
                 self.assertEqual(sent['unicode'], '1')
                 self.assertEqual(sent['sender_id'], 'gOwn')
-                self.assertEqual(sent['sender_id_value'], '+789')
+                self.assertEqual(sent['sender_id_value'], '789')
+
+    def test_send_text_sender(self):
+        """send() requests a text sender iff the given sender id is an alphanumeric name"""
+        with mock.patch('tattler.server.sendable.vector_sendable.getenv') as mgetenv:
+            with mock.patch('tattler.server.sendable.backends.bulkgate_tattler_plugin.urllib.request.urlopen') as murlopen:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_BULKGATE_TOKEN': 'id:tok'}.get(x, None)
+                murlopen.return_value = mock_response({'data': {'sms_id': 'sid1'}})
+                BulkGateBackend().send(['+123'], 'hello', sender='Acme')
+                sent = json.loads(murlopen.call_args[0][0].data.decode())
+                self.assertEqual(sent['sender_id'], 'gText')
+                self.assertEqual(sent['sender_id_value'], 'Acme')
+
+    def test_send_number_sender_zero_prefix_equivalent(self):
+        """send() requests the same own-number sender, stripped of its prefix, whether given with plus or 00 prefix"""
+        with mock.patch('tattler.server.sendable.vector_sendable.getenv') as mgetenv:
+            with mock.patch('tattler.server.sendable.backends.bulkgate_tattler_plugin.urllib.request.urlopen') as murlopen:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_BULKGATE_TOKEN': 'id:tok'}.get(x, None)
+                murlopen.return_value = mock_response({'data': {'sms_id': 'sid1'}})
+                want_params = {'sender_id': 'gOwn', 'sender_id_value': '789'}
+                for sender in ['+789', '00789']:
+                    BulkGateBackend().send(['+123'], 'hello', sender=sender)
+                    sent = json.loads(murlopen.call_args[0][0].data.decode())
+                    self.assertEqual({k: sent[k] for k in want_params}, want_params, msg=sender)
+
+    def test_send_no_sender(self):
+        """send() leaves the sender to the provider's default iff no sender id is given"""
+        with mock.patch('tattler.server.sendable.vector_sendable.getenv') as mgetenv:
+            with mock.patch('tattler.server.sendable.backends.bulkgate_tattler_plugin.urllib.request.urlopen') as murlopen:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_BULKGATE_TOKEN': 'id:tok'}.get(x, None)
+                murlopen.return_value = mock_response({'data': {'sms_id': 'sid1'}})
+                BulkGateBackend().send(['+123'], 'hello')
+                sent = json.loads(murlopen.call_args[0][0].data.decode())
+                self.assertNotIn('sender_id', sent)
+                self.assertNotIn('sender_id_value', sent)
+
+    def test_send_invalid_sender_rejected(self):
+        """send() raises before contacting the provider iff the sender id is neither a number nor a name"""
+        with mock.patch('tattler.server.sendable.vector_sendable.getenv') as mgetenv:
+            with mock.patch('tattler.server.sendable.backends.bulkgate_tattler_plugin.urllib.request.urlopen') as murlopen:
+                mgetenv.side_effect = lambda x, y=None: {'TATTLER_BULKGATE_TOKEN': 'id:tok'}.get(x, None)
+                for sender in ['12345', '079 123 45 67', 'AcmeCorporation']:
+                    with self.assertRaises(ValueError, msg=sender):
+                        BulkGateBackend().send(['+123'], 'hello', sender=sender)
+                murlopen.assert_not_called()
 
     def test_send_rejected(self):
         """send() raises iff the provider returns an error instead of message data"""
