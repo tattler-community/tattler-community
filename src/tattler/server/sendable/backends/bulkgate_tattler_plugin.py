@@ -11,10 +11,11 @@ import logging
 import os
 import re
 import urllib.request
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Mapping, Optional, Tuple
 
 from tattler.server.sendable import vector_sendable
 from tattler.server.sendable.delivery_backend import DeliveryBackend, SendResult
+from tattler.server.sendable.vector_sms import sender_kind
 
 logging.basicConfig(level=os.getenv('LOG_LEVEL', 'info').upper())
 log = logging.getLogger(__name__)
@@ -49,9 +50,27 @@ class BulkGateBackend(DeliveryBackend):
             raise ValueError(f"Envvar '{varname}' is malformed: required 'application_id:application_token'.") from err
         return app_id, app_token
 
+    def sender_params(self, sender: Optional[str]) -> Mapping[str, str]:
+        """Return the request parameters selecting a sender, as either an own number or a text name.
+
+        :param sender:      Sender ID to send as, or None to let BulkGate apply its default.
+
+        :raise ValueError:  When the sender is neither an international number nor a valid alphanumeric name.
+
+        :return:            Parameters to add to the request; empty if no sender is given."""
+        if not sender:
+            return {}
+        match sender_kind(sender):
+            case 'number':
+                return {'sender_id': 'gOwn', 'sender_id_value': sender.removeprefix('+').removeprefix('00')}
+            case 'name':
+                return {'sender_id': 'gText', 'sender_id_value': sender}
+        raise ValueError(f"Sender '{sender}' is neither a number in international format nor an alphanumeric name of up to 11 characters.")
+
     def send(self, recipients: Iterable[str], body: str, sender: Optional[str]=None, priority: Optional[int]=None) -> SendResult:
         # the Simple Transactional API takes one recipient per call
         app_id, app_token = self.get_auth()
+        sender_params = self.sender_params(sender)
         msgids = {}
         for rcpt in recipients:
             params = {
@@ -60,10 +79,8 @@ class BulkGateBackend(DeliveryBackend):
                 'number': rcpt.lstrip('+'),
                 'text': body,
                 'unicode': '0' if body.isascii() else '1',
+                **sender_params,
             }
-            if sender:
-                params['sender_id'] = 'gOwn'
-                params['sender_id_value'] = sender
             req = urllib.request.Request(self.api_url, data=json.dumps(params).encode(),
                                          headers={'Content-Type': 'application/json'}, method='POST')
             log.debug("Sending SMS to '%s' via %s", rcpt, self.api_url)

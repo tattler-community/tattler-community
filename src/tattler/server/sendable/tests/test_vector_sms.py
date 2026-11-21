@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from tattler.server.sendable import vector_sms              # for patching
-from tattler.server.sendable.vector_sms import SMSSendable
+from tattler.server.sendable.vector_sms import SMSSendable, sender_kind
 
 tbase_originalnaming_path = Path(__file__).parent / 'fixtures' / 'templates_originalnaming'
 
@@ -69,6 +69,41 @@ class TestVectorSMS(unittest.TestCase):
                     snd.send()
                 failing1.send.assert_called_once()
                 failing2.send.assert_called_once()
+
+    def test_sender_kind(self):
+        """sender_kind() tells international numbers from alphanumeric names, and returns None for anything else"""
+        want_kinds = {
+            '+16315551234': 'number', '0016315551234': 'number',
+            'Acme': 'name', '4YOU': 'name', 'ElevenChars': 'name',
+            '12345': None, '016315551234': None, '+0163155': None, '+1631 555': None, '+1631555a': None,
+            'TwelveChars1': None, 'Acme Inc': None, 'Acme!': None, '': None,
+        }
+        for sender, want_kind in want_kinds.items():
+            self.assertEqual(sender_kind(sender), want_kind, msg=sender)
+
+    def test_validate_configuration_accepts_valid_senders(self):
+        """validate_configuration() accepts numbers, names and lists mixing them as sender setting"""
+        with mock.patch('tattler.server.sendable.vector_sms.delivery_backend.get_backends'):
+            with mock.patch('tattler.server.sendable.vector_sms.vector_sendable.getenv') as mgetenv:
+                for want_valid in ['+12345678', '0012345678', 'Acme', '+12345678,Acme,0041234567', 'Acme,+12345678']:
+                    mgetenv.side_effect = lambda x, y=None, v=want_valid: {'TATTLER_SMS_SENDER': v}.get(x, y)
+                    SMSSendable.validate_configuration()
+
+    def test_validate_configuration_rejects_invalid_senders(self):
+        """validate_configuration() raises iff any entry of the sender setting is neither a number nor a name"""
+        with mock.patch('tattler.server.sendable.vector_sms.delivery_backend.get_backends'):
+            with mock.patch('tattler.server.sendable.vector_sms.vector_sendable.getenv') as mgetenv:
+                for want_invalid in ['12345', 'AcmeCorporation', '+12345678,12345', '+12345678,', '+12345678, Acme']:
+                    mgetenv.side_effect = lambda x, y=None, v=want_invalid: {'TATTLER_SMS_SENDER': v}.get(x, y)
+                    with self.assertRaises(ValueError, msg=want_invalid):
+                        SMSSendable.validate_configuration()
+
+    def test_sender_name_among_multiple_values(self):
+        """sender() returns a name listed first for recipients sharing no prefix with any listed number"""
+        with mock.patch('tattler.server.sendable.vector_sms.vector_sendable.getenv') as mgetenv:
+            mgetenv.side_effect = lambda x, y=None: {'TATTLER_SMS_SENDER': 'Acme,+41234567'}.get(x, os.getenv(x, y))
+            self.assertEqual(SMSSendable.sender('+1674590832'), 'Acme')
+            self.assertEqual(SMSSendable.sender('+41432'), '+41234567')
 
     def test_sender_multiple_values_default(self):
         """sender() returns the first entry of multiple if no recipient or no shared prefix with it"""

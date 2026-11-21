@@ -25,18 +25,27 @@ Supported values: ``debug``, ``info``, ``warning``, ``error``.
 TATTLER_SMS_SENDER
 ------------------
 
-Mobile number to use as sender for notification SMSes, e.g. ``+16315551234``.
+Sender to show on notification SMSes. Either of:
+
+- a mobile number in international format, e.g. ``+16315551234`` or ``0016315551234``.
+- an alphanumeric name of up to 11 characters, including at least one letter, e.g. ``Acme``.
+
+Anything else is rejected, e.g. ``12345`` or ``Acme Inc``.
 
 If unset, tattler will let the delivery network apply the default source number.
 
-You may provide multiple numbers, separated by a comma. For example: ``+16315551234,+4478456325,+3389453812``.
+Your SMS gateway must know the sender before you may use it: numbers usually require verification, and names
+require registration in some countries. Check with your gateway.
+
+You may provide multiple senders, separated by a comma and no spaces. For example: ``+16315551234,+4478456325,+3389453812``.
 This allows you to reach notification recipients in different countries using a local number -- for example
 to allow them to reply locally or to comply with regulations.
 
-If you do provide multiple SMS sender numbers, tattler will use the one sharing the longest
+If you do provide multiple SMS senders, tattler will use the one sharing the longest
 prefix with the notification recipient's number.
-If none of the numbers has a common prefix with the recipient's number, tattler defaults to
-the first value in the list.
+If none of them has a common prefix with the recipient's number, tattler defaults to
+the first value in the list. So list a name first to use it wherever you have no local number,
+e.g. ``Acme,+16315551234``.
 
 
 TATTLER_EMAIL_SENDER
@@ -108,6 +117,14 @@ The token to use to deliver SMS notifications via `BulkGate <https://www.bulkgat
 
 The token is formatted as a pair of (application_id, application_token) separated by a colon, i.e. ``application_id:application_token``.
 Create the credentials in BulkGate's portal under "Modules & APIs" > "HTTP simple API".
+
+Tattler tells BulkGate what kind of sender :ref:`TATTLER_SMS_SENDER <configuration:TATTLER_SMS_SENDER>` holds:
+
+- a number is sent as "own number" (``gOwn``) without its ``+`` or ``00`` prefix. You must verify it in BulkGate's portal first.
+- a name is sent as "text sender" (``gText``).
+
+BulkGate may accept a message whose sender it does not know -- e.g. deliver it from one of its own numbers
+if yours is not verified. So a mistyped sender does not make tattler fall over to the next SMS gateway.
 
 If you configure multiple SMS gateways -- e.g. this and :ref:`TATTLER_BULKSMS_TOKEN <configuration:TATTLER_BULKSMS_TOKEN>` --
 tattler tries them in alphabetical order, and falls over to the next when one fails to accept the message.

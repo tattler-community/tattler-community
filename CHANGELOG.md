@@ -1,3 +1,9 @@
+# 4.0.1 -- 2026-11-21
+
+- Fix SMS delivery via BulkGate with a text sender like `Acme`: tattler requested it as a verified own number, and now requests it as a text sender
+- Accept text senders in `TATTLER_SMS_SENDER`: each entry is either a mobile number in international format (`+16315551234` or `0016315551234`) or an alphanumeric name of up to 11 characters including a letter. Lists may mix both, e.g. `Acme,+16315551234`
+- Reject malformed entries in `TATTLER_SMS_SENDER` that were previously let through, e.g. `+1631555abc`, numbers with spaces, or spaces around the commas of a list
+
 # 4.0.0 -- 2026-11-14
 
 - Support user plugins to deliver via vectors like SMS or arbitrary vectors
